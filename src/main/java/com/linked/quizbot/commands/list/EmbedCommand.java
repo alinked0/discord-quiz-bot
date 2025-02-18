@@ -73,6 +73,7 @@ public class EmbedCommand extends BotCommand {
 	public String[] getAbbreviations(){ return abbrevs;}
 	@Override
     public String getName(){ return cmdName;}
+	@Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override
     public List<OptionData> getOptionData(){

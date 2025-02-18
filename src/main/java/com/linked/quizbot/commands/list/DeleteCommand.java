@@ -67,6 +67,7 @@ public class DeleteCommand extends BotCommand{
 	public CommandCategory getCategory(){
 		return CommandCategory.EDITING;
 	}
+	@Override
     public String getName(){ return cmdName;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
