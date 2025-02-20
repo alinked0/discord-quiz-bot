@@ -76,13 +76,13 @@ public class Option {
 	 */
 	@Override
 	public String toString() {
-		String s = "{\"text\":\""+getText()+"\"";
-		s+= ",\"isCorrect\":"+isCorrect();
-		s+= ",\"explication\":";
+		String s = "{\n\t\"text\":\""+getText()+"\"";
+		s+= ",\n\t\"isCorrect\":"+isCorrect();
+		s+= ",\n\t\"explication\":";
 		if(getExplication()==null || getExplication().equals("null") || getExplication().equals(Constants.NOEXPLICATION)){
 			s+=null;
 		}else {s += "\""+getExplication()+"\"";}
-		s+="}";
+		s+="\n}";
 		return s;
 	}
 

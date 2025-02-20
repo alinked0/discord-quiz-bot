@@ -1,6 +1,7 @@
 package com.linked.quizbot.core;
 
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.commands.list.HelpCommand;
 import com.linked.quizbot.events.MessageListener;
 
 import net.dv8tion.jda.api.JDA;
@@ -10,7 +11,9 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import com.linked.quizbot.events.ReactionListener;
 import com.linked.quizbot.events.SlashCommandListener;
 import com.linked.quizbot.events.readyEvent;
+
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+
 import com.linked.quizbot.utils.QuestionList;
 
 import net.dv8tion.jda.api.entities.Activity;
@@ -24,6 +27,7 @@ public class Main {
 		} else {
 			Constants.setForWindows();
 		}
+
 		JDA jda = JDABuilder.createDefault(Constants.TOKEN,
 			GatewayIntent.GUILD_MESSAGES, 
 			GatewayIntent.MESSAGE_CONTENT,
@@ -31,7 +35,7 @@ public class Main {
 			GatewayIntent.DIRECT_MESSAGES, 
 			GatewayIntent.DIRECT_MESSAGE_REACTIONS, 
 			GatewayIntent.GUILD_MESSAGE_REACTIONS
-		).setActivity(Activity.playing("q!help")).build();
+		).setActivity(Activity.playing(Constants.CMDPREFIXE+HelpCommand.CMDNAME)).build();
 		jda.addEventListener(
 			new SlashCommandListener(), 
 			new ReactionListener(), 
@@ -40,14 +44,3 @@ public class Main {
 		);
 	}
 }
-// QuestionList l;
-// String path = Constants.LISTSPATH + Constants.SEPARATOR+"939614721244553248"+Constants.SEPARATOR+"Math-Prime_numbers.json";
-// l = new QuestionList(path);
-
-// for (int i = 1; i<=2; i++) {
-// 	l.setAuthorId("468026374557270017");
-// 	l.exportListQuestionAsJson();
-// }
-
-// QuestionList list0 = linked.get(0);
-// Question q0 = list0.get(0);

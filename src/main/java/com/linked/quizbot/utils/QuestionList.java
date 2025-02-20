@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -312,7 +313,7 @@ public class QuestionList extends LinkedList<Question> {
 		String p = Constants.LISTSPATH+Constants.SEPARATOR+getAuthorId()+Constants.SEPARATOR;
 		p+=(getTheme()!=null?getTheme().replace(" ", "_"):getTheme())+"-";
 		p += getName()!=null?getName().replace(" ", "_"):getName();
-		p+=".json";
+		p+= ".json";
 		return p;
 	}
 
@@ -390,19 +391,61 @@ public class QuestionList extends LinkedList<Question> {
 	 */
 	@Override
 	public String toString() {
-		String s = "";
-		s+="{\n\t\"authorId\":\""+getAuthorId()+"\",\n\t\"theme\":\""+getTheme()+"\",\n\t\"name\":\""+getName()+"\",";
-		s+= "\n\t\"questions\": [";
-		for (Iterator<Question> iter = iterator(); iter.hasNext();) {
-			s+= "\n\t"+iter.next().toString().replace("\n", "\n\t");
-			if(iter.hasNext()) {
-				s+=",";
+		return toJson();
+	}
+	public String toJson() {
+		String res="", tab="";
+		res += "{\n";
+		tab = "\t";
+		res += tab+"\"authorId\":\""+getAuthorId()+"\",\n";
+		res += tab + "\"theme\":\""+getTheme()+"\",\n";
+		res += tab + "\"name\":\""+getName()+"\",\n";
+		res += tab + "\"questions\": \n";
+		res += "\t[\n";
+		Iterator<Question> iterQuestion = this.iterator();
+		while (iterQuestion.hasNext()){
+			Question q = iterQuestion.next();
+			tab = "\t\t";
+			res += "\t{\n" + tab + "\"question\":\""+q.getQuestion()+"\",\n";
+			res += tab + "\"explication\":";
+			if(q.getExplication()==null || q.getExplication().equals("null") || q.getExplication().equals(Constants.NOEXPLICATION)){
+				res +=null;
+			}else {
+				res += "\""+q.getExplication()+"\"";
+			}
+			res += ",\n";
+			res +=tab + "\"imageSrc\":"+(q.getImageSrc()==null?null:"\""+q.getImageSrc()+"\"")+",\n";
+			res +=tab + "\"options\": [\n";
+			List<Option> opts = q.getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
+			Iterator<Option> iterOpt = opts.iterator();
+			while (iterOpt.hasNext()){
+				Option opt = iterOpt.next();
+				res += "\t\t{\n";
+				tab = "\t\t\t";
+				res += tab+"\"text\":\""+opt.getText()+"\",\n";
+				res += tab+"\"isCorrect\":"+opt.isCorrect()+",\n";
+				res += tab+"\"explication\":";
+				if(opt.getExplication()==null || opt.getExplication().equals("null") || opt.getExplication().equals(Constants.NOEXPLICATION)){
+					res +=null+"\n";
+				}else {
+					res += "\""+opt.getExplication()+"\"\n";
+				}
+				res += "\t\t}";
+				if (iterOpt.hasNext()){
+					res += ",\n";
+				}
+			}
+			if(iterQuestion.hasNext()) {
+				res+= ",\n";
 			}
 		}
-		s+= "\n\t]\n}";
-		return s.replace("\\", "\\\\");
+		res += "\n\t]\n";
+		res += "\t}\n";
+		res +="}";
+		res = res.replace("\\", "\\\\");
+		res = res.replace("\\", "\\\\");
+		return res;
 	}
-
 	/**
 	 * Returns the hash code for this ListQuestion.
 	 *
