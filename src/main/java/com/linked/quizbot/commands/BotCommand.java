@@ -46,7 +46,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 /**
  * The  BotCommand is an abstract class that represents any command that can be ran by the bot.
  * 
- * This class takes insparation from {@link net.askigh.quizz.commands.BotCommand}
+ * This class takes insparation from {@link https://github.com/Tran-Antoine/Askigh-Bot/}
  */
 public abstract class BotCommand {
 	private final static Map<CommandCategory, Set<BotCommand>> commandByCategory = new HashMap<>();
