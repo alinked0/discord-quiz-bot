@@ -57,7 +57,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * @see BotCore#comfirmDeletion
  */
 public class DeleteCommand extends BotCommand{
-    public static final String cmdName = "delete";
+    public static final String CMDNAME = "delete";
     private String cmdDesrciption = "deletes a list of questions";
 	private String[] abbrevs = new String[]{"del"};
     
@@ -68,7 +68,7 @@ public class DeleteCommand extends BotCommand{
 		return CommandCategory.EDITING;
 	}
 	@Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
     
@@ -85,7 +85,7 @@ public class DeleteCommand extends BotCommand{
         String res; 
         int n = args.length;
         if (n<2){
-            BotCommand.getCommandByName(HelpCommand.cmdName).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
         int fst = Integer.parseInt(args[0]);

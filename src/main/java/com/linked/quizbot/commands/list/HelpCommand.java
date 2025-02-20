@@ -57,14 +57,14 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * @see EmbedBuilder
  */
 public class HelpCommand extends BotCommand {
-    public static final String cmdName = "help";
+    public static final String CMDNAME = "help";
     private String cmdDesrciption = "help people understands the commands.";
 	private String[] abbrevs = new String[]{"h"};
 	
     @Override
 	public String[] getAbbreviations(){ return abbrevs;}
     @Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
     @Override
     public String getDescription(){ return cmdDesrciption;}
     @Override

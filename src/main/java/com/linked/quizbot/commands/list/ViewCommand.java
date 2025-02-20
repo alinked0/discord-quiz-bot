@@ -22,7 +22,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class ViewCommand extends BotCommand{
-    public static final String cmdName = "view";
+    public static final String CMDNAME = "view";
     private String cmdDesrciption = "show the list of questions as in a json format";
 	private String[] abbrevs = new String[]{"v"};
     
@@ -33,7 +33,7 @@ public class ViewCommand extends BotCommand{
 		return CommandCategory.READING;
 	}
 	@Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override
@@ -48,7 +48,7 @@ public class ViewCommand extends BotCommand{
         String res = "```js\n";
         QuestionList l = getSelectedQuestionList(sender.getId(), channel.getJDA(), args);
         if (l==null){
-            BotCommand.getCommandByName(HelpCommand.cmdName).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
 		res += l.toString()+"\n```";

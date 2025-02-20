@@ -59,7 +59,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * @see BotCore
  */
 public class ExplainCommand extends BotCommand {
-    public static final String cmdName = "explain";
+    public static final String CMDNAME = "explain";
     private String cmdDesrciption = "handles the explanation of the current or previous quiz question.";
 	private String[] abbrevs = new String[]{"expl"};
     
@@ -70,7 +70,7 @@ public class ExplainCommand extends BotCommand {
         return CommandCategory.GAME;
 	}
     @Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override
@@ -86,12 +86,12 @@ public class ExplainCommand extends BotCommand {
             recursive_send(iter, message, channel);
             if (q.isActive()) {
                 int delay = q.getDelaySec();
-				BotCommand.getCommandByName(MoreTimeCommand.cmdName)
+				BotCommand.getCommandByName(MoreTimeCommand.CMDNAME)
 				.execute(sender, null, channel, new String[]{""+Constants.READTIMEMIN*60});
                 q.setDelay(delay);
             }
         } else {
-            BotCommand.getCommandByName(HelpCommand.cmdName).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
         }
     }
 }

@@ -18,7 +18,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class LeaderBoardCommand extends BotCommand {
-    public static final String cmdName = "leaderboard";
+    public static final String CMDNAME = "leaderboard";
     private String cmdDesrciption = "displays the leaderboard of the last played game.";
 	private String[] abbrevs = new String[]{"lb"};
     
@@ -29,7 +29,7 @@ public class LeaderBoardCommand extends BotCommand {
         return CommandCategory.GAME;
 	}
     @Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
     @Override
     public String getDescription(){ return cmdDesrciption;}
     @Override
@@ -55,7 +55,7 @@ public class LeaderBoardCommand extends BotCommand {
                 });
             }
         } else {
-            BotCommand.getCommandByName(HelpCommand.cmdName).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
         }
     }
 }

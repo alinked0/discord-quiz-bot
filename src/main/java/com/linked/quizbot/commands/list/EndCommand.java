@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class EndCommand extends BotCommand {
-    public static final String cmdName = "end";
+    public static final String CMDNAME = "end";
     private String cmdDesrciption = "Ends an ongoing quiz.";
 
 	@Override
@@ -25,19 +25,19 @@ public class EndCommand extends BotCommand {
         return CommandCategory.GAME;
 	}
     @Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
     @Override
     public String getDescription(){ return cmdDesrciption;}
     @Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         QuizBot q = BotCore.getCurrQuizBot(channel);
         if (q == null) {
-            BotCommand.getCommandByName(HelpCommand.cmdName)
+            BotCommand.getCommandByName(HelpCommand.CMDNAME)
             .execute(sender, message, channel, new String[]{getName()});
         } else{
             BotCore.endQuizBot(q);
             String[] arg = new String[0];
-            BotCommand.getCommandByName(LeaderBoardCommand.cmdName)
+            BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME)
             .execute(sender, message, channel, arg);
         }
     }

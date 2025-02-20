@@ -22,7 +22,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
  * @see BotCore
  */
 public class MoreTimeCommand extends BotCommand {
-    public static final String cmdName = "moretime";
+    public static final String CMDNAME = "moretime";
     private String cmdDesrciption = "if a quiz is ongoing, it adds a few more secs on the awnser time.";
 	private String[] abbrevs = new String[]{"mt"};
     
@@ -33,7 +33,7 @@ public class MoreTimeCommand extends BotCommand {
 		return CommandCategory.GAME;
 	}
 	@Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override
@@ -42,7 +42,7 @@ public class MoreTimeCommand extends BotCommand {
         QuizBot q = BotCore.getCurrQuizBot(channelId);
         int n = args.length;
         if (q == null){
-            BotCommand.getCommandByName(HelpCommand.cmdName).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
         if(n>0) {

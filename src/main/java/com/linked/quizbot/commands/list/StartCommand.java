@@ -61,7 +61,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see Question
  */
 public class StartCommand extends BotCommand{
-    public static final String cmdName = "start";
+    public static final String CMDNAME = "start";
     private String cmdDesrciption = "start a given quiz, whether its your own or another users";
 	private String[] abbrevs = new String[]{"s"};
 
@@ -72,7 +72,7 @@ public class StartCommand extends BotCommand{
         return CommandCategory.GAME;
 	}
     @Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
     @Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override
@@ -91,7 +91,7 @@ public class StartCommand extends BotCommand{
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
 		QuestionList quizQuestions = getSelectedQuestionList(sender.getId(), channel.getJDA(), args);
         if (quizQuestions==null){
-            BotCommand.getCommandByName(HelpCommand.cmdName).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
         QuizBot newQuizBot = new QuizBot(channel, quizQuestions);

@@ -22,7 +22,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class AddListCommand extends BotCommand{
-public static final String cmdName = "addlist";
+public static final String CMDNAME = "addlist";
     private String cmdDesrciption = "To add a list of questions to a user's lists";
 	private String[] abbrevs = new String[]{"add"};
     
@@ -33,7 +33,7 @@ public static final String cmdName = "addlist";
         return CommandCategory.EDITING;
 	}
     @Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
     @Override
@@ -43,7 +43,7 @@ public static final String cmdName = "addlist";
     }
 	@Override
     public List<OptionData> getOptionData(){
-        List<OptionData> res = BotCommand.getCommandByName(CreateListCommand.cmdName).getOptionData();
+        List<OptionData> res = BotCommand.getCommandByName(CreateListCommand.CMDNAME).getOptionData();
         return res;
     }
 	@Override
@@ -52,7 +52,7 @@ public static final String cmdName = "addlist";
         String res = "Adding your list, ";
         String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
-            BotCommand.getCommandByName(HelpCommand.cmdName).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
         File f = new File(Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp");

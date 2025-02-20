@@ -22,7 +22,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
  * @see BotCore
  */
 public class NextCommand extends BotCommand {
-    public static final String cmdName = "next";
+    public static final String CMDNAME = "next";
     private String cmdDesrciption = "if a quiz is ongoing, it triggers the next question to get sent, creating a new quiz question";
 	
 	@Override
@@ -30,7 +30,7 @@ public class NextCommand extends BotCommand {
 		return CommandCategory.NAVIGATION;
 	}
     @Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override
@@ -38,7 +38,7 @@ public class NextCommand extends BotCommand {
         String channelId = channel.getId();
         QuizBot q = BotCore.getCurrQuizBot(channelId);
         if (q == null){
-            BotCommand.getCommandByName(HelpCommand.cmdName).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
         }else {
             Message msg = q.getQuizMessage();
             q.nextQuestion();

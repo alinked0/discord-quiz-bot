@@ -16,14 +16,14 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class InviteCommand extends BotCommand {
-    public static String cmdName = "invite";
+    public static String CMDNAME = "invite";
     private String cmdDesrciption = "create a bot instalation link";
 	private String[] abbrevs = new String[0];
     
 	@Override
 	public String[] getAbbreviations(){ return abbrevs;}
 	@Override
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override

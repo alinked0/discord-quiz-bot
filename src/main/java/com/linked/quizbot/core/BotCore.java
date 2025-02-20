@@ -61,7 +61,7 @@ public class BotCore {
 		Set<String> msgIds = BotCore.explicationRequestByChannel.get(channel.getId());
 		if (msgIds != null) {
 			if (msgIds.contains(messageId)){
-				BotCommand.getCommandByName(ExplainCommand.cmdName)
+				BotCommand.getCommandByName(ExplainCommand.CMDNAME)
 				.execute(sender, null, channel, new String[0]);
 			}
 		}

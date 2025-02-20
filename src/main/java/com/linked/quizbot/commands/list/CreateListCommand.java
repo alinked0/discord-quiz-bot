@@ -57,7 +57,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * @see UserLists
  */
 public class CreateListCommand extends BotCommand {
-    public static final String cmdName = "createlist";
+    public static final String CMDNAME = "createlist";
     private String cmdDesrciption = "To add a list of questions to a user's lists";
 	private String[] abbrevs = new String[]{"cl"};
     
@@ -66,7 +66,7 @@ public class CreateListCommand extends BotCommand {
 	public CommandCategory getCategory(){
 		return CommandCategory.EDITING;
 	}
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
     public String getDescription(){ return cmdDesrciption;}
     public String getDetailedExamples(){ 
         String s = Constants.CMDPREFIXE+getName()+" "+QuestionList.getExampleQuestionList();
@@ -85,7 +85,7 @@ public class CreateListCommand extends BotCommand {
         String res = "Creating your list, ";
         String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
-            BotCommand.getCommandByName(HelpCommand.cmdName).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
         File f = new File(Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp");

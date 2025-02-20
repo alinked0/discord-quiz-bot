@@ -149,7 +149,7 @@ public class QuizBot extends ListenerAdapter {
 			Message message = getQuizMessage();
 			User sender = null;
 			String[] args = new String[0];
-            BotCommand.getCommandByName(EndCommand.cmdName)
+            BotCommand.getCommandByName(EndCommand.CMDNAME)
 			.execute(sender, null, channel, args);
             return;
         }
@@ -209,8 +209,8 @@ public class QuizBot extends ListenerAdapter {
 	
     public void prevQuestion(){
 		if (getCurrentQuestionIndex() < 1) {
-            BotCommand.getCommandByName(HelpCommand.cmdName)
-            .execute(null, null, channel, new String[]{PreviousCommand.cmdName});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME)
+            .execute(null, null, channel, new String[]{PreviousCommand.CMDNAME});
 			return;
         }
 		BotCore.explicationRequestByChannel.get(getChannel().getId()).remove(quizMessage.getId());

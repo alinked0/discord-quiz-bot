@@ -6,29 +6,20 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
-import com.linked.quizbot.core.BotCore;
 
-import net.dv8tion.jda.api.events.Event;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-// import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-// import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-// import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class PingCommand extends BotCommand {
-    public static final String cmdName = "ping";
+    public static final String CMDNAME = "ping";
     private String cmdDesrciption = "get comfirmation that the bot is online.";
 	private String[] abbrevs = new String[]{"p"};
     
 	public String[] getAbbreviations(){ return abbrevs;}
-    public String getName(){ return cmdName;}
+    public String getName(){ return CMDNAME;}
     public String getDescription(){ return cmdDesrciption;}
 	@Override
     public List<OptionData> getOptionData(){

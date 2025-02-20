@@ -78,13 +78,13 @@ public class MessageListener extends ListenerAdapter {
             if (h.length()>userCmdName.length()+1) {
                 String argumments = h.substring(userCmdName.length()+1);
                 System.out.println("  $> "+userCmdName +"?="+command);
-                if (command.equalsIgnoreCase( CreateListCommand.cmdName)){ 
+                if (command.equalsIgnoreCase( CreateListCommand.CMDNAME)){ 
                     args = new String[]{argumments};
                 }
-                if (command.equalsIgnoreCase(AddListCommand.cmdName)){
+                if (command.equalsIgnoreCase(AddListCommand.CMDNAME)){
                     args = new String[]{argumments};
                 }
-                if (command.equalsIgnoreCase(ViewCommand.cmdName)){
+                if (command.equalsIgnoreCase(ViewCommand.CMDNAME)){
                     String[] tmp = argumments.split(" ");
                     if (tmp.length>=2) {
                         args = tmp;
