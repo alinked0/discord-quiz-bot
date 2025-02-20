@@ -1,11 +1,7 @@
 package com.linked.quizbot.commands.list;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.CommandCategory;
@@ -17,8 +13,6 @@ import com.linked.quizbot.core.QuizBot;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 /**
  * The {@code ExplainCommand} class handles the explanation of the current or previous quiz question.

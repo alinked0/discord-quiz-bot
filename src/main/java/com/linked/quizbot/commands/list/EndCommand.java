@@ -1,20 +1,14 @@
 package com.linked.quizbot.commands.list;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
-import com.linked.quizbot.commands.list.LeaderBoardCommand;
 import net.dv8tion.jda.api.entities.Message;
 
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class EndCommand extends BotCommand {
     public static final String CMDNAME = "end";
