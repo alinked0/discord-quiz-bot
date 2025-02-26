@@ -39,22 +39,16 @@ public class Question extends LinkedList<Option>{
         add(new Option("False", false));
 	}
 	/**
-	 * Create a multiple choice question with <code>numberTrue</code> of true answers.
+	 * Create a multiple choice question from a collection of answers.
 	 *
 	 * @param question a relevant and well-asked question.
-	 * @param numberTrue number of true options with the very first option included.
-	 * @param optionsForAnswer all possible answer options, there will be at least one true option.
+	 * @param optionsForAnswer all possible answer options, there should be at least one true option.
 	 * @requires question !=null
 	 * @requires optionsForAnswer!=null
-	 * @requires numberTrue>0
-	 * @ensures getNumberTrue() == numberTrue
 	 * @ensures getQuestion().equals(question)
-	 * @ensures (\forall int k; k>=0 && k<optionsForAnswer.length;
-	 * 					optionsForAnswer[k].equals(getOptions().get(k)))
 	 */
 	public Question(String question, Collection<? extends Option> optionsForAnswer) {
         super(optionsForAnswer);
-		sort((e, f)->(((e.isCorrect()^f.isCorrect())?(e.isCorrect()?-1:1):0)));
         this.question = question;
 	}
 
@@ -84,7 +78,7 @@ public class Question extends LinkedList<Option>{
 	 *
 	 * @return the number of correct options
 	 */
-	//public int getNumberTrue() {return numberTrue;}
+	public int getNumberTrue() {return getTrueOptions().size();}
 
 	/**
 	 * Returns the explanation for the question, if any.
@@ -92,26 +86,34 @@ public class Question extends LinkedList<Option>{
 	 * @return the explanation, or null if none is defined
 	 */
 	public String getExplication() { return explication;}
+	public String getExplicationFriendly() {
+		return getExplication()==null?Constants.NOEXPLICATION:getExplication();
+	}
 	public void setExplication(String explication) { this.explication = explication;}
 	
 	/**
-	 * Returns a randomly sorted list of all options for the question.
+	 * Returns a list of all options for the question, sorted in natural order.
 	 *
-	 * @return a randomly sorted list of options
+	 * @return a list of options in natural order
 	 */
 	public List<Option> getOptions() {
 		List<Option> res = new LinkedList<>(this);
 		return res;
 	}
+
+	/**
+	 * Returns a randomly sorted list of all options for the question.
+	 *
+	 * @return a randomly sorted list of options
+	 */
 	public List<Option> getOptionsRearraged() {
 		Random r = new Random();
 		List<Option> res = getOptions();
 		res.sort((a,b)->r.nextBoolean()?-1:1);
 		return res;
 	}
-	public void rearrageOptions(){
-		Random r = new Random();
-		sort((a,b)->r.nextBoolean()?-1:1);
+	public void rearrageOptions(Random random){
+		sort((a,b)->random.nextBoolean()?-1:1);
 	}
 	public String getImageSrc (){ return imageSrc;}
 	public void setImageSrc(String imageSrc){ this.imageSrc = imageSrc;}

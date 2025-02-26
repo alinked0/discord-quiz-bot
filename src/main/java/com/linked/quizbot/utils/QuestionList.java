@@ -95,128 +95,27 @@ public class QuestionList extends LinkedList<Question> {
 	/**
 	 * Constructs a ListQuestion from a JSON file located at the specified file path.
 	 *
-	 * @param filePathToJson the file path of the JSON file to import the list from
+	 * @param destFilePath the file path of the JSON file to import the list from
 	 */
-	public QuestionList(String filePathToJson) {
-        long start = System.nanoTime();
-		QuestionList res = new QuestionList();
-		try {
-			File f = new File(filePathToJson);
-			if (!f.exists()){
-				System.err.println("  $> File not found"+ f.getAbsoluteFile());
-				return;
-			}
-			JsonParser jp =  new JsonFactory().createParser(new File(filePathToJson));
-			JsonToken tmp;
-			/*Check if this file is a json */
-			if (jp.nextToken() != JsonToken.START_OBJECT) {
-				System.err.println("The file is not a json");
-			}
-			/* first layer the ListQuestion 
-			 * iterating over ListQuestion attributes
-			*/
-			do{
-				jp.nextToken();
-				//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
-				if (jp.currentToken() == JsonToken.START_ARRAY){
-					jp.nextToken();
-					break;
-				}
-				switch (jp.currentName()){
-					case "authorId" -> res.setAuthorId(jp.getText());
-					case "theme" -> res.setTheme(jp.getText());
-					case "name" -> res.setName(jp.getText());
-				}
-			}while (true);
-			//System.out.println("");
-			/* iterating over evry Question attributes then Options*/
-			boolean keepGoing = true;
-			while (keepGoing) {
-				String q = "";
-				//int num = 1;
-				String expl = "";
-				String imgSrc= "";
-				do {
-					jp.nextToken();
-					if(jp.currentToken() == JsonToken.START_ARRAY) {
-						jp.nextToken();
-						break;
-					}
-					//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
-					switch (jp.currentName()){
-						case "question" -> {q = jp.getText();}
-						//case "numberTrue" -> num = jp.getValueAsInt();
-						case "explication" -> {
-							expl = jp.getText();
-							if (expl==null || expl.equals("null")){
-								expl = "No explanation found.";
-							}
-						}
-						case "img_src","imageSrc" -> {
-							imgSrc = jp.getText().equals("null")?null:jp.getText();
-						}
-					}
-				}while(true);
-				//System.out.println("");
-
-				String optTxt = "";
-				String optExpl = null;
-				Boolean isCorr = false;
-				LinkedList<Option> opt = new LinkedList<>();
-				do {
-					tmp = jp.nextToken();
-					jp.nextToken();
-					//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
-					if (tmp ==JsonToken.END_OBJECT) {
-						opt.add(new Option(optTxt, isCorr, optExpl));
-						if (jp.currentToken()==JsonToken.END_ARRAY){
-							jp.nextToken();jp.nextToken();
-							if (jp.currentToken()==JsonToken.END_ARRAY) {
-								keepGoing = false;
-							}
-							break;
-						}
-						continue;
-					}
-					switch(jp.currentName()){
-						case "text" -> optTxt = jp.getText();
-						case "explication" -> {
-							optExpl = jp.getText();
-							if (optExpl==null || optExpl.equals("null")){
-								optExpl = "No explanation found.";
-							}
-						}
-						case "isCorrect" -> isCorr = jp.getValueAsBoolean();//Text().equals("true")?true:false;
-					}
-				}while(true);
-				//System.out.println("");
-				res.add(new Question(q, opt));
-				res.get(res.size()-1).setImageSrc(imgSrc);
-				res.get(res.size()-1).setExplication(expl);
-			}
-		} catch (IOException e) {
-			System.err.println("Error: Parser creation failed");
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} catch (NullPointerException e) {
-			System.err.println("Error Json representation of ListQuestion is invalid");
-			e.printStackTrace();
+	public QuestionList(String destFilePath) {
+		this();
+		QuestionList res = QuestionListParser.jsonToQuestionList(destFilePath);
+		if (res!=null) {
+			this.addAll(res);
+			this.name = res.getName();
+			this.theme = res.getTheme();
+			this.authorId = res.getAuthorId();
 		}
-		this.addAll(res);
-		this.name = res.getName();
-		this.theme = res.getTheme();
-		this.authorId = res.getAuthorId();
-		System.out.printf("   $> time importJson = `%.3f ms` n=%d name=%s\n",(System.nanoTime() - start) / 1000000.00 ,this.size(),this.name);
 	}
 
 	/**
 	 * Imports a ListQuestion from a JSON file.
 	 *
-	 * @param filePathToJson the file path of the JSON file to import the list from
+	 * @param destFilePath the file path of the JSON file to import the list from
 	 * @return a new ListQuestion instance populated with data from the JSON file
 	 */
-	public static QuestionList importListQuestionFromJson(String filePathToJson) {
-		return new QuestionList(filePathToJson);
+	public static QuestionList importListQuestionFromJson(String destFilePath) {
+		return new QuestionList(destFilePath);
 	}
 
 	/**
@@ -305,9 +204,9 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * Returns the path to the list file for this ListQuestion.
+	 * Returns the default path to the file for this ListQuestion.
 	 *
-	 * @return the file path as a string
+	 * @return the default file path as a string
 	 */
 	public String getPathToList(){
 		String p = Constants.LISTSPATH+Constants.SEPARATOR+getAuthorId()+Constants.SEPARATOR;
@@ -330,23 +229,25 @@ public class QuestionList extends LinkedList<Question> {
 	 * Creates the file if it does not already exist.
 	 */
 	public void exportListQuestionAsJson(){
+		exportListQuestionAsJson(getPathToList());
+	}
+
+	public void exportListQuestionAsJson(String destFilePath){
 		try {
-			File myJson = new File(getPathToList());
-			if(!myJson.getParentFile().exists()) {
-				myJson.getParentFile().mkdirs();
+			File myJson = new File(destFilePath);
+			File folder = myJson.getParentFile();
+			if(folder != null && !myJson.getParentFile().exists()) {
+				folder.mkdirs();
 			}
-			//Writer fw = new FileWriter(getPathToList(), false);
-			BufferedWriter buff = Files.newBufferedWriter(Paths.get(getPathToList()));
-			
-			//FileWriter myWriter = new FileWriter(myJson.getPath());
+			BufferedWriter buff = Files.newBufferedWriter(Paths.get(destFilePath));
 			buff.write(this.toString());
-			//myWriter.write(this.toString());
 			buff.close();
 		} catch (IOException e) {
-			System.err.println("An error occurred while exporting a List of questions.");
+			System.err.println("$> An error occurred while exporting a List of questions.");
 			e.printStackTrace();
 		}
 	}
+
 	public static QuestionList mergeQuestionLists(QuestionList e, QuestionList f) {
 		if (e==null || f == null) {
 			return null;
@@ -394,7 +295,12 @@ public class QuestionList extends LinkedList<Question> {
 		return toJson();
 	}
 	public String toJson() {
-		String res="", tab="";
+		String res="", 
+			tab="",
+			tab1 = "\t",
+			tab2 = "\t\t",
+			tab3 = "\t\t\t",
+			seperatorParamOpt = "\n";
 		res += "{\n";
 		tab = "\t";
 		res += tab+"\"authorId\":\""+getAuthorId()+"\",\n";
@@ -406,41 +312,45 @@ public class QuestionList extends LinkedList<Question> {
 		while (iterQuestion.hasNext()){
 			Question q = iterQuestion.next();
 			tab = "\t\t";
-			res += "\t{\n" + tab + "\"question\":\""+q.getQuestion()+"\",\n";
-			res += tab + "\"explication\":";
+			res += "\t{\n" + tab2 + "\"question\":\""+q.getQuestion()+"\",\n";
+			res += tab2 + "\"explication\":";
 			if(q.getExplication()==null || q.getExplication().equals("null") || q.getExplication().equals(Constants.NOEXPLICATION)){
 				res +=null;
 			}else {
 				res += "\""+q.getExplication()+"\"";
 			}
 			res += ",\n";
-			res +=tab + "\"imageSrc\":"+(q.getImageSrc()==null?null:"\""+q.getImageSrc()+"\"")+",\n";
-			res +=tab + "\"options\": [\n";
+			res +=tab2 + "\"imageSrc\":"+(q.getImageSrc()==null?null:"\""+q.getImageSrc()+"\"")+",\n";
+			res +=tab2 + "\"options\": [\n";
 			List<Option> opts = q.getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
 			Iterator<Option> iterOpt = opts.iterator();
 			while (iterOpt.hasNext()){
 				Option opt = iterOpt.next();
-				res += "\t\t{\n";
-				tab = "\t\t\t";
-				res += tab+"\"text\":\""+opt.getText()+"\",\n";
-				res += tab+"\"isCorrect\":"+opt.isCorrect()+",\n";
-				res += tab+"\"explication\":";
+				res += tab2+"{\n";
+				res += tab3+"\"text\":\""+opt.getText()+"\","+seperatorParamOpt;
+				res += tab3+"\"isCorrect\":"+opt.isCorrect()+","+seperatorParamOpt;
+				res += tab3+"\"explication\":";
 				if(opt.getExplication()==null || opt.getExplication().equals("null") || opt.getExplication().equals(Constants.NOEXPLICATION)){
-					res +=null+"\n";
+					res +=null+seperatorParamOpt;
 				}else {
-					res += "\""+opt.getExplication()+"\"\n";
+					res += "\""+opt.getExplication()+"\""+seperatorParamOpt;
 				}
-				res += "\t\t}";
+				res += tab2+"}";
 				if (iterOpt.hasNext()){
-					res += ",\n";
+					res += ",";
+				}else{
+					res += "\n"+tab2+"]";
 				}
+				res += "\n";
 			}
+			res += tab1+"}";
 			if(iterQuestion.hasNext()) {
-				res+= ",\n";
+				res+= ",";
+			}else{
+				res += "\n"+tab1+"]";
 			}
+			res += "\n";
 		}
-		res += "\n\t]\n";
-		res += "\t}\n";
 		res +="}";
 		res = res.replace("\\", "\\\\");
 		res = res.replace("\\", "\\\\");

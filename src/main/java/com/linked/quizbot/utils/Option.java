@@ -64,6 +64,9 @@ public class Option {
 	public String getExplication() {
 		return explication;
 	}
+	public String getExplicationFriendly() {
+		return getExplication()==null?Constants.NOEXPLICATION:getExplication();
+	}
 	
 	public static Comparator<? super Option> comparator() {
         return (e, f)->((e.isCorrect()^f.isCorrect())?(e.isCorrect()?-1:1):0);
