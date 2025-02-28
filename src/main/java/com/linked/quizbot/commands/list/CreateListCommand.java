@@ -4,20 +4,18 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.UserLists;
 
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -82,7 +80,7 @@ public class CreateListCommand extends BotCommand {
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
 		// Répondre avec le temps de latence
         int n = args.length;
-        String res = "Creating your list, ";
+        String res = "";
         String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
@@ -105,16 +103,15 @@ public class CreateListCommand extends BotCommand {
             QuestionList l = new QuestionList(f.getAbsolutePath());
             if (l!=null) {
                 if (l.getAuthorId()==null) {
-                    res += "author set to "+userId+"\n";
                     l.setAuthorId(userId);
                 }
                 if (l.getName()!=null && l.getTheme()!=null) {
                     if(UserLists.getUserListQuestions(userId).contains(l)) {
                         res = "Failed, list of name : \""+l.getName()+"\" and theme : \""+l.getTheme()+"\" already exists.";
                     } else {
-                        String index = UserLists.getCodeForIndexQuestionList(l, l.getAuthorId());
-                        res = "Success, list has been added, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
                         UserLists.addListToUser(l.getAuthorId(), l);
+                        String index = UserLists.getCodeForIndexQuestionList(l, l.getAuthorId());
+                        res = "Success, list has been created, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
                     }
                 }else {
                     res = "Failed, no \"name\" or \"theme\" found\n" + res;

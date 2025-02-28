@@ -24,7 +24,7 @@ import com.linked.quizbot.Constants;
  */
 public class TestUserLists {
     
-    private static final String TEST_USER_ID = "123456789";
+    private static final String TEST_USER_ID = "tmp123456789";
     private UserLists userLists;
     private QuestionList sampleList1;
     private QuestionList sampleList2;

@@ -1,25 +1,19 @@
 package com.linked.quizbot.commands.list;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListParser;
 import com.linked.quizbot.utils.UserLists;
-import com.linked.quizbot.commands.CommandCategory;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
@@ -81,9 +75,9 @@ public static final String CMDNAME = "addlist";
         if (l.getName()!=null && l.getTheme()!=null) {
             for (QuestionList k : UserLists.getUserListQuestions(l.getAuthorId())){
                 if(k.getName().equals(l.getName())) {
+                    UserLists.addListToUser(l.getAuthorId(), l);
                     String index = UserLists.getCodeForIndexQuestionList(l, l.getAuthorId());
                     res += "Success, list has been added, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
-                    UserLists.addListToUser(l.getAuthorId(), l);
                     return res;
                 }
             }
