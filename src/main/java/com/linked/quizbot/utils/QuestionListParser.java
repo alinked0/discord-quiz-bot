@@ -6,11 +6,13 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Date;
 
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.linked.quizbot.Constants;
 
 import java.util.Collection;
 
@@ -35,7 +37,7 @@ public class QuestionListParser {
 			*/
 			do{
 				jp.nextToken();
-				System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
+				//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 				if (jp.currentToken() == JsonToken.START_ARRAY){
 					jp.nextToken();
 					break;
@@ -60,7 +62,7 @@ public class QuestionListParser {
 						jp.nextToken();
 						break;
 					}
-					System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
+					//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 					switch (jp.currentName()){
 						case "question" -> {q = jp.getText();}
 						//case "numberTrue" -> num = jp.getValueAsInt();
@@ -84,7 +86,7 @@ public class QuestionListParser {
 				do {
 					tmp = jp.nextToken();
 					jp.nextToken();
-					System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
+					//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 					if (tmp ==JsonToken.END_OBJECT) {
 						opt.add(new Option(optTxt, isCorr, optExpl));
 						if (jp.currentToken()==JsonToken.END_ARRAY){
@@ -124,4 +126,23 @@ public class QuestionListParser {
         System.out.printf("   $> time importJson = `%.3f ms`\n",(System.nanoTime() - start) / 1000000.00);
 		return null;
     }
+	public static QuestionList stringToQuestionList(String arg){
+		Date d = new Date();
+        File f = new File(Constants.LISTSPATH+Constants.SEPARATOR+"tmp"+d.getTime());
+		try {
+			if(!f.getParentFile().exists()) {
+				f.getParentFile().mkdirs();
+			}
+			BufferedWriter buff = Files.newBufferedWriter(f.toPath());
+			buff.write(arg);
+			buff.close();
+		} catch (IOException e) {
+			System.err.println("$> An error occurred while adding a List of questions.");
+			e.printStackTrace();
+			return null;
+		}
+		QuestionList res = new QuestionList(f.getAbsolutePath());
+		f.delete();
+		return res;
+	}
 }

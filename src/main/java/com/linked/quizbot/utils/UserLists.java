@@ -45,9 +45,11 @@ public class UserLists implements Iterable<QuestionList>{
     private void initAttributes(){
         numberOfGamesPlayed = 0;
         totalPointsEverGained = 0;
+        allUserLists.add(this);
         for (QuestionList l:allLists) {
             l.setAuthorId(getUserId());
         }
+        allLists.sort((e,f)-> e.getName().compareTo(f.getName()));
     }
     private void initThemes(){
         listsByTheme = new HashMap<>();
@@ -58,6 +60,7 @@ public class UserLists implements Iterable<QuestionList>{
                 allThemes.add(theme);
             }
         }
+        allThemes.sort((e,f)-> e.compareTo(f));
         for(String t : allThemes) {
             listsByTheme.put(t, new ArrayList<QuestionList>());
         }
@@ -65,38 +68,60 @@ public class UserLists implements Iterable<QuestionList>{
             listsByTheme.get(l.getTheme()).add(l);
         }
     }
+    public static String getCodeForIndexQuestionList(QuestionList l, String userId){
+        for (UserLists u : allUserLists) {
+            if (u.getUserId().equals(userId)) {
+                return u.getCodeForIndexQuestionList(l);
+            }
+        }
+        return null;
+    }
+    public String getCodeForIndexQuestionList(QuestionList l){
+        String theme = l.getTheme();
+        int indexTheme = myBinarySearchIndexOf(allThemes, 0, allThemes.size()-1, theme);
+        List<QuestionList> list = listsByTheme.get(theme);
+        int indexList = myBinarySearchIndexOf(list, 0, list.size()-1, l);
+        return (indexTheme+1)+" " +(indexList+1);
+    }
     public static void addListToUser(String userId, QuestionList l) {
         for (UserLists u : allUserLists) {
             if (u.getUserId().equals(userId)) {
-                System.out.println("  $> "+u.getUserId()+"?="+ userId);
                 u.addList(l);
                 return;
             }
         }
     }
     public void addList(QuestionList l) {
-        System.out.println("   $> "+allThemes);
-        System.out.println("   $> index "+myBinarySearchIndexOf(allThemes, 0, allThemes.size()-1, l.getTheme())+" for"+l.getTheme());
+        int h = allLists.size();
+        allUserLists.remove(this);
+        System.out.println("    $> "+allThemes);
+        int indexTheme = myBinarySearchIndexOf(allThemes, 0, allThemes.size()-1, l.getTheme());
+        System.out.println("    $> index "+indexTheme+" for:"+l.getTheme());
         String theme = l.getTheme();
-        for (QuestionList k : allLists){
-            if (k.equals(l)){
-                k.addAll(l);
-                k.exportListQuestionAsJson();
-                listsByTheme.get(theme).remove(k);
-                listsByTheme.get(theme).add(k);
-                allLists.remove(k);
-                allLists.add(k);
-                return;
-            }
+        int indexList = myBinarySearchIndexOf(allLists, 0, allLists.size()-1, l);
+        System.out.println("    $> index "+indexList+" for:"+l.getName());
+        if (indexList>=0) {
+            QuestionList k = allLists.get(indexList);
+            k.addAll(l);
+            int i = listsByTheme.get(theme).indexOf(k);
+            listsByTheme.get(theme).set(i,k);
+            i = allLists.indexOf(k);
+            allLists.set(i, k);
+            k.exportListQuestionAsJson();
+            allUserLists.add(this);
+            return;
         }
-
-        if(!allThemes.contains(theme)) {
+        if (indexTheme<0){
             allThemes.add(theme);
             listsByTheme.put(theme, new ArrayList<>());
         }
         allLists.add(l);
         listsByTheme.get(theme).add(l);
         l.exportListQuestionAsJson();
+        allLists.sort((e,f)-> e.getName().compareTo(f.getName()));
+        allThemes.sort((e,f)-> e.compareTo(f));
+        listsByTheme.get(theme).sort((e,f)-> e.getName().compareTo(f.getName()));
+        allUserLists.add(this);
     }
     public static void deleteList(QuestionList l){
         UserLists userLists = new UserLists(l.getAuthorId());
@@ -109,7 +134,6 @@ public class UserLists implements Iterable<QuestionList>{
             userLists.listsByTheme.remove(theme);
             userLists.allThemes.remove(theme);
         }
-
         allUserLists.remove(userLists);
         allUserLists.add(userLists);
     }
@@ -119,6 +143,19 @@ public class UserLists implements Iterable<QuestionList>{
         }
         int m = (start+end)/2;
         int comp = tab.get(m).compareTo(q);
+        if(comp == 0){
+            return m;
+        }
+        if (comp >0){
+            return myBinarySearchIndexOf(tab, start, m-1, q);
+        }
+        return myBinarySearchIndexOf(tab, m+1, end, q);
+    }public static int myBinarySearchIndexOf(List<QuestionList> tab, int start, int end, QuestionList q){
+        if (start > end){
+            return -1*start-1;
+        }
+        int m = (start+end)/2;
+        int comp = tab.get(m).getName().compareTo(q.getName());
         if(comp == 0){
             return m;
         }
@@ -192,6 +229,7 @@ public class UserLists implements Iterable<QuestionList>{
             List<QuestionList> lists = userLists.getAllLists();
             for (QuestionList l : lists) {
                 l.exportListQuestionAsJson();
+                System.out.println(l.getPathToList()+"; ");
             }
         }
     }

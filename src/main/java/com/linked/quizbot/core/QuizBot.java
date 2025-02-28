@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -92,6 +93,7 @@ public class QuizBot extends ListenerAdapter {
 	public double pointsForIncorrect = -0.25;
     public int delaySec = 15;
     public MessageChannel channel;
+	public static Random random = new Random();
 
     public QuizBot(MessageChannel channel){
         this.channel = channel;
@@ -155,7 +157,7 @@ public class QuizBot extends ListenerAdapter {
         }
 		
         Question currentQuestion = getCurrQuestion();
-        currentQuestion.rearrageOptions();
+        currentQuestion.rearrageOptions(random);
         quizQuestions.set(getCurrentQuestionIndex(), currentQuestion);
 		
         if (!awnsersByUserByQuestion.containsKey(currentQuestion)) {
@@ -317,7 +319,7 @@ public class QuizBot extends ListenerAdapter {
 			text += "### "+(index)+". "+q.getQuestion();
 			if (opts!=null) {
 				for (Option opt : opts) {
-					explication = opt.getExplication();
+					explication = opt.getExplicationFriendly();
 					//System.out.println("   $> opt "+opt.isCorrect()+""+opt.getText() + "\n");
 					points += opt.isCorrect()?pointsForCorrect/numberOfTrueOptions:pointsForIncorrect;
 					optsString += "> "+(opt.isCorrect()?Constants.EMOJITRUE:Constants.EMOJIFALSE).getFormatted()+explication+"\n";
@@ -325,7 +327,7 @@ public class QuizBot extends ListenerAdapter {
 			}
 			text += " `"+points+"/1`\n";
 			text += optsString;
-			explication = q.getExplication();
+			explication = q.getExplicationFriendly();
 			text += "> \n> **"+explication+"**\n\n";
 
 			if (text.length()>(Constants.CHARSENDLIM-1000)) {

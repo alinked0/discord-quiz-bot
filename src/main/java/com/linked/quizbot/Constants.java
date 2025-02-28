@@ -26,9 +26,10 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 public class Constants {
 	public static boolean AREWETESTING;
 	public static String 
-		SEPARATOR,
-		RESOURCESPATH,
-		LISTSPATH;
+		roo = System.getProperty("user.dir").substring(0, 1),
+		SEPARATOR= roo.equals("/")?"/":"\\",
+		RESOURCESPATH= "src"+SEPARATOR+"main"+SEPARATOR+"resources",
+		LISTSPATH=RESOURCESPATH+ SEPARATOR +"lists";
 	public static final String 
 		TOKEN = Credentials.TOKEN,
 		AUTHORID = Credentials.AUTHORID,
@@ -52,15 +53,9 @@ public class Constants {
 		EMOJIWHITESQUARE = Emoji.fromUnicode("U+2B1C"),
 		EMOJIEXPLICATION = Emoji.fromUnicode("U+2754");
 	public static void setForLinux() {
-		SEPARATOR = "/";
-		RESOURCESPATH = "src"+SEPARATOR+"main"+SEPARATOR+"resources";
-		LISTSPATH = RESOURCESPATH+ SEPARATOR +"lists";
 		AREWETESTING = false;
 	}
 	public static void setForWindows() {
-		SEPARATOR = "\\";
-		RESOURCESPATH = "src"+SEPARATOR+"main"+SEPARATOR+"resources";
-		LISTSPATH = RESOURCESPATH+ SEPARATOR +"lists";
 		AREWETESTING = true;
 	}
 	public static boolean isAppBugFree(){

@@ -5,12 +5,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.QuestionListParser;
 import com.linked.quizbot.utils.UserLists;
 import com.linked.quizbot.commands.CommandCategory;
 
@@ -49,7 +51,7 @@ public static final String CMDNAME = "addlist";
 	@Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         int n = args.length;
-        String res = "Adding your list, ";
+        String res = "Failed, for yet to be known reasons.";
         String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
@@ -57,40 +59,36 @@ public static final String CMDNAME = "addlist";
         }
         File f = new File(Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp");
         for (int i = 0; i<n; i++) {
-            try {
-                if(!f.getParentFile().exists()) {
-                    f.getParentFile().mkdirs();
-                }
-                BufferedWriter buff = Files.newBufferedWriter(f.toPath());
-                buff.write(args[i]);
-                buff.close();
-            } catch (IOException e) {
-                System.err.println("An error occurred while adding a List of questions.");
-                res += "failed\n";
-                e.printStackTrace();
-            }
-            QuestionList l = new QuestionList(f.getAbsolutePath());
+            QuestionList l = QuestionListParser.stringToQuestionList(args[i]);
             if (l!=null) {
                 if (l.getAuthorId()==null) {
-                    res += "author set to "+userId+"\n";
                     l.setAuthorId(userId);
                 }
-                if (l.getName()!=null && l.getTheme()!=null) {
-                    if(!UserLists.getUserListQuestions(userId).contains(l)) {
-                        res = "Failed, list of name : \""+l.getName()+"\" and theme : \""+l.getTheme()+"\" doesn't exists.";
-                    } else {
-                        res = "Success, list has been added, use ```"+Constants.CMDPREFIXE+"collection "+l.getAuthorId()+"``` command to verife.\n" +res;
-                        UserLists.addListToUser(l.getAuthorId(), l);
-                    }
-                }else {
-                    res = "Failed, no \"name\" or \"theme\" found\n";
-                }
+                res = addListAndReturnMessage(l);
             }
         }
-        f.delete();
         MessageCreateAction send;
         send = channel.sendMessage(res);
         if(message!=null){send.setMessageReference(message);}
         send.queue(msg -> msg.delete().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES));
+    }
+    private String addListAndReturnMessage(QuestionList l) {
+        String res = "";
+        if (QuestionList.getExampleQuestionList().getName().equals(l.getName())) {
+            res += "The example list cannot be modified.\n";
+            return res;
+        }
+        if (l.getName()!=null && l.getTheme()!=null) {
+            for (QuestionList k : UserLists.getUserListQuestions(l.getAuthorId())){
+                if(k.getName().equals(l.getName())) {
+                    String index = UserLists.getCodeForIndexQuestionList(l, l.getAuthorId());
+                    res += "Success, list has been added, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
+                    UserLists.addListToUser(l.getAuthorId(), l);
+                    return res;
+                }
+            }
+        }
+        res += "Failed, list of name : \""+l.getName()+"\" doesn't exists.";
+        return res;
     }
 }

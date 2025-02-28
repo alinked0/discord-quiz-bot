@@ -112,7 +112,8 @@ public class CreateListCommand extends BotCommand {
                     if(UserLists.getUserListQuestions(userId).contains(l)) {
                         res = "Failed, list of name : \""+l.getName()+"\" and theme : \""+l.getTheme()+"\" already exists.";
                     } else {
-                        res = "Success, list has been added, use ```"+Constants.CMDPREFIXE+"collection "+l.getAuthorId()+"``` command to verife.\n" +res;
+                        String index = UserLists.getCodeForIndexQuestionList(l, l.getAuthorId());
+                        res = "Success, list has been added, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
                         UserLists.addListToUser(l.getAuthorId(), l);
                     }
                 }else {

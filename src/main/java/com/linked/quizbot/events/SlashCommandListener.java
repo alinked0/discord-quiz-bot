@@ -103,9 +103,7 @@ public class SlashCommandListener extends ListenerAdapter {
 				System.out.print("  $> /"+cmd.getName());
 				System.out.print(" ; args :");
 				for (i=0; i<args.length; i++) { System.out.print(args[i]+":");}
-				System.out.println("");
-				String tmp = "";
-				for (i=0; i<args.length; i++) { tmp+=" "+args[i];}
+				
 				Message message = null;
 				cmd.execute(sender, message, channel, args);
 				System.out.printf("   $> time of "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);

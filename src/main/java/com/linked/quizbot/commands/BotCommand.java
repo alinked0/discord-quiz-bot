@@ -186,13 +186,17 @@ public abstract class BotCommand {
 			themeIndex = rand.nextInt(0, themesSize);
             listIndex = rand.nextInt(0, userList.getListsByTheme(userList.getAllThemes().get(themeIndex)).size());
 		}
+		QuestionList res;
 		if (themeIndex==themesSize && listIndex==0) {
-			return QuestionList.getExampleQuestionList();
+			res = QuestionList.getExampleQuestionList();
+			res.setAuthorId(senderId);
+		} else {
+			theme = userList.getAllThemes().get(themeIndex);
+			lists = userList.getListsByTheme(theme);
+			res = lists.get(listIndex);
 		}
-        theme = userList.getAllThemes().get(themeIndex);
-        lists = userList.getListsByTheme(theme);
 		System.out.printf("  $> time getSelectedQuestionList = %.3f ms\n", (System.nanoTime() - start) / 1000000.00);
-		return lists.get(listIndex);
+		return res;
 	}
 	public SlashCommandData getSlashCommandData(){
 		return Commands.slash(getName(), getDescription()).addOptions(getOptionData());
