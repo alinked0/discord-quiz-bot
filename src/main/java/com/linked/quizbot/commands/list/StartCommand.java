@@ -8,6 +8,7 @@ import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.Question;
@@ -62,7 +63,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  */
 public class StartCommand extends BotCommand{
     public static final String CMDNAME = "start";
-    private String cmdDesrciption = "start a given quiz, whether its your own or another users";
+    private String cmdDesrciption = "starting a given quiz, whether its your own or another users";
 	private String[] abbrevs = new String[]{"s"};
 
 	@Override
@@ -81,8 +82,8 @@ public class StartCommand extends BotCommand{
         res.addAll(
             List.of(
                 new OptionData(OptionType.USER, "userid", "a long number that is a user discord id"),
-                new OptionData(OptionType.INTEGER, "themeid", "The theme id given by the cmd collection"),
-                new OptionData(OptionType.INTEGER, "listid", "The list id given by the cmd collection")
+                new OptionData(OptionType.INTEGER, "index-of-theme", "the theme index given by "+Constants.CMDPREFIXE+"c"),
+                new OptionData(OptionType.INTEGER, "index-of-list", "the list index given by "+Constants.CMDPREFIXE+"c")
             )
         );
         return res;

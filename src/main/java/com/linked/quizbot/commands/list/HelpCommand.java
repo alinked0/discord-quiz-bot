@@ -58,7 +58,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  */
 public class HelpCommand extends BotCommand {
     public static final String CMDNAME = "help";
-    private String cmdDesrciption = "help people understands the commands.";
+    private String cmdDesrciption = "helping people understands the commands.";
 	private String[] abbrevs = new String[]{"h"};
 	
     @Override

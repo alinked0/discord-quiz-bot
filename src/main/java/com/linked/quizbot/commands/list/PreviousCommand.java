@@ -23,7 +23,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
  */
 public class PreviousCommand extends BotCommand {
     public static final String CMDNAME = "previous";
-    private String cmdDesrciption = "if a quiz is ongoing, it triggers the previous question to get sent";
+    private String cmdDesrciption = "triggering the previous question to get sent if a quiz is ongoing";
 	private String[] abbrevs = new String[]{"prev"};
 
 	public String[] getAbbreviations(){ return abbrevs;}

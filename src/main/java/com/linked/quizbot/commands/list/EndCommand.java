@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 public class EndCommand extends BotCommand {
     public static final String CMDNAME = "end";
-    private String cmdDesrciption = "Ends an ongoing quiz.";
+    private String cmdDesrciption = "ending an already ongoing quiz.";
 
 	@Override
 	public CommandCategory getCategory(){

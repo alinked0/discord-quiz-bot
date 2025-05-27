@@ -54,7 +54,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
  */
 public class ExplainCommand extends BotCommand {
     public static final String CMDNAME = "explain";
-    private String cmdDesrciption = "handles the explanation of the current or previous quiz question.";
+    private String cmdDesrciption = "explaining the scoring for, the current question if a game is ongoing, or all question if not.";
 	private String[] abbrevs = new String[]{"expl"};
     
 	@Override

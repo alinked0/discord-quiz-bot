@@ -19,7 +19,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class LeaderBoardCommand extends BotCommand {
     public static final String CMDNAME = "leaderboard";
-    private String cmdDesrciption = "displays the leaderboard of the last played game.";
+    private String cmdDesrciption = "displaying the leaderboard of the last played game.";
 	private String[] abbrevs = new String[]{"lb"};
     
 	@Override

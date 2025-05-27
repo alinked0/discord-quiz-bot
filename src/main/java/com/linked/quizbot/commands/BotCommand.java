@@ -72,7 +72,7 @@ public abstract class BotCommand {
 	public abstract String getDescription();
 
 	public String getDetailedExamples(){
-		return getDescription();
+		return "no examples found.";
 	}
 
 	public static Set<BotCommand> getCommands() { 
