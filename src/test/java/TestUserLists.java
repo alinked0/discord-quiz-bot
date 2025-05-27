@@ -44,6 +44,7 @@ public class TestUserLists {
             }
             f.delete();
         }
+        
         // Create sample question lists
         sampleList1 = new QuestionList(TEST_USER_ID, "Science Quiz", "Science");
         Question q1 = new Question("What is H2O?", 1, "Water", "Carbon Dioxide");
