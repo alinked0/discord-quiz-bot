@@ -1,4 +1,3 @@
-
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.UserLists;
@@ -23,7 +22,6 @@ import com.linked.quizbot.Constants;
  * Tests the creation, modification, and management of user question lists.
  */
 public class TestUserLists {
-    
     private static final String TEST_USER_ID = "tmp123456789";
     private UserLists userLists;
     private QuestionList sampleList1;
@@ -397,4 +395,5 @@ public class TestUserLists {
         assertNotEquals(userLists, "987654321");
         assertNotEquals(userLists, new Object());
     }
+>>>>>>> parent of ad9647e (No modification)
 }
