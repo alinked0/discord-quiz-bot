@@ -29,7 +29,7 @@ public class PingCommand extends BotCommand {
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         long start = System.nanoTime();
 		// Répondre avec le temps de latence
-        String res = "pong " + (System.nanoTime() - start) * 1000000.00 + "ms";
+        String res = "pong " + ((System.nanoTime() - start) / 1000000.00) + "ms";
         MessageCreateAction send;
         send = channel.sendMessage(res);
         if(message!=null){send.setMessageReference(message);}

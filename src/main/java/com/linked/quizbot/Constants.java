@@ -26,18 +26,17 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 public class Constants {
 	public static boolean AREWETESTING;
 	public static String 
-		roo = System.getProperty("user.dir").substring(0, 1),
-		SEPARATOR= roo.equals("/")?"/":"\\",
+		root = System.getProperty("user.dir").substring(0, 1),
+		SEPARATOR= root.equals("/")?"/":"\\",
 		RESOURCESPATH= "src"+SEPARATOR+"main"+SEPARATOR+"resources",
-		LISTSPATH=RESOURCESPATH+ SEPARATOR +"lists";
-	public static final String 
-		TOKEN = Credentials.TOKEN,
-		AUTHORID = Credentials.AUTHORID,
-		DEBUGGUILDID = Credentials.DEBUGGUILDID,
-		DEBUGCHANNELID = Credentials.DEBUGCHANNELID;
-	public static final String 	
+		LISTSPATH=RESOURCESPATH+ SEPARATOR +"lists",
+		TOKEN,
+		AUTHORID = "",
+		DEBUGGUILDID = "",
+		DEBUGCHANNELID = "",
 		CMDPREFIXE = "q!",
-		NOEXPLICATION = "No explanation found.";
+		NOEXPLICATION = "No explanation found.",
+		UPDATEEXPLANATION = "The bot is curretly getting an update, please be patient.";
 	public static final int 
 		CHARSENDLIM = 2000,
 		READTIMEMIN = 5,
@@ -52,17 +51,14 @@ public class Constants {
 		EMOJIPREVQUESTION = Emoji.fromUnicode("U+23EE U+FE0F"),
 		EMOJIWHITESQUARE = Emoji.fromUnicode("U+2B1C"),
 		EMOJIEXPLICATION = Emoji.fromUnicode("U+2754");
-	public static void setForLinux() {
-		AREWETESTING = false;
-	}
-	public static void setForWindows() {
-		AREWETESTING = true;
-	}
-	public static boolean isAppBugFree(){
+	public static boolean isBugFree(){
 		return !AREWETESTING;
 	}
 	public static boolean canIRunThisHere(String guildId){
 		boolean b = Constants.DEBUGGUILDID.equals(guildId);
-		return AREWETESTING?b:!b;
+		return isBugFree()?!b:b;
+	}
+	public static boolean isDebugGuild(String guildId){
+		return Constants.DEBUGGUILDID.equals(guildId);
 	}
 }

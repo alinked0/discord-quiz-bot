@@ -2,6 +2,7 @@ package com.linked.quizbot.events;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.commands.list.CreateListCommand;
 import com.linked.quizbot.commands.list.AddListCommand;
 import com.linked.quizbot.commands.list.ViewCommand;
@@ -16,8 +17,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 /**
- * The class MessageReceivedListener will serve as the first layer to any command
- * that means message commands like !help or slash commands like /help
+ * The class MessageReceivedListener will serve as the first layer to any text command
+ * that means message commands like !help
  */
 public class MessageListener extends ListenerAdapter {
     
@@ -37,10 +38,10 @@ public class MessageListener extends ListenerAdapter {
                 return;
             }
         }
-        
         MessageChannel channel = event.getChannel();
         // log User
         BotCore.addUser(sender);
+        
         //vefifier si le message contient notre prefixe
         Message message = event.getMessage();
         String content = message.getContentRaw();
@@ -70,6 +71,13 @@ public class MessageListener extends ListenerAdapter {
         
         // Vérifier si le message correspond a une commande existante, ex: "!embed"
         BotCommand cmd = BotCommand.getCommandByName(userCmdName);
+        if(BotCore.isShutingDown()){
+            CommandCategory category = cmd.getCategory();
+            if(category.equals(CommandCategory.EDITING) || category.equals(CommandCategory.GAME)){
+                channel.sendMessage(Constants.UPDATEEXPLANATION).queue();
+                return;
+            }
+        }
         String [] args=null;
         if(cmd == null) {
             System.out.printf("  $> not found : %s;\n",userCmdName);
