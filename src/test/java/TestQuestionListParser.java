@@ -1,8 +1,10 @@
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.UserLists;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.Option;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -40,6 +42,17 @@ public class TestQuestionListParser {
         
         // Create temporary file for testing
         jsonFile = new File(tempDir.toFile(), "test_questions.json");
+    }
+    /**
+     * Cleans up after each test by removing test files.
+     */
+    @AfterEach
+    public void tearDown() {
+        // Delete the test file
+        File f = tempFile;
+        if (f.exists()){
+            f.delete();
+        }
     }
 
     /**
