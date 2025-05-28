@@ -66,7 +66,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  */
 public class EmbedCommand extends BotCommand {
     public static final String CMDNAME = "embed";
-    private String cmdDesrciption = "old test for discord embeds";
+    private String cmdDesrciption = "old test for printing questions using discord embeds";
 	private String[] abbrevs = new String[0];
     
 	@Override

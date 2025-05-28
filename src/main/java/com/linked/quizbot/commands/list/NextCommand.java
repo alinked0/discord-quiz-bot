@@ -23,7 +23,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
  */
 public class NextCommand extends BotCommand {
     public static final String CMDNAME = "next";
-    private String cmdDesrciption = "if a quiz is ongoing, it triggers the next question to get sent, creating a new quiz question";
+    private String cmdDesrciption = "triggering the next question to get sent if a quiz is ongoing";
 	
 	@Override
 	public CommandCategory getCategory(){

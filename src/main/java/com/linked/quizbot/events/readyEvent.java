@@ -23,21 +23,25 @@ public class readyEvent extends ListenerAdapter {
 		}
 	}
 
-	// @Override
-	// public void onReadyEvent(ReadyEvent event){
-	// 	List<SlashCommandData> commandData = BotCommand.getSlashCommandDataList();
-	// 	event.getJDA().updateCommands().addCommands(commandData).queue();
-	// }
+	@Override
+	public void onReady(ReadyEvent event){
+		List<SlashCommandData> commandData = BotCommand.getSlashCommandDataList();
+		event.getJDA().updateCommands().addCommands(commandData).queue();
+	}
 	
 	@Override
 	public void onGuildReady(GuildReadyEvent event){
-		if (!Constants.canIRunThisHere(event.getGuild().getId())){
+		String guildId = event.getGuild().getId();
+		if(!Constants.isBugFree()){
+			if(!Constants.isDebugGuild(guildId)){
+				return;
+			} else {
+				TextChannel c = event.getJDA().getTextChannelById(Constants.DEBUGCHANNELID);
+            	if (c!=null) c.sendMessage("Bot is Ready for testing.").queue();
+			}
+		} else if (Constants.isDebugGuild(guildId)){
 			return;
 		}
-        if(Constants.AREWETESTING && Constants.DEBUGGUILDID.equals(event.getGuild().getId())){
-            TextChannel c = event.getJDA().getTextChannelById(Constants.DEBUGCHANNELID);
-            if (c!=null) c.sendMessage("Bot is Ready for testing.").queue();
-        }
 		List<SlashCommandData> commandData = BotCommand.getSlashCommandDataList();
 		event.getGuild().updateCommands().addCommands(commandData).queue();
 	}

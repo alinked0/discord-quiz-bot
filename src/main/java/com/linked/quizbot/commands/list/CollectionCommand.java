@@ -60,7 +60,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  */
 public class CollectionCommand extends BotCommand {
 	public static final String CMDNAME = "collection";
-    private String cmdDesrciption = "list all questions";
+    private String cmdDesrciption = "listing all questions";
 	private String[] abbrevs = new String[]{"c", "ls"};
 	
 	@Override

@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class InviteCommand extends BotCommand {
     public static String CMDNAME = "invite";
-    private String cmdDesrciption = "create a bot instalation link";
+    private String cmdDesrciption = "creating a bot instalation link";
 	private String[] abbrevs = new String[0];
     
 	@Override

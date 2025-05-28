@@ -23,7 +23,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class ViewCommand extends BotCommand{
     public static final String CMDNAME = "view";
-    private String cmdDesrciption = "show the list of questions as in a json format";
+    private String cmdDesrciption = "showing a list of questions in a json format";
 	private String[] abbrevs = new String[]{"v"};
     
 	@Override
@@ -39,8 +39,8 @@ public class ViewCommand extends BotCommand{
 	@Override
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<>();
-        res.add(new OptionData(OptionType.INTEGER, "index-of-theme", "the theme index given by !c"));
-        res.add(new OptionData(OptionType.INTEGER, "index-of-list", "the list index given by !c"));
+        res.add(new OptionData(OptionType.INTEGER, "index-of-theme", "the theme index given by "+Constants.CMDPREFIXE+"c"));
+        res.add(new OptionData(OptionType.INTEGER, "index-of-list", "the list index given by "+Constants.CMDPREFIXE+"c"));
         return res;
     }
 	@Override

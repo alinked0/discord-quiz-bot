@@ -395,5 +395,4 @@ public class TestUserLists {
         assertNotEquals(userLists, "987654321");
         assertNotEquals(userLists, new Object());
     }
->>>>>>> parent of ad9647e (No modification)
 }

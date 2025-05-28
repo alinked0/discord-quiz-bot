@@ -56,8 +56,8 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  */
 public class CreateListCommand extends BotCommand {
     public static final String CMDNAME = "createlist";
-    private String cmdDesrciption = "To add a list of questions to a user's lists";
-	private String[] abbrevs = new String[]{"cl"};
+    private String cmdDesrciption = "adding a list of questions to a user's lists";
+	private String[] abbrevs = new String[]{"create","cl"};
     
 	public String[] getAbbreviations(){ return abbrevs;}
 	@Override
@@ -67,7 +67,7 @@ public class CreateListCommand extends BotCommand {
     public String getName(){ return CMDNAME;}
     public String getDescription(){ return cmdDesrciption;}
     public String getDetailedExamples(){ 
-        String s = Constants.CMDPREFIXE+getName()+" "+QuestionList.getExampleQuestionList();
+        String s = "```js \n"+Constants.CMDPREFIXE+getName()+" "+QuestionList.getExampleQuestionList()+"\n```";
         return s;
     }
 	@Override

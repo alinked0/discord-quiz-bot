@@ -23,7 +23,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
  */
 public class MoreTimeCommand extends BotCommand {
     public static final String CMDNAME = "moretime";
-    private String cmdDesrciption = "if a quiz is ongoing, it adds a few more secs on the awnser time.";
+    private String cmdDesrciption = "changing the time given to awnser a question.";
 	private String[] abbrevs = new String[]{"mt"};
     
 	@Override
@@ -36,6 +36,10 @@ public class MoreTimeCommand extends BotCommand {
     public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
+    @Override
+	public String getDetailedExamples(){
+		return "`"+Constants.CMDPREFIXE+getName()+" 30` sending the current question with a time of 30s.\n`"+Constants.CMDPREFIXE+getName()+" ` re-sending the current question with the previous time.";
+	}
 	@Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         String channelId = channel.getId();

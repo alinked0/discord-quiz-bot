@@ -16,6 +16,7 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.core.BotCore;
 
 import net.dv8tion.jda.api.entities.Guild;
@@ -34,6 +35,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.internal.entities.ReceivedMessage;
 
+/**
+ * The class SlashCommandListener will serve as the first layer to any slash command
+ * that means message commands like /help
+ */
 public class SlashCommandListener extends ListenerAdapter {
 	
 	@Override
@@ -54,13 +59,19 @@ public class SlashCommandListener extends ListenerAdapter {
 		
 		// log User
 		BotCore.addUser(sender);
-
-		// Vérifier si le message est "!embed"
+		
 		int i =0, n;
 		String[] args;
-		String h = "";
+		String k;
 		for (BotCommand cmd : BotCommand.getCommands()) {
 			if (event.getName().equals(cmd.getName())) {
+				if(BotCore.isShutingDown()){
+					CommandCategory category = cmd.getCategory();
+					if(category.equals(CommandCategory.EDITING) || category.equals(CommandCategory.GAME)){
+						event.reply(Constants.UPDATEEXPLANATION).queue();
+						return;
+					}
+				}
 				n= event.getOptions().size();
 				args = new String[n];
 				if (n>0) {
@@ -71,6 +82,7 @@ public class SlashCommandListener extends ListenerAdapter {
 								args[i++] = ""+tmp.getAsUser().getId();
 							}
 							else if (tmp.getType().equals(OptionType.ATTACHMENT)){
+								String h = "";
 								try {
 									URL website = new URL(tmp.getAsAttachment().getUrl());
 									String path = Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp";
@@ -82,12 +94,15 @@ public class SlashCommandListener extends ListenerAdapter {
 										f.getParentFile().mkdirs();
 									}
 									BufferedReader fd = Files.newBufferedReader(f.toPath());
-									String k = "";
+
+									k = "";
 									do {
 										h+= k;
 										k=fd.readLine();
 									}while(k!=null);
+
 									fd.close();
+
 								} catch (IOException e) {
 									System.err.println(" $> An error occurred while taking an attachment.");
 									e.printStackTrace();
@@ -99,14 +114,14 @@ public class SlashCommandListener extends ListenerAdapter {
 						}
 					}
 				}
+
 				event.reply(cmd.getDescription()).queue();
-				System.out.print("  $> /"+cmd.getName());
-				System.out.print(" ; args :");
-				for (i=0; i<args.length; i++) { System.out.print(args[i]+":");}
+
+				System.out.print("  $> /"+cmd.getName());System.out.print(" ; args :");for (i=0; i<args.length; i++) { System.out.print(args[i]+":");}
 				
 				Message message = null;
 				cmd.execute(sender, message, channel, args);
-				System.out.printf("   $> time of "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
+				System.out.printf("   $> time "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
 				return;
 			}
 		}

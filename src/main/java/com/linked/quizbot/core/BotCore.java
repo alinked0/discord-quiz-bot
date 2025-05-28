@@ -28,6 +28,7 @@ import net.dv8tion.jda.api.utils.AttachedFile;
  */
 
 public class BotCore {
+	public static boolean SHUTINGDOWN = false;
 	public static  String cmdPrefixe = Constants.CMDPREFIXE;
 	public static Map<String, QuizBot> channelByQuizBot = new HashMap<>();
 	public static Map<String, QuizBot> channelByLastQuizBot = new HashMap<>();
@@ -43,6 +44,9 @@ public class BotCore {
 	public static void addUser(User u) { allUsers.add(u);}
 	public static List<QuizBot> getListOfQuizBots() {
 		return listOfGames;
+	}
+	public static boolean isShutingDown(){
+		return BotCore.SHUTINGDOWN;
 	}
 	public static void addQuizBot(QuizBot q) {
 		String currChannel = q.getChannel().getId();

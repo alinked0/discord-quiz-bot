@@ -58,7 +58,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  */
 public class DeleteCommand extends BotCommand{
     public static final String CMDNAME = "delete";
-    private String cmdDesrciption = "deletes a list of questions";
+    private String cmdDesrciption = "deleting a list of questions";
 	private String[] abbrevs = new String[]{"del"};
     
 	@Override
