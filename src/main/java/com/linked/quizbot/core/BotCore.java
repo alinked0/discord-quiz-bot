@@ -138,4 +138,5 @@ public class BotCore {
 		deletionMessages.remove(messageId);
 	}
 	public void setPrefixe(String prefixe) { cmdPrefixe = prefixe;}
+	
 }

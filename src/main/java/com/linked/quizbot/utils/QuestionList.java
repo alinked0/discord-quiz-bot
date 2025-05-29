@@ -7,12 +7,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.linked.quizbot.Constants;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 /**
  * The ListQuestion class is a specialized extension of the LinkedList class, designed to manage a collection
@@ -53,6 +51,9 @@ public class QuestionList extends LinkedList<Question> {
 	private String authorId;
 	private String theme;
 	private String name;
+	private long timeCreatedMillis;
+	private String listId;
+
 	/**
 	 * Default constructor for ListQuestion.
 	 * Initializes the list with default values for authorId, name, and theme.
@@ -62,6 +63,8 @@ public class QuestionList extends LinkedList<Question> {
 		this.authorId = null;
 		this.name = null;
 		this.theme = null;
+		this.listId = "";
+		this.timeCreatedMillis = 0L;
 	}
 
 	/**
@@ -77,6 +80,8 @@ public class QuestionList extends LinkedList<Question> {
 		this.authorId = authorId;
 		this.name = name;
 		this.theme = theme;
+		this.timeCreatedMillis = System.currentTimeMillis();
+		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);;
 	}
 
 	/**
@@ -90,32 +95,36 @@ public class QuestionList extends LinkedList<Question> {
 		this.authorId = authorId;
 		this.name = name;
 		this.theme = theme;
+		this.timeCreatedMillis = System.currentTimeMillis();
+		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);
 	}
 
 	/**
 	 * Constructs a ListQuestion from a JSON file located at the specified file path.
 	 *
-	 * @param destFilePath the file path of the JSON file to import the list from
+	 * @param filePath the file path of the JSON file to import the list from
 	 */
-	public QuestionList(String destFilePath) {
+	public QuestionList(String filePath) {
 		this();
-		QuestionList res = QuestionListParser.jsonToQuestionList(destFilePath);
+		QuestionList res = QuestionListParser.jsonToQuestionList(filePath);
 		if (res!=null) {
 			this.addAll(res);
 			this.name = res.getName();
 			this.theme = res.getTheme();
 			this.authorId = res.getAuthorId();
+			this.timeCreatedMillis = res.getTimeCreatedMillis();
+			this.listId = res.getListId();
 		}
 	}
 
 	/**
 	 * Imports a ListQuestion from a JSON file.
 	 *
-	 * @param destFilePath the file path of the JSON file to import the list from
+	 * @param filePath the file path of the JSON file to import the list from
 	 * @return a new ListQuestion instance populated with data from the JSON file
 	 */
-	public static QuestionList importListQuestionFromJson(String destFilePath) {
-		return new QuestionList(destFilePath);
+	public static QuestionList importListQuestionFromJson(String filePath) {
+		return new QuestionList(filePath);
 	}
 
 	/**
@@ -167,6 +176,40 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
+	 * Sets the creation time for this ListQuestion.
+	 * @param timeMillis the new time created in milliseconds
+	 */
+	public void setTimeCreatedMillis(long timeMillis){
+		this.timeCreatedMillis = timeMillis;
+	}
+
+	/**
+	 * Sets the listId for this ListQuestion.
+	 * @param listId the new listId
+	 */
+	public void setListId(String listId){
+		this.listId = listId;
+	}
+
+	/**
+	 * Gets the time this ListQuestion was created in milliseconds.
+	 *
+	 * @return the time created in milliseconds
+	 */
+	public long getTimeCreatedMillis() {
+		return timeCreatedMillis;
+	}
+	
+	/**
+	 * Gets the unique identifier for this ListQuestion.
+	 *
+	 * @return the list ID
+	 */
+	public String getListId() {
+		return listId;
+	}
+
+	/**
 	 * Gets the author ID for this ListQuestion.
 	 *
 	 * @return the author ID
@@ -210,9 +253,7 @@ public class QuestionList extends LinkedList<Question> {
 	 */
 	public String getPathToList(){
 		String p = Constants.LISTSPATH+Constants.SEPARATOR+getAuthorId()+Constants.SEPARATOR;
-		p+=(getTheme()!=null?getTheme().replace(" ", "_"):getTheme())+"-";
-		p += getName()!=null?getName().replace(" ", "_"):getName();
-		p+= ".json";
+		p+=getListId()+".json";
 		return p;
 	}
 
@@ -285,6 +326,19 @@ public class QuestionList extends LinkedList<Question> {
 		}
 		super.add(index, element);
 	}
+
+	public static Comparator<? super QuestionList> comparatorByDate() {
+        return (e, f)->(Long.compare(e.getTimeCreatedMillis(),f.getTimeCreatedMillis()));
+    }
+
+	public static Comparator<? super QuestionList> comparatorByName() {
+        return (e, f)->(e.getName().compareTo(f.getName()));
+    }
+
+	public static Comparator<? super QuestionList> comparatorByListId() {
+        return (e, f)->(e.getListId().compareTo(f.getListId()));
+    }
+	
 	/**
 	 * Returns a string representation of this ListQuestion in JSON format.
 	 *
@@ -301,13 +355,17 @@ public class QuestionList extends LinkedList<Question> {
 			tab2 = "\t\t",
 			tab3 = "\t\t\t",
 			seperatorParamOpt = "\n";
+
 		res += "{\n";
 		tab = "\t";
 		res += tab+"\"authorId\":\""+getAuthorId()+"\",\n";
 		res += tab + "\"theme\":\""+getTheme()+"\",\n";
 		res += tab + "\"name\":\""+getName()+"\",\n";
+		res += tab + "\"listId\":\""+getListId()+"\",\n";
+		res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
 		res += tab + "\"questions\": \n";
 		res += "\t[\n";
+
 		Iterator<Question> iterQuestion = this.iterator();
 		while (iterQuestion.hasNext()){
 			Question q = iterQuestion.next();
@@ -363,7 +421,9 @@ public class QuestionList extends LinkedList<Question> {
 	 */
 	@Override
 	public int hashCode() {
-		return getAuthorId().hashCode()*7 + getTheme().hashCode()*5+ getName().hashCode();
+		return getAuthorId().hashCode()*7 + getTheme().hashCode()*5+ getName().hashCode()
+				+ super.hashCode() + (int) (getTimeCreatedMillis() % Integer.MAX_VALUE)
+				+ getListId().hashCode();
 	}
 	
 	/**
@@ -383,9 +443,11 @@ public class QuestionList extends LinkedList<Question> {
 
 	public static QuestionList getExampleQuestionList(){
 		QuestionList l = new QuestionList();
-		l.add(Question.getExampleQuestion());
+		l.setAuthorId("ExampleAuthor");
 		l.setName("Example QuestionList");
-		l.setTheme("Example QuestionList");
+		l.setTheme("Example Theme");
+		l.setListId("abcdefg");
+		l.add(Question.getExampleQuestion());
 		return l;
 	}
 }

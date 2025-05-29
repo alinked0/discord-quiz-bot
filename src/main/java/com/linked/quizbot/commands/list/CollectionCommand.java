@@ -77,7 +77,7 @@ public class CollectionCommand extends BotCommand {
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<>();
 		res.addAll(List.of(
-            new OptionData(OptionType.STRING, "user-id", "Id of the user who's questions will be listed")
+            new OptionData(OptionType.STRING, "user-id", "id of the user who's questions will be listed")
             )
         );
         return res;
@@ -97,24 +97,18 @@ public class CollectionCommand extends BotCommand {
 		String res = "Collection of ";
 		res += "<@"+userId+">\n";
 
-		int t = 1, k;
 		UserLists userLists = new UserLists(userId);
-		System.out.printf("   $> time UserLists 1= `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
-		for (String theme : userLists.getAllThemes()){
-			res += "`"+(t++)+"` "+theme+"\n";
-			k = 1;
-			for (QuestionList l : userLists.getListsByTheme(theme)){
-				res += "`  "+(k++)+"` "+l.getName()+"\n";
-			}
+		List<QuestionList> list = userLists.getAllLists();
+		list.sort(QuestionList.comparatorByDate().reversed());
+		for (QuestionList l : list){
+			res += "`"+l.getListId()+"` "+l.getName()+"\n";
 			if (res.length()>Constants.CHARSENDLIM - 400) {
 				result.add(res);
 				res = "";
 			}
 		}
-		k=1;
         QuestionList example = QuestionList.getExampleQuestionList();
-		res += "`"+(t++)+"` "+example.getTheme()+"\n";
-		res += "`  "+(k++)+"` "+example.getName()+"\n";
+		res += "`"+example.getListId()+"` "+example.getName()+"\n";
 		result.add(res);
 		return result;
 	}	

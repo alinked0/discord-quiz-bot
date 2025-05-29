@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -154,46 +155,27 @@ public abstract class BotCommand {
 		return approxiUserId;
 	}
 
-	public static QuestionList getSelectedQuestionList(String senderId, JDA jda, String[] args) {
-        long start = System.nanoTime();
-		UserLists userList;
-        int n = args.length;
-        int themeIndex = -1, listIndex = -1;
-        String userId, theme;
-        List<QuestionList> lists;
-        if (n>=3) {
-            userId = getUserIdFromArg(args[0], jda);
-            themeIndex = Integer.parseInt(args[1])-1;
-            listIndex = Integer.parseInt(args[2])-1;
-        }else if(n==2) {
-            userId = senderId;
-            themeIndex = Integer.parseInt(args[0])-1;
-            listIndex = Integer.parseInt(args[1])-1;
-        } else if (n==1 && args[0].length()>1) {
-            //making sure the string is long enough to be a user id, 1 is good enough
-            userId = getUserIdFromArg(args[0], jda);
-        }else if (n==0){
-			userId = senderId;
-		}else{
-			return null;
-        }
-		if (userId == null){
-			return null;
-		}
-		userList= new UserLists(userId);
-		int themesSize = userList.getAllThemes().size();
-		if (themeIndex == -1 && listIndex==-1) {
-			themeIndex = rand.nextInt(0, themesSize);
-            listIndex = rand.nextInt(0, userList.getListsByTheme(userList.getAllThemes().get(themeIndex)).size());
-		}
-		QuestionList res;
-		if (themeIndex==themesSize && listIndex==0) {
-			res = QuestionList.getExampleQuestionList();
-			res.setAuthorId(senderId);
+	public static QuestionList getSelectedQuestionList(String listId) {
+		long start = System.nanoTime();
+		QuestionList res= null;
+		if (QuestionList.getExampleQuestionList().getListId().equals(listId)){
+			res =  QuestionList.getExampleQuestionList();
 		} else {
-			theme = userList.getAllThemes().get(themeIndex);
-			lists = userList.getListsByTheme(theme);
-			res = lists.get(listIndex);
+			QuestionList searched = new QuestionList(); 
+			searched.setListId(listId);
+			int i=-1, k;
+			List<QuestionList> l=null;
+			for (UserLists u : UserLists.allUserLists){
+				l = u.getAllLists();
+				k = UserLists.myBinarySearchIndexOf(l, 0, l.size()-1, searched, QuestionList.comparatorByListId());
+				if (k!=-1){
+					i=k;
+					break;
+				}
+			}
+			if (i>=0){
+				res = l.get(i);
+			}
 		}
 		System.out.printf("  $> time getSelectedQuestionList = %.3f ms\n", (System.nanoTime() - start) / 1000000.00);
 		return res;

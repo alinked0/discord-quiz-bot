@@ -12,6 +12,7 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.QuestionListParser;
 import com.linked.quizbot.utils.UserLists;
 
 import net.dv8tion.jda.api.entities.Message;
@@ -86,21 +87,8 @@ public class CreateListCommand extends BotCommand {
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
-        File f = new File(Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp");
         for (int i = 0; i<n; i++) {
-            try {
-                if(!f.getParentFile().exists()) {
-                    f.getParentFile().mkdirs();
-                }
-                BufferedWriter buff = Files.newBufferedWriter(f.toPath());
-                buff.write(args[i]);
-                buff.close();
-            } catch (IOException e) {
-                System.err.println("An error occurred while adding a List of questions.");
-                res += "failed\n";
-                e.printStackTrace();
-            }
-            QuestionList l = new QuestionList(f.getAbsolutePath());
+            QuestionList l = QuestionListParser.stringToQuestionList(args[i]);
             if (l!=null) {
                 if (l.getAuthorId()==null) {
                     l.setAuthorId(userId);
@@ -110,7 +98,7 @@ public class CreateListCommand extends BotCommand {
                         res = "Failed, list of name : \""+l.getName()+"\" and theme : \""+l.getTheme()+"\" already exists.";
                     } else {
                         UserLists.addListToUser(l.getAuthorId(), l);
-                        String index = UserLists.getCodeForIndexQuestionList(l, l.getAuthorId());
+                        String index = UserLists.getCodeForIndexQuestionList(l);
                         res = "Success, list has been created, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
                     }
                 }else {
@@ -118,7 +106,6 @@ public class CreateListCommand extends BotCommand {
                 }
             }
         }
-        f.delete();
         MessageCreateAction send;
         send = channel.sendMessage(res);
         if(message!=null){send.setMessageReference(message);}

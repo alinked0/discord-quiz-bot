@@ -46,7 +46,7 @@ public class ViewCommand extends BotCommand{
 	@Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         String res = "```js\n";
-        QuestionList l = getSelectedQuestionList(sender.getId(), channel.getJDA(), args);
+		QuestionList l = args.length>0?getSelectedQuestionList(args[0]): null;
         if (l==null){
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;

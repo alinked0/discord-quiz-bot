@@ -109,7 +109,6 @@ public class MessageListener extends ListenerAdapter {
             for (int i=0; i<args.length; i++) { 
                 System.out.print(args[i].replace("\n", "").replace("\t", "")+":");
             }
-            System.out.println("");
             cmd.execute(sender, message, channel, args);
             System.out.printf("   $> time of "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
         }

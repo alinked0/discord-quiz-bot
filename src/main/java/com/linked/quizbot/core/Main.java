@@ -1,5 +1,6 @@
 package com.linked.quizbot.core;
 
+import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +21,9 @@ import com.linked.quizbot.events.readyEvent;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.QuestionListHash;
+import com.linked.quizbot.utils.QuestionListParser;
+import com.linked.quizbot.utils.UserLists;
 
 import net.dv8tion.jda.api.entities.Activity;
 
@@ -116,6 +120,6 @@ public class Main {
 					break;
 			}
         }
-		jda.shutdownNow();
+		jda.shutdown();
 	}
 }

@@ -40,15 +40,26 @@ public class QuestionListParser {
 				//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 				if (jp.currentToken() == JsonToken.START_ARRAY){
 					jp.nextToken();
+					//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 					break;
 				}
-				switch (jp.currentName()){
-					case "authorId" -> result.setAuthorId(jp.getText());
+				switch (jp.currentName().toLowerCase()){
+					case "authorid" -> result.setAuthorId(jp.getText());
 					case "theme" -> result.setTheme(jp.getText());
 					case "name" -> result.setName(jp.getText());
+					case "timecreatedmillis" -> result.setTimeCreatedMillis(jp.getValueAsLong());
+					case "listid" -> result.setListId(jp.getText());
 				}
 			}while (true);
-			//System.out.println("");
+
+			if (result.getTimeCreatedMillis()==0L){
+				result.setTimeCreatedMillis(System.currentTimeMillis());
+			}
+			if (result.getListId().isEmpty()){
+				result.setListId(new QuestionListHash().generate(result.getAuthorId()+result.getName(), result.getTimeCreatedMillis()));
+			} else {
+				QuestionListHash.addGeneratedCode(result.getListId());
+			}
 			/* iterating over evry Question attributes then Options*/
 			boolean keepGoing = true;
 			while (keepGoing) {
@@ -58,6 +69,7 @@ public class QuestionListParser {
 				String imgSrc= "";
 				do {
 					jp.nextToken();
+					//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 					if(jp.currentToken() == JsonToken.START_ARRAY) {
 						jp.nextToken();
 						break;
@@ -77,7 +89,6 @@ public class QuestionListParser {
 						}
 					}
 				}while(true);
-				//System.out.println("");
 
 				String optTxt = "";
 				String optExpl = null;
@@ -109,7 +120,6 @@ public class QuestionListParser {
 						case "isCorrect" -> isCorr = jp.getValueAsBoolean();//Text().equals("true")?true:false;
 					}
 				}while(true);
-				//System.out.println("");
 				result.add(new Question(q, opt));
 				result.get(result.size()-1).setImageSrc(imgSrc);
 				result.get(result.size()-1).setExplication(expl);

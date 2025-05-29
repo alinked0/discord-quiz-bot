@@ -53,6 +53,20 @@ public class TestQuestionListParser {
         if (f.exists()){
             f.delete();
         }
+        f = jsonFile;
+        if (f.exists()){
+            f.delete();
+        }
+        f = tempDir.toFile();
+        if (f.exists()){
+            f.delete();
+        }
+        if (originalList != null){
+            f = new File(originalList.getPathToList());
+            if (f.exists()){
+                f.delete();
+            }
+        }
     }
 
     /**
@@ -141,6 +155,7 @@ public class TestQuestionListParser {
                 assertEquals(originalOpt.getExplication(), importedOpt.getExplication());
             }
         }
+        tempFile.delete();
     }
 
     @Test
@@ -187,5 +202,7 @@ public class TestQuestionListParser {
         assertNull(importedList.getAuthorId(), "Author ID should be null for invalid JSON");
         assertNull(importedList.getName(), "Name should be null for invalid JSON");
         assertNull(importedList.getTheme(), "Theme should be null for invalid JSON");
+        f.delete();
+        jsonFile.delete();
     }
 }

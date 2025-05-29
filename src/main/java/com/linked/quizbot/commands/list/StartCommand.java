@@ -79,18 +79,13 @@ public class StartCommand extends BotCommand{
 	@Override
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<OptionData>();
-        res.addAll(
-            List.of(
-                new OptionData(OptionType.USER, "userid", "a long number that is a user discord id"),
-                new OptionData(OptionType.INTEGER, "index-of-theme", "the theme index given by "+Constants.CMDPREFIXE+"c"),
-                new OptionData(OptionType.INTEGER, "index-of-list", "the list index given by "+Constants.CMDPREFIXE+"c")
-            )
-        );
+        res.add(
+            new OptionData(OptionType.INTEGER, "listid", "listid given by "+CollectionCommand.CMDNAME));
         return res;
     }
     @Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
-		QuestionList quizQuestions = getSelectedQuestionList(sender.getId(), channel.getJDA(), args);
+		QuestionList quizQuestions = args.length>0?getSelectedQuestionList(args[0]): null;
         if (quizQuestions==null){
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;

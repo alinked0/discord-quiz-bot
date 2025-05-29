@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterAll;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -226,46 +227,12 @@ public class TestUserLists {
     @Test
     public void testGetCodeForIndexQuestionList() {
         // Get the code for a list
-        String code = userLists.getCodeForIndexQuestionList(sampleList1);
+        String code = UserLists.getCodeForIndexQuestionList(sampleList1);
         
         // Check the code format (theme index + 1) + " " + (list index + 1)
         assertNotNull(code);
-        
-        // Split the code into parts
-        String[] parts = code.split(" ");
-        assertEquals(2, parts.length);
-        
-        // Convert to integers
-        int themeIndex = Integer.parseInt(parts[0]);
-        int listIndex = Integer.parseInt(parts[1]);
-        
-        // Check the indices are valid
-        assertTrue(themeIndex > 0 && themeIndex <= userLists.getAllThemes().size());
-        
-        // Get the theme from the index
-        String theme = userLists.getAllThemes().get(themeIndex - 1);
-        List<QuestionList> listsInTheme = userLists.getListsByTheme(theme);
-        
-        assertTrue(listIndex > 0 && listIndex <= listsInTheme.size());
-        
-        // Check the list at the index is the one we asked for
-        assertEquals(sampleList1, listsInTheme.get(listIndex - 1));
-    }
-    
-    /**
-     * Tests the static method for getting the code for the index of a question list.
-     */
-    @Test
-    public void testStaticGetCodeForIndexQuestionList() {
-        // Get the code using the static method
-        String code = UserLists.getCodeForIndexQuestionList(sampleList1, TEST_USER_ID);
-        
-        // Check the code is not null
-        assertNotNull(code);
-        
-        // Split the code into parts
-        String[] parts = code.split(" ");
-        assertEquals(2, parts.length);
+
+        assertEquals(code, sampleList1.getListId());
     }
     
     /**
@@ -276,13 +243,13 @@ public class TestUserLists {
         List<String> sortedList = Arrays.asList("Apple", "Banana", "Cherry", "Date", "Elderberry");
         
         // Test finding existing elements
-        assertEquals(0, UserLists.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Apple"));
-        assertEquals(2, UserLists.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Cherry"));
-        assertEquals(4, UserLists.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Elderberry"));
+        assertEquals(0, UserLists.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Apple", (e,f)-> e.compareTo(f)));
+        assertEquals(2, UserLists.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Cherry", (e,f)-> e.compareTo(f)));
+        assertEquals(4, UserLists.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Elderberry", (e,f)-> e.compareTo(f)));
         
         // Test for element that doesn't exist but should be at a specific position
         int expectedPosition = -3; // -position-1 where position is 2
-        assertEquals(expectedPosition, UserLists.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Carrot"));
+        assertEquals(expectedPosition, UserLists.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Carrot", (e,f)-> e.compareTo(f)));
     }
     
     /**
@@ -297,11 +264,11 @@ public class TestUserLists {
         
         // Test finding existing elements
         QuestionList testList = new QuestionList(TEST_USER_ID, "B Quiz", "Test");
-        assertEquals(1, UserLists.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, testList));
+        assertEquals(1, UserLists.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, testList, QuestionList.comparatorByName()));
         
         // Test for element that doesn't exist
         QuestionList missingList = new QuestionList(TEST_USER_ID, "D Quiz", "Test");
-        int result = UserLists.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, missingList);
+        int result = UserLists.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, missingList, QuestionList.comparatorByName());
         assertTrue(result < 0); // Should be negative for not found
     }
     

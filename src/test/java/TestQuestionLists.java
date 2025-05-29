@@ -89,10 +89,10 @@ public class TestQuestionLists {
     @Test
     public void testQuestionListHashCode() {
         // Test that equal QuestionLists have the same hash code
-        assertEquals(questionList1.hashCode(), questionList2.hashCode(), 
-            "Equal QuestionLists should have the same hash code");
-        
+        assertEquals(questionList1, questionList1);
         // Test that different QuestionLists have different hash codes (not guaranteed, but likely)
+        assertNotEquals(questionList1.hashCode(), questionList2.hashCode(), 
+            "QuestionLists with diffrent headers have diffrent hash code");
         assertNotEquals(questionList1.hashCode(), questionList3.hashCode(), 
             "Different QuestionLists are likely to have different hash codes");
     }

@@ -51,7 +51,6 @@ public static final String CMDNAME = "addlist";
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
-        File f = new File(Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp");
         for (int i = 0; i<n; i++) {
             QuestionList l = QuestionListParser.stringToQuestionList(args[i]);
             if (l!=null) {
@@ -76,7 +75,7 @@ public static final String CMDNAME = "addlist";
             for (QuestionList k : UserLists.getUserListQuestions(l.getAuthorId())){
                 if(k.getName().equals(l.getName())) {
                     UserLists.addListToUser(l.getAuthorId(), l);
-                    String index = UserLists.getCodeForIndexQuestionList(l, l.getAuthorId());
+                    String index = UserLists.getCodeForIndexQuestionList(l);
                     res += "Success, list has been added, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
                     return res;
                 }

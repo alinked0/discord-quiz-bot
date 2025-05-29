@@ -102,7 +102,7 @@ public class SlashCommandListener extends ListenerAdapter {
 									}while(k!=null);
 
 									fd.close();
-
+									f.delete();
 								} catch (IOException e) {
 									System.err.println(" $> An error occurred while taking an attachment.");
 									e.printStackTrace();

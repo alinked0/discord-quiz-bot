@@ -1,7 +1,11 @@
 package com.linked.quizbot.utils;
 import com.linked.quizbot.utils.QuestionList;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -49,7 +53,7 @@ public class UserLists implements Iterable<QuestionList>{
         for (QuestionList l:allLists) {
             l.setAuthorId(getUserId());
         }
-        allLists.sort((e,f)-> e.getName().compareTo(f.getName()));
+        allLists.sort(QuestionList.comparatorByListId());
     }
     private void initThemes(){
         listsByTheme = new HashMap<>();
@@ -68,20 +72,8 @@ public class UserLists implements Iterable<QuestionList>{
             listsByTheme.get(l.getTheme()).add(l);
         }
     }
-    public static String getCodeForIndexQuestionList(QuestionList l, String userId){
-        for (UserLists u : allUserLists) {
-            if (u.getUserId().equals(userId)) {
-                return u.getCodeForIndexQuestionList(l);
-            }
-        }
-        return null;
-    }
-    public String getCodeForIndexQuestionList(QuestionList l){
-        String theme = l.getTheme();
-        int indexTheme = myBinarySearchIndexOf(allThemes, 0, allThemes.size()-1, theme);
-        List<QuestionList> list = listsByTheme.get(theme);
-        int indexList = myBinarySearchIndexOf(list, 0, list.size()-1, l);
-        return (indexTheme+1)+" " +(indexList+1);
+    public static String getCodeForIndexQuestionList(QuestionList l){
+        return l.getListId();
     }
     public static void addListToUser(String userId, QuestionList l) {
         for (UserLists u : allUserLists) {
@@ -95,10 +87,10 @@ public class UserLists implements Iterable<QuestionList>{
         int h = allLists.size();
         allUserLists.remove(this);
         System.out.println("    $> "+allThemes);
-        int indexTheme = myBinarySearchIndexOf(allThemes, 0, allThemes.size()-1, l.getTheme());
+        int indexTheme = myBinarySearchIndexOf(allThemes, 0, allThemes.size()-1, l.getTheme(), (e,f)-> e.compareTo(f));
         System.out.println("    $> index "+indexTheme+" for:"+l.getTheme());
         String theme = l.getTheme();
-        int indexList = myBinarySearchIndexOf(allLists, 0, allLists.size()-1, l);
+        int indexList = myBinarySearchIndexOf(allLists, 0, allLists.size()-1, l, QuestionList.comparatorByName());
         System.out.println("    $> index "+indexList+" for:"+l.getName());
         if (indexList>=0) {
             QuestionList k = allLists.get(indexList);
@@ -118,9 +110,9 @@ public class UserLists implements Iterable<QuestionList>{
         allLists.add(l);
         listsByTheme.get(theme).add(l);
         l.exportListQuestionAsJson();
-        allLists.sort((e,f)-> e.getName().compareTo(f.getName()));
+        allLists.sort(QuestionList.comparatorByListId());
         allThemes.sort((e,f)-> e.compareTo(f));
-        listsByTheme.get(theme).sort((e,f)-> e.getName().compareTo(f.getName()));
+        listsByTheme.get(theme).sort(QuestionList.comparatorByListId());
         allUserLists.add(this);
     }
     public static void deleteList(QuestionList l){
@@ -137,32 +129,19 @@ public class UserLists implements Iterable<QuestionList>{
         allUserLists.remove(userLists);
         allUserLists.add(userLists);
     }
-    public static int myBinarySearchIndexOf(List<String> tab, int start, int end, String q){
+    public static <T> int myBinarySearchIndexOf(List<T> tab, int start, int end, T q, Comparator<? super T> compare){
         if (start > end){
             return -1*start-1;
         }
         int m = (start+end)/2;
-        int comp = tab.get(m).compareTo(q);
+        int comp = compare.compare(tab.get(m), q);
         if(comp == 0){
             return m;
         }
         if (comp >0){
-            return myBinarySearchIndexOf(tab, start, m-1, q);
+            return myBinarySearchIndexOf(tab, start, m-1, q, compare);
         }
-        return myBinarySearchIndexOf(tab, m+1, end, q);
-    }public static int myBinarySearchIndexOf(List<QuestionList> tab, int start, int end, QuestionList q){
-        if (start > end){
-            return -1*start-1;
-        }
-        int m = (start+end)/2;
-        int comp = tab.get(m).getName().compareTo(q.getName());
-        if(comp == 0){
-            return m;
-        }
-        if (comp >0){
-            return myBinarySearchIndexOf(tab, start, m-1, q);
-        }
-        return myBinarySearchIndexOf(tab, m+1, end, q);
+        return myBinarySearchIndexOf(tab, m+1, end, q, compare);
     }
     public List<Double> getSessionPointsPerQuestion() {
         return sessionPointsPerQuestion;
@@ -226,11 +205,14 @@ public class UserLists implements Iterable<QuestionList>{
     }
     public static void exportAllUserLists() {
         for (UserLists userLists: UserLists.allUserLists) {
-            List<QuestionList> lists = userLists.getAllLists();
-            for (QuestionList l : lists) {
-                l.exportListQuestionAsJson();
-                System.out.println(l.getPathToList()+"; ");
-            }
+            userLists.exportUserLists();
+        }
+    }
+    public void exportUserLists() {
+        List<QuestionList> lists = getAllLists();
+        for (QuestionList l : lists) {
+            l.exportListQuestionAsJson();
+            System.out.println("  $> exported "+l.getPathToList()+"; ");
         }
     }
     @Override
