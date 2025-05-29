@@ -134,7 +134,7 @@ public abstract class BotCommand {
 				String userEffectiveName = u.getEffectiveName().toLowerCase();
 				String userTag = u.getAsTag().toLowerCase();
 				l.add(userId);l.add(userName);l.add(userEffectiveName);l.add(userTag);
-				System.out.printf("   $> %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
+				if (!Constants.isBugFree())System.out.printf("   $> %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
 				for (String s : l){
 					int v = arg.compareTo(s);
 					if(v==0){
@@ -147,8 +147,8 @@ public abstract class BotCommand {
 				}
 			}
 		}
-		System.out.printf("    $> approxiUserId %s;\n", approxiUserId);
-		System.out.printf("   $> time getUserIdFromArg = %.3f ms", (System.nanoTime() - start) / 1000000.00);
+		if (!Constants.isBugFree())System.out.printf("    $> approxiUserId %s;\n", approxiUserId);
+		if (!Constants.isBugFree()) System.out.printf("   $> time getUserIdFromArg = %.3f ms", (System.nanoTime() - start) / 1000000.00);
 		if (arg.length()==18){
 			return arg;
 		}
@@ -177,7 +177,7 @@ public abstract class BotCommand {
 				res = l.get(i);
 			}
 		}
-		System.out.printf("  $> time getSelectedQuestionList = %.3f ms\n", (System.nanoTime() - start) / 1000000.00);
+		if (!Constants.isBugFree())System.out.printf("  $> time getSelectedQuestionList = %.3f ms\n", (System.nanoTime() - start) / 1000000.00);
 		return res;
 	}
 	public SlashCommandData getSlashCommandData(){

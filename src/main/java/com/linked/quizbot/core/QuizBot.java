@@ -148,7 +148,6 @@ public class QuizBot extends ListenerAdapter {
         if (!isActive()) { return;}
         if (getCurrentQuestionIndex() >= quizQuestions.size()) {
 			BotCore.explicationRequestByChannel.get(getChannel().getId()).remove(quizMessage.getId());
-			Message message = getQuizMessage();
 			User sender = null;
 			String[] args = new String[0];
             BotCommand.getCommandByName(EndCommand.CMDNAME)
@@ -190,9 +189,11 @@ public class QuizBot extends ListenerAdapter {
 				}
             }, 
 				failure -> {
-					System.out.printf(" $> Error is being hanfled --+\n\t $> at com.linked.quizbot.core.QuizBot.lambda$0(QuizBot.java:182)");
-					if(Constants.AREWETESTING) failure.printStackTrace();
-					System.out.printf(" $> Error is being hanfled --+\n");
+					if (!Constants.isBugFree()){
+						System.out.printf(" $> Error is being hanfled --+\n\t $> at com.linked.quizbot.core.QuizBot.lambda$0(QuizBot.java:182)");
+						failure.printStackTrace();
+						System.out.printf(" $> Error is being hanfled --+\n");
+					}
 			}
 			);
         });
@@ -269,7 +270,7 @@ public class QuizBot extends ListenerAdapter {
 				User u = awnsersByUser.getKey();
 				score = userScoreExact.getOrDefault( u, 0.00);
                 for (Option opt : awnsersByUser.getValue()) {
-                    System.out.printf("   $> lb %s, %s\n", opt.isCorrect(), opt.getText());
+                    if (!Constants.isBugFree()) System.out.printf("   $> lb %s, %s\n", opt.isCorrect(), opt.getText());
                     point = (opt.isCorrect()?pointsForCorrect/numberOfTrueOptions:pointsForIncorrect);
                     score += point;
                 }
@@ -358,7 +359,7 @@ public class QuizBot extends ListenerAdapter {
 				Set<Option> awnsers = awnsersByUser.get(user);
 				if(awnsers != null) {
 					for (Option opt : awnsers) {
-						System.out.printf("   $> lb %s, %s\n", opt.isCorrect(), opt.getText());
+						if (!Constants.isBugFree()) System.out.printf("   $> lb %s, %s\n", opt.isCorrect(), opt.getText());
 						point = (opt.isCorrect()?pointsForCorrect/numberOfTrueOptions:pointsForIncorrect);
 						score += point;
 					}

@@ -1,6 +1,5 @@
 package com.linked.quizbot.commands.list;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +13,6 @@ import com.linked.quizbot.core.QuizBot;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class LeaderBoardCommand extends BotCommand {

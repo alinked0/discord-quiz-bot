@@ -1,16 +1,12 @@
 package com.linked.quizbot.utils;
 
-import java.io.File;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
-import com.linked.quizbot.Constants;
 
 /**
  * QuestionListHash is a utility class for generating unique, short, alphanumeric codes
@@ -21,9 +17,9 @@ import com.linked.quizbot.Constants;
  */
 public class QuestionListHash {
 
-    private static final char[] BASE36_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
-    private static final int DEFAULT_LENGTH = 7;
-    private static final Set<String> generatedCodes = new HashSet<>();
+    public static final char[] BASE36_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
+    public static final int DEFAULT_LENGTH = 7;
+    public static final Set<String> generatedCodes = new HashSet<>();
     private final int codeLength;
 
     public QuestionListHash(int codeLength) {

@@ -3,7 +3,6 @@ package com.linked.quizbot.commands.list;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -16,7 +15,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 /**
  * The {@code CollectionCommand} class retrieves and displays a user's collection of question lists,
@@ -76,10 +74,7 @@ public class CollectionCommand extends BotCommand {
 	@Override
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<>();
-		res.addAll(List.of(
-            new OptionData(OptionType.STRING, "user-id", "id of the user who's questions will be listed")
-            )
-        );
+		res.add(new OptionData(OptionType.STRING, "user-id", "id of the user who's questions will be listed"));
         return res;
     }
 	@Override
@@ -91,7 +86,6 @@ public class CollectionCommand extends BotCommand {
 
 	//execution 1 is two times faster than exec 2
 	private List<String> exec1 (User sender, Message message, MessageChannel channel, String[] args){
-		long start = System.nanoTime();
 		List<String> result = new ArrayList<>();
 		String userId = (args.length>0)?args[0]:sender.getId();
 		String res = "Collection of ";

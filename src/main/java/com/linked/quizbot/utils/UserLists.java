@@ -1,15 +1,8 @@
 package com.linked.quizbot.utils;
-import com.linked.quizbot.utils.QuestionList;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -20,8 +13,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.ListIterator;
 
 public class UserLists implements Iterable<QuestionList>{
     private String userId;
@@ -84,14 +75,13 @@ public class UserLists implements Iterable<QuestionList>{
         }
     }
     public void addList(QuestionList l) {
-        int h = allLists.size();
         allUserLists.remove(this);
-        System.out.println("    $> "+allThemes);
+        //System.out.println("    $> "+allThemes);
         int indexTheme = myBinarySearchIndexOf(allThemes, 0, allThemes.size()-1, l.getTheme(), (e,f)-> e.compareTo(f));
-        System.out.println("    $> index "+indexTheme+" for:"+l.getTheme());
+        //System.out.println("    $> index "+indexTheme+" for:"+l.getTheme());
         String theme = l.getTheme();
         int indexList = myBinarySearchIndexOf(allLists, 0, allLists.size()-1, l, QuestionList.comparatorByName());
-        System.out.println("    $> index "+indexList+" for:"+l.getName());
+        //System.out.println("    $> index "+indexList+" for:"+l.getName());
         if (indexList>=0) {
             QuestionList k = allLists.get(indexList);
             k.addAll(l);
@@ -179,7 +169,7 @@ public class UserLists implements Iterable<QuestionList>{
         for (UserLists u : allUserLists) {
             if (u.equals(userId)) {
                 res = u.getAllLists();
-                System.out.printf("   $> time getUserListQuestions = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
+                if (!Constants.isBugFree()) System.out.printf("   $> time getUserListQuestions = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
                 return res;
             } 
         }
@@ -200,7 +190,7 @@ public class UserLists implements Iterable<QuestionList>{
             }
         }
         allUserLists.add(new UserLists(userId, res));
-        System.out.printf("   $> time getUserListQuestions = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
+        if (!Constants.isBugFree()) System.out.printf("   $> time getUserListQuestions = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
         return res;
     }
     public static void exportAllUserLists() {

@@ -1,8 +1,5 @@
 package com.linked.quizbot.core;
 
-import java.io.File;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -17,12 +14,6 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import com.linked.quizbot.events.ReactionListener;
 import com.linked.quizbot.events.SlashCommandListener;
 import com.linked.quizbot.events.readyEvent;
-
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-
-import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.QuestionListHash;
-import com.linked.quizbot.utils.QuestionListParser;
 import com.linked.quizbot.utils.UserLists;
 
 import net.dv8tion.jda.api.entities.Activity;
@@ -30,8 +21,9 @@ import net.dv8tion.jda.api.entities.Activity;
 public class Main {
 	public static String getStatus(){
 		String s = "";
-		s+="isBugFree:"+Constants.isBugFree();
-		s+="\nPrefixe:"+Constants.CMDPREFIXE;
+		s+=" isBugFree: "+Constants.isBugFree();
+		s+="\n Prefixe: "+Constants.CMDPREFIXE;
+		s+= "\n NumberOfUsers: "+UserLists.allUserLists.size();
 		return s;
 	}
 	public static void usageMain(){
@@ -64,7 +56,7 @@ public class Main {
 			usageMain();
 			return;
 		} 
-		if (!Constants.AREWETESTING) {
+		if (!Constants.AREWETESTING && args.length < 1) {
 			System.out.println("You must provide the bot token in production mode.");
 			usageMain();
 			return;
@@ -101,12 +93,19 @@ public class Main {
 			new MessageListener(),
 			new readyEvent()
 		);
+		try {
+			jda.awaitReady();
+		}catch (InterruptedException e){
+			e.printStackTrace();
+		}catch(IllegalStateException e){
+			e.printStackTrace();
+		}
 		Scanner scanner = new Scanner(System.in);
         String input="";
         while (!BotCore.isShutingDown()) {
             System.out.print("$ ");
             input = scanner.nextLine().toLowerCase();
-			System.out.println("Input: " + input);
+			System.out.println(" Input: " + input);
 			switch (input) {
 				case "stop","shutdown","exit":
 					BotCore.SHUTINGDOWN = true;
@@ -120,6 +119,7 @@ public class Main {
 					break;
 			}
         }
+		scanner.close();
 		jda.shutdown();
 	}
 }

@@ -1,7 +1,6 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Set;
@@ -70,7 +69,7 @@ public class HelpCommand extends BotCommand {
     @Override
     public List<OptionData> getOptionData(){
 		List<OptionData> res = new ArrayList<>();
-        res.add (new OptionData(OptionType.STRING, "command", "Command name for detailed description"));
+        res.add (new OptionData(OptionType.STRING, "command", "Command name for detailed description", true));
         return res;
     }
 	@Override

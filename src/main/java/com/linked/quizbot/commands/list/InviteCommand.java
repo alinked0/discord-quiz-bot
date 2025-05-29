@@ -26,11 +26,6 @@ public class InviteCommand extends BotCommand {
     public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
-	@Override
-    public List<OptionData> getOptionData(){
-        List<OptionData> res = new ArrayList<OptionData>();
-        return res;
-    }
     @Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         List<Permission> permissions = new LinkedList<>(

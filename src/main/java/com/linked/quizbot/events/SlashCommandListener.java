@@ -1,39 +1,27 @@
 package com.linked.quizbot.events;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.Channels;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.core.BotCore;
 
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.internal.entities.ReceivedMessage;
 
 /**
  * The class SlashCommandListener will serve as the first layer to any slash command
@@ -121,7 +109,7 @@ public class SlashCommandListener extends ListenerAdapter {
 				
 				Message message = null;
 				cmd.execute(sender, message, channel, args);
-				System.out.printf("   $> time "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
+				if (!Constants.isBugFree()) System.out.printf("   $> time "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
 				return;
 			}
 		}

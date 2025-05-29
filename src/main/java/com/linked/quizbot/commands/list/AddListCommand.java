@@ -1,6 +1,5 @@
 package com.linked.quizbot.commands.list;
 
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 

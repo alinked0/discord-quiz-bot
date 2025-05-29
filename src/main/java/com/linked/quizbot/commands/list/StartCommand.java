@@ -2,18 +2,16 @@ package com.linked.quizbot.commands.list;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.QuestionListHash;
 import com.linked.quizbot.utils.UserLists;
-import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.Question;
 
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -79,8 +77,7 @@ public class StartCommand extends BotCommand{
 	@Override
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<OptionData>();
-        res.add(
-            new OptionData(OptionType.INTEGER, "listid", "listid given by "+CollectionCommand.CMDNAME));
+        res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME).setRequiredLength(QuestionListHash.DEFAULT_LENGTH, QuestionListHash.DEFAULT_LENGTH));
         return res;
     }
     @Override

@@ -2,7 +2,6 @@ package com.linked.quizbot.commands.list;
 
 import java.util.concurrent.TimeUnit;
 
-import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.core.BotCore;

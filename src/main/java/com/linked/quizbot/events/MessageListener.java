@@ -11,7 +11,6 @@ import com.linked.quizbot.core.BotCore;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -80,7 +79,7 @@ public class MessageListener extends ListenerAdapter {
         }
         String [] args=null;
         if(cmd == null) {
-            System.out.printf("  $> not found : %s;\n",userCmdName);
+            if (!Constants.isBugFree())System.out.printf("  $> not found : %s;\n",userCmdName);
         } else {
             String command = cmd.getName();
             if (h.length()>userCmdName.length()+1) {
@@ -104,13 +103,15 @@ public class MessageListener extends ListenerAdapter {
             }else { 
                 args = new String[0];
             }
-            System.out.print("  $> "+content.replace("\n", "").replace("\t", ""));
-            System.out.print(" ; args :");
-            for (int i=0; i<args.length; i++) { 
-                System.out.print(args[i].replace("\n", "").replace("\t", "")+":");
+            if (!Constants.isBugFree()) {
+                System.out.print("  $> "+content.replace("\n", "").replace("\t", ""));
+                System.out.print(" ; args :");
+                for (int i=0; i<args.length; i++) { 
+                    System.out.print(args[i].replace("\n", "").replace("\t", "")+":");
+                }
             }
             cmd.execute(sender, message, channel, args);
-            System.out.printf("   $> time of "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
+            if (!Constants.isBugFree()) System.out.printf("   $> time of "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
         }
     }
 }

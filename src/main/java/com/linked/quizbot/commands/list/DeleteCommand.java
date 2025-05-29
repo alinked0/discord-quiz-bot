@@ -74,9 +74,8 @@ public class DeleteCommand extends BotCommand{
     
 	@Override
     public List<OptionData> getOptionData(){
-        List<OptionData> res = new ArrayList<>();
-        res.add(new OptionData(OptionType.INTEGER, "index-of-theme", "the theme index given by !c"));
-        res.add(new OptionData(OptionType.INTEGER, "index-of-list", "the list index given by !c"));
+        List<OptionData> res = new ArrayList<OptionData>();
+        res.add(BotCommand.getCommandByName(StartCommand.CMDNAME).getOptionData().get(0).setRequired(true));
         return res;
     }
 	@Override

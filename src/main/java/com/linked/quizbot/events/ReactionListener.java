@@ -1,48 +1,19 @@
 package com.linked.quizbot.events;
 
-import java.util.HashSet;
-
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
-import com.linked.quizbot.utils.Option;
-import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserLists;
-
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.list.CollectionCommand;
-import com.linked.quizbot.commands.list.EndCommand;
-import com.linked.quizbot.commands.list.ExplainCommand;
-import com.linked.quizbot.commands.list.LeaderBoardCommand;
-import com.linked.quizbot.commands.list.StartCommand;
-import com.linked.quizbot.commands.list.NextCommand;
-import com.linked.quizbot.commands.list.PreviousCommand;
-import com.linked.quizbot.commands.list.MoreTimeCommand;
-import com.linked.quizbot.commands.list.ViewCommand;
-import com.linked.quizbot.commands.list.DeleteCommand;
-import com.linked.quizbot.commands.list.HelpCommand;
-import com.linked.quizbot.commands.list.InviteCommand;
-import com.linked.quizbot.commands.list.CreateListCommand;
-import com.linked.quizbot.commands.list.EmbedCommand;
-import com.linked.quizbot.commands.list.PingCommand;
 
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.utils. AttachedFile;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
-
-import java.io.File;
-
-import com.linked.quizbot.commands.BotCommand;
 
 /**
  * The ReactionListener class is a specialized {@link ListenerAdapter} class, 

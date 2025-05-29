@@ -124,7 +124,7 @@ public class QuestionListParser {
 				result.get(result.size()-1).setImageSrc(imgSrc);
 				result.get(result.size()-1).setExplication(expl);
 			}
-            System.out.printf("   $> time importJson = `%.3f ms` n=%d name=%s\n",(System.nanoTime() - start) / 1000000.00 ,result.size(),result.getName());
+            if (!Constants.isBugFree()) System.out.printf("   $> time importJson = `%.3f ms` n=%d name=%s\n",(System.nanoTime() - start) / 1000000.00 ,result.size(),result.getName());
 			return result;
 		} catch (IOException e) {
 			System.err.println("Error: Parser creation failed");
@@ -133,7 +133,7 @@ public class QuestionListParser {
 			System.err.println("Error Json representation of ListQuestion is invalid");
 			e.printStackTrace();
 		}
-        System.out.printf("   $> time importJson = `%.3f ms`\n",(System.nanoTime() - start) / 1000000.00);
+        if (!Constants.isBugFree()) System.out.printf("   $> time importJson = `%.3f ms`\n",(System.nanoTime() - start) / 1000000.00);
 		return null;
     }
 	public static QuestionList stringToQuestionList(String arg){
