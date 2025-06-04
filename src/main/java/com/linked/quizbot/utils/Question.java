@@ -73,6 +73,12 @@ public class Question extends LinkedList<Option>{
 		}
 		this.question = question;
 	}
+	public Question(String question, Option... optionsForAnswer) {
+		this.question = question;
+		for (Option option : optionsForAnswer){
+			add(option);
+		}
+	}
 	/**
 	 * Returns the number of correct options.
 	 *
@@ -223,7 +229,7 @@ public class Question extends LinkedList<Option>{
 					&& getOptions().equals(q.getOptions());
 	}
 	public static Question getExampleQuestion(){
-		Question q = new Question("Which options are true?", Option.getExampleOption());
+		Question q = new Question("What is H₂O?", Option.getExampleOption());
 		return q;
 	}
 }

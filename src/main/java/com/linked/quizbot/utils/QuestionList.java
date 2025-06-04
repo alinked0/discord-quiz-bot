@@ -6,17 +6,20 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.linked.quizbot.Constants;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.emoji.UnicodeEmoji;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 
 /**
- * The ListQuestion class is a specialized extension of the LinkedList class, designed to manage a collection
+ * The QuestionList class is a specialized extension of the LinkedList class, designed to manage a collection
  * of {@link Question} objects. It includes additional metadata such as author ID, and name, and provides
  * utility methods for importing and exporting the list in JSON format.
  *
@@ -33,15 +36,15 @@ import java.util.HashMap;
  *
  * <h2>Examples:</h2>
  * <pre>
- * // Creating a new ListQuestion with metadata and adding questions
- * ListQuestion list = new ListQuestion("001", "Trivia Night", "Science");
+ * // Creating a new QuestionList with metadata and adding questions
+ * QuestionList list = new QuestionList("001", "Trivia Night", "Science");
  * list.add(new Question("What is the chemical symbol for water?", 1, "H2O", "CO2"));
  *
  * // Exporting the list to a JSON file
  * list.exportListQuestionAsJson();
  *
- * // Importing a ListQuestion from a JSON file
- * ListQuestion importedList = new ListQuestion("path/to/json/file.json");
+ * // Importing a QuestionList from a JSON file
+ * QuestionList importedList = new QuestionList("path/to/json/file.json");
  * </pre>
  *
  * @see Question
@@ -52,13 +55,13 @@ import java.util.HashMap;
  */
 public class QuestionList extends LinkedList<Question> {
 	private String authorId;
-	private HashMap<String, Emoji> tags;
+	private Map<String,UnicodeEmoji> tags;
 	private String name;
 	private long timeCreatedMillis;
 	private String listId;
 
 	/**
-	 * Default constructor for ListQuestion.
+	 * Default constructor for QuestionList.
 	 * Initializes the list with default values for authorId, name, and tags.
 	 */
 	public QuestionList() {
@@ -71,7 +74,7 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * Constructs a ListQuestion with the specified authorId, name, and a collection of questions.
+	 * Constructs a QuestionList with the specified authorId, name, and a collection of questions.
 	 *
 	 * @param authorId the ID of the author of this question list
 	 * @param name the name of this question list
@@ -81,12 +84,13 @@ public class QuestionList extends LinkedList<Question> {
 		super(c);
 		this.authorId = authorId;
 		this.name = name;
+		this.tags = new HashMap<>();
 		this.timeCreatedMillis = System.currentTimeMillis();
 		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);;
 	}
 
 	/**
-	 * Constructs a ListQuestion with the specified authorId, and name.
+	 * Constructs a QuestionList with the specified authorId, and name.
 	 *
 	 * @param authorId the ID of the author of this question list
 	 * @param name the name of this question list
@@ -94,71 +98,61 @@ public class QuestionList extends LinkedList<Question> {
 	public QuestionList(String authorId, String name){
 		this.authorId = authorId;
 		this.name = name;
+		this.tags = new HashMap<>();
 		this.timeCreatedMillis = System.currentTimeMillis();
 		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);
 	}
 
 	/**
-	 * Constructs a ListQuestion from a JSON file located at the specified file path.
+	 * Constructs a QuestionList from a JSON file located at the specified file path.
 	 *
 	 * @param filePath the file path of the JSON file to import the list from
 	 */
 	public QuestionList(String filePath) {
 		this();
-		QuestionList res = QuestionListParser.jsonToQuestionList(filePath);
-		if (res!=null) {
+		QuestionList res = QuestionListParser.fromJsonFile(filePath);
+		if (res!=null && res.getName()!=null) {
 			this.addAll(res);
 			this.name = res.getName();
 			this.authorId = res.getAuthorId();
+			this.tags = res.getTags();
 			this.timeCreatedMillis = res.getTimeCreatedMillis();
 			this.listId = res.getListId();
 		}
 	}
 
 	/**
-	 * Imports a ListQuestion from a JSON file.
+	 * Imports a QuestionList from a JSON file.
 	 *
 	 * @param filePath the file path of the JSON file to import the list from
-	 * @return a new ListQuestion instance populated with data from the JSON file
+	 * @return a new QuestionList instance populated with data from the JSON file
 	 */
 	public static QuestionList importListQuestionFromJson(String filePath) {
 		return new QuestionList(filePath);
 	}
 
 	/**
-	 * Sets the author ID for this ListQuestion.
+	 * Sets the author ID for this QuestionList.
 	 * Renames the associated directory if necessary.
 	 *
 	 * @param authorId the new author ID to set
 	 */
 	public void setAuthorId(String authorId) {
-		//File dir = new File(getPathToList());
 		this.authorId= authorId;
-		// if(dir.getParentFile().exists()) {
-		// 	if(!dir.renameTo(new File(getPathToList()).getParentFile())){
-		// 		System.out.println("Error: Change of author folder failed");
-		// 	}
-		// }
 	}
 
 	/**
-	 * Sets the name for this ListQuestion.
+	 * Sets the name for this QuestionList.
 	 * Renames the associated file if necessary.
 	 *
 	 * @param name the new name to set
 	 */
 	public void setName(String name) {
-		//File file = new File(getPathToList());
 		this.name= name;
-		// if(file.exists()) {
-		// 	if(!file.renameTo(new File(getPathToList()))){
-		// 		System.out.println("Error: renaming of questions file failed");
-		// 	}
-		// }
 	}
 
 	/**
-	 * Sets the creation time for this ListQuestion.
+	 * Sets the creation time for this QuestionList.
 	 * @param timeMillis the new time created in milliseconds
 	 */
 	public void setTimeCreatedMillis(long timeMillis){
@@ -166,7 +160,7 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * Sets the listId for this ListQuestion.
+	 * Sets the listId for this QuestionList.
 	 * @param listId the new listId
 	 */
 	public void setListId(String listId){
@@ -174,7 +168,7 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * Gets the time this ListQuestion was created in milliseconds.
+	 * Gets the time this QuestionList was created in milliseconds.
 	 *
 	 * @return the time created in milliseconds
 	 */
@@ -183,7 +177,7 @@ public class QuestionList extends LinkedList<Question> {
 	}
 	
 	/**
-	 * Gets the unique identifier for this ListQuestion.
+	 * Gets the unique identifier for this QuestionList.
 	 *
 	 * @return the list ID
 	 */
@@ -192,7 +186,7 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * Gets the author ID for this ListQuestion.
+	 * Gets the author ID for this QuestionList.
 	 *
 	 * @return the author ID
 	 */
@@ -201,7 +195,7 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * Gets the name of this ListQuestion.
+	 * Gets the name of this QuestionList.
 	 *
 	 * @return the name
 	 */
@@ -210,9 +204,30 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * Returns the path to the list file for a given ListQuestion.
+	 * Gets the tags of this QuestionList.
 	 *
-	 * @param questions the ListQuestion to get the path for
+	 * @return an instance of tags
+	 */
+	public HashMap<String,UnicodeEmoji> getTags() {
+		HashMap<String, UnicodeEmoji> res = new HashMap<>(tags);
+		return res;
+	}
+
+	public boolean addTag(String tagName, UnicodeEmoji emoji) {
+		if(tags.get(tagName) != null){
+			return false;
+		}
+		tags.put(tagName, emoji);
+		return true;
+	}
+	public void setTags(Map<? extends String,? extends UnicodeEmoji> m) {
+		tags = new HashMap<>(m);
+	}
+
+	/**
+	 * Returns the path to the list file for a given QuestionList.
+	 *
+	 * @param questions the QuestionList to get the path for
 	 * @return the file path as a string
 	 */
 	public static String pathToList(QuestionList questions) {
@@ -220,7 +235,7 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * Returns the default path to the file for this ListQuestion.
+	 * Returns the default path to the file for this QuestionList.
 	 *
 	 * @return the default file path as a string
 	 */
@@ -231,15 +246,15 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * static method to export a ListQuestion as a JSON file.
-	 * @param c the ListQuestion to export.
+	 * static method to export a QuestionList as a JSON file.
+	 * @param c the QuestionList to export.
 	 */
 	public static void exportListQuestionAsJson(QuestionList c){
 		c.exportListQuestionAsJson();
 	}
 
 	/**
-	 * Exports this ListQuestion as a JSON file.
+	 * Exports this QuestionList as a JSON file.
 	 * Creates the file if it does not already exist.
 	 */
 	public void exportListQuestionAsJson(){
@@ -313,9 +328,9 @@ public class QuestionList extends LinkedList<Question> {
     }
 	
 	/**
-	 * Returns a string representation of this ListQuestion in JSON format.
+	 * Returns a string representation of this QuestionList in JSON format.
 	 *
-	 * @return the JSON representation of this ListQuestion
+	 * @return the JSON representation of this QuestionList
 	 */
 	@Override
 	public String toString() {
@@ -332,13 +347,24 @@ public class QuestionList extends LinkedList<Question> {
 		res += "{\n";
 		tab = "\t";
 		res += tab+"\"authorId\":\""+getAuthorId()+"\",\n";
-		//res += tab + "\"tags\":\""+getTags()+"\",\n";
 		res += tab + "\"name\":\""+getName()+"\",\n";
 		res += tab + "\"listId\":\""+getListId()+"\",\n";
 		res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
+
+		res += tab + "\"tags\":{";
+		Iterator<Entry<String, UnicodeEmoji>> iter = tags.entrySet().iterator();
+		Entry<String, UnicodeEmoji> entry;
+		while (iter.hasNext()) {
+			entry = iter.next();
+			res += "\""+entry.getKey()+"\" : \""+entry.getValue().getAsCodepoints()+"\"";
+			if(iter.hasNext()){
+				res += ", ";
+			}
+		}
+		res += "},\n";
+
 		res += tab + "\"questions\": \n";
 		res += "\t[\n";
-
 		Iterator<Question> iterQuestion = this.iterator();
 		while (iterQuestion.hasNext()){
 			Question q = iterQuestion.next();
@@ -388,7 +414,7 @@ public class QuestionList extends LinkedList<Question> {
 		return res;
 	}
 	/**
-	 * Returns the hash code for this ListQuestion.
+	 * Returns the hash code for this QuestionList.
 	 *
 	 * @return the hash code
 	 */
@@ -400,7 +426,7 @@ public class QuestionList extends LinkedList<Question> {
 	}
 	
 	/**
-	 * Compares this ListQuestion to another object for equality.
+	 * Compares this QuestionList to another object for equality.
 	 *
 	 * @param o the object to compare
 	 * @return true if the objects are equal, false otherwise
@@ -418,7 +444,12 @@ public class QuestionList extends LinkedList<Question> {
 		l.setAuthorId("ExampleAuthor");
 		l.setName("Example QuestionList");
 		l.setListId("abcdefg");
+
 		l.add(Question.getExampleQuestion());
+
+		HashMap<String, UnicodeEmoji> m = new HashMap<>();
+		m.put("Science", Emoji.fromUnicode("U+1F52D"));
+		l.setTags(m);
 		return l;
 	}
 }

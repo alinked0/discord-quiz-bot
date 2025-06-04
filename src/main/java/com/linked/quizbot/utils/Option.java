@@ -4,6 +4,9 @@ import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.linked.quizbot.Constants;
 
 /**
@@ -25,7 +28,7 @@ public class Option {
 	 * @requires text != null
 	 * @ensures getText().equals(text)
 	 */
-	public Option(String text, boolean isCorrect){
+	public Option(@NotNull String text, @NotNull boolean isCorrect){
 		txt = text;
 		explication = null;
 		this.isCorrect = isCorrect;
@@ -39,7 +42,7 @@ public class Option {
 	 * @requires text != null && explication != null
 	 * @ensures getText().equals(text) && getExplication().equals(explication)
 	 */
-	public Option(String text, boolean isCorrect, String explication){
+	public Option(String text, boolean isCorrect, @Nullable String explication){
 		this(text, isCorrect);
 		this.explication = explication;
 	}
@@ -112,10 +115,8 @@ public class Option {
 	}
 	public static List<Option> getExampleOption(){
 		List<Option> opts = new ArrayList<>();
-		opts.add(new Option("Option 1", true));
-		opts.add(new Option("Option 2", true));
-		opts.add(new Option("Option 3", false));
-		opts.add(new Option("Option 4", false));
+		opts.add(new Option("Water", true, "Correct! H2O is the chemical formula for water"));
+		opts.add(new Option("Carbon Dioxide", false, "Incorrect. CO2 is carbon dioxide"));
 		return opts;
 	}
 }

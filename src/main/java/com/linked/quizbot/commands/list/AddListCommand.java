@@ -51,7 +51,7 @@ public static final String CMDNAME = "addlist";
             return;
         }
         for (int i = 0; i<n; i++) {
-            QuestionList l = QuestionListParser.stringToQuestionList(args[i]);
+            QuestionList l = QuestionListParser.fromString(args[i]);
             if (l!=null) {
                 if (l.getAuthorId()==null) {
                     l.setAuthorId(userId);

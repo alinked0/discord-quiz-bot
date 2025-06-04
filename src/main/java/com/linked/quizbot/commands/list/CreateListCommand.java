@@ -88,7 +88,7 @@ public class CreateListCommand extends BotCommand {
             return;
         }
         for (int i = 0; i<n; i++) {
-            QuestionList l = QuestionListParser.stringToQuestionList(args[i]);
+            QuestionList l = QuestionListParser.fromString(args[i]);
             if (l!=null) {
                 l.setAuthorId(userId);
                 if (l.getName()!=null /*&& l.getTheme()!=null*/) {

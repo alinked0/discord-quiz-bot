@@ -1,208 +1,167 @@
-import com.linked.quizbot.Constants;
-import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserLists;
-import com.linked.quizbot.utils.Question;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.linked.quizbot.utils.Option;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import com.linked.quizbot.utils.Question;
+import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.QuestionListParser;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.emoji.UnicodeEmoji;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.LinkedList;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Test class for QuestionList import/export functionality.
- * Tests the serialization and deserialization of QuestionList objects to/from JSON.
- */
 public class TestQuestionListParser {
 
     @TempDir
-    Path tempDir;
-    File tempFile = new File("src"+Constants.SEPARATOR+"test"+Constants.SEPARATOR+"java"+Constants.SEPARATOR+"tmp");
+    File tempDir;
 
-    private QuestionList originalList;
-    private static final String AUTHOR_ID = "test_author";
-    private static final String LIST_NAME = "Test Quiz";
-    //private static final String THEME = "Science";
-    private File jsonFile;
+    // --- 1. Test fromJsonFile() ---
+    @Test
+    void testFromJsonFile_validJson() throws IOException {
+        QuestionList original = QuestionList.getExampleQuestionList();
+        File file = new File(tempDir, "list.json");
+        original.exportListQuestionAsJson(file.getAbsolutePath());
 
-    @BeforeEach
-    void setUp() throws IOException {
-        // Create a sample QuestionList with various test cases
-        originalList = createSampleQuestionList();
-        
-        // Create temporary file for testing
-        jsonFile = new File(tempDir.toFile(), "test_questions.json");
-    }
-    /**
-     * Cleans up after each test by removing test files.
-     */
-    @AfterEach
-    public void tearDown() {
-        // Delete the test file
-        File f = tempFile;
-        if (f.exists()){
-            f.delete();
-        }
-        f = jsonFile;
-        if (f.exists()){
-            f.delete();
-        }
-        f = tempDir.toFile();
-        if (f.exists()){
-            f.delete();
-        }
-        if (originalList != null){
-            f = new File(originalList.getPathToList());
-            if (f.exists()){
-                f.delete();
-            }
-        }
-    }
+        QuestionList parsed = QuestionListParser.fromJsonFile(file.getAbsolutePath());
 
-    /**
-     * Creates a sample QuestionList with various test cases
-     */
-    private QuestionList createSampleQuestionList() {
-        QuestionList list = new QuestionList(AUTHOR_ID, LIST_NAME);
-
-        // Add a simple question with basic options
-        Question q1 = new Question("What is H2O?", createOptions(
-            new String[]{"Water", "Carbon Dioxide"},
-            new boolean[]{true, false},
-            new String[]{"Correct! H2O is the chemical formula for water", "Incorrect. CO2 is carbon dioxide"}
-        ));
-        list.add(q1);
-
-        // Add a question with an image source
-        Question q2 = new Question("Identify this element's atomic structure:", createOptions(
-            new String[]{"Hydrogen", "Helium"},
-            new boolean[]{false, true},
-            new String[]{"Incorrect", "Correct!"}
-        ));
-        q2.setImageSrc("atomic_structure.png");
-        q2.setExplication("This is the atomic structure of Helium");
-        list.add(q2);
-
-        // Add a question with multiple options
-        Question q3 = new Question("Select all noble gases:", createOptions(
-            new String[]{"Helium", "Oxygen", "Neon", "Nitrogen"},
-            new boolean[]{true, false, true, false},
-            new String[]{"Correct!", "Not a noble gas", "Correct!", "Not a noble gas"}
-        ));
-        list.add(q3);
-
-        return list;
-    }
-
-    /**
-     * Helper method to create options for questions
-     */
-    private LinkedList<Option> createOptions(String[] texts, boolean[] corrects, String[] explanations) {
-        LinkedList<Option> options = new LinkedList<>();
-        for (int i = 0; i < texts.length; i++) {
-            options.add(new Option(texts[i], corrects[i], explanations[i]));
-        }
-        return options;
+        assertNotNull(parsed);
+        assertEquals(original.size(), parsed.size());
+        assertEquals(original.getAuthorId(), parsed.getAuthorId());
     }
 
     @Test
-    void testExportAndImport() throws IOException {
-        // Export the original list
-        System.out.println(originalList);
-        originalList.exportListQuestionAsJson(tempFile.getPath());
+    void testFromJsonFile_missingFile() {
+        File missing = new File(tempDir, "does_not_exist.json");
+        QuestionList parsed = QuestionListParser.fromJsonFile(missing.getAbsolutePath());
+        assertNull(parsed);
+    }
 
-        // Import the list back
-        QuestionList importedList = QuestionList.importListQuestionFromJson(tempFile.getPath());
-        System.out.println(importedList);
-        // Verify the metadata
-        assertEquals(originalList.getAuthorId(), importedList.getAuthorId(), "Author ID should match");
-        assertEquals(originalList.getName(), importedList.getName(), "List name should match");
-        //assertEquals(originalList.getTheme(), importedList.getTheme(), "Theme should match");
+    // --- 2. Test fromString() ---
+    @Test
+    void testFromString_validJson() {
+        QuestionList list = QuestionList.getExampleQuestionList();
+        QuestionList parsed = QuestionListParser.fromString(list.toJson());
 
-        // Verify the number of questions
-        assertEquals(originalList.size(), importedList.size(), "Number of questions should match");
-
-        // Verify each question's content
-        for (int i = 0; i < originalList.size(); i++) {
-            Question originalQ = originalList.get(i);
-            Question importedQ = importedList.get(i);
-
-            assertEquals(originalQ.getQuestion(), importedQ.getQuestion(), 
-                "Question text should match for question " + (i + 1));
-            assertEquals(originalQ.getImageSrc(), importedQ.getImageSrc(), 
-                "Image source should match for question " + (i + 1));
-            assertEquals(originalQ.getExplication(), importedQ.getExplication(), 
-                "Explanation should match for question " + (i + 1));
-
-            // Verify options
-            assertEquals(originalQ.getOptions().size(), importedQ.getOptions().size(), 
-                "Number of options should match for question " + (i + 1));
-
-            for (Option originalOpt : originalQ.getOptions()) {
-                Option importedOpt = importedQ.getOptions().get(importedQ.getOptions().indexOf(originalOpt));
-                assertEquals(originalOpt.getText(), importedOpt.getText());
-                assertEquals(originalOpt.isCorrect(), importedOpt.isCorrect());
-                assertEquals(originalOpt.getExplication(), importedOpt.getExplication());
-            }
-        }
-        tempFile.delete();
+        assertNotNull(parsed);
+        assertEquals(list.size(), parsed.size());
     }
 
     @Test
-    void testImportNonexistentFile() {
-        File nonexistentFile = new File(tempDir.toFile(), "nonexistent.json");
-        QuestionList importedList = new QuestionList(nonexistentFile.getPath());
-        
-        // Verify that importing a non-existent file results in an empty list with null fields
-        assertNotNull(importedList, "Should create an empty list even when file doesn't exist");
-        assertEquals(0, importedList.size(), "List should be empty");
-        assertNull(importedList.getAuthorId(), "Author ID should be null");
-        assertNull(importedList.getName(), "Name should be null");
-        //assertNull(importedList.getTheme(), "Theme should be null");
+    void testFromString_invalidJson() {
+        String invalidJson = "{ invalid json }";
+        QuestionList parsed = QuestionListParser.fromString(invalidJson);
+        assertNull(parsed);
     }
 
+    // --- 3. Test parser(JsonParser) ---
     @Test
-    void testExportToInvalidPath() {
-        QuestionList list = new QuestionList(AUTHOR_ID, LIST_NAME);
-        File invalidPath = new File("/invalid/path/test.json");
-        
-        // No exception should be thrown, but the file should not be created
-        list.exportListQuestionAsJson();
-        assertFalse(invalidPath.exists(), "File should not be created at invalid path");
+    void testParser_directly() throws IOException {
+        QuestionList original = QuestionList.getExampleQuestionList();
+        JsonParser parser = new JsonFactory().createParser(original.toJson());
+        QuestionList parsed = QuestionListParser.parser(parser);
+
+        assertNotNull(parsed);
+        assertEquals(original.getAuthorId(), parsed.getAuthorId());
     }
 
+    // --- 4. Test parseTags() ---
     @Test
-    void testImportInvalidJson(){
-        // Create an invalid JSON file
-        String invalidJson = "{ invalid json content }";
-        File f = new File(tempDir.toFile(),"invalid");
-        QuestionList.getExampleQuestionList().exportListQuestionAsJson(f.getAbsolutePath());
-        try {
-            BufferedWriter buff = Files.newBufferedWriter(Paths.get(f.getAbsolutePath()));
-            buff.write(invalidJson);
-            buff.close();
-		} catch (IOException e) {
-			System.err.println("$> An error occurred while exporting a List of questions.");
-			e.printStackTrace();
-		}
-        // Attempting to import invalid JSON should result in an empty list
-        QuestionList importedList = new QuestionList(jsonFile.getPath());
+    void testParseTags_validTags() throws IOException {
+        String json = "{ \"Science\": \"U+2697\", \"Math\": \"U+1F4C8\" }";
+        JsonParser parser = new JsonFactory().createParser(json);
+        parser.nextToken(); // move to START_OBJECT
+
+        Map<String, UnicodeEmoji> tags = QuestionListParser.parseTags(parser);
+        assertNotNull(tags);
+        assertEquals(2, tags.size());
+        assertTrue(tags.containsKey("Science"));
+    }
+
+    // --- 5. Test parseOption() ---
+    @Test
+    void testParseOption_valid() throws IOException {
+        String json = "{ \"text\": \"42\", \"isCorrect\": true, \"explication\": \"The answer to everything\" }";
+        JsonParser parser = new JsonFactory().createParser(json);
+        parser.nextToken(); // move to START_OBJECT
+
+        Option opt = QuestionListParser.parseOption(parser);
+        assertNotNull(opt);
+        assertTrue(opt.isCorrect());
+        assertEquals("42", opt.getText());
+    }
+
+    // --- 6. Test parseOptionList() ---
+    @Test
+    void testParseOptionList_valid() throws IOException {
+        String json = "[ "+new Option("Yes", true)+", "+new Option("No", false)+" ]";
         
-        assertEquals(0, importedList.size(), "Invalid JSON should result in empty list");
-        assertNull(importedList.getAuthorId(), "Author ID should be null for invalid JSON");
-        assertNull(importedList.getName(), "Name should be null for invalid JSON");
-        //assertNull(importedList.getTheme(), "Theme should be null for invalid JSON");
-        f.delete();
-        jsonFile.delete();
+        JsonParser parser = new JsonFactory().createParser(json);
+        parser.nextToken(); // move to START_ARRAY
+
+        List<Option> options = QuestionListParser.parseOptionList(parser);
+        assertNotNull(options);
+        assertEquals(2, options.size());
+    }
+
+    // --- 7. Test parseQuestion() ---
+    @Test
+    void testParseQuestion_valid() throws IOException {
+        Question q = new Question("What is Java?", new Option("Language", true));
+        q.setImageSrc("java.png");
+        q.setExplication("A programming language");
+        String json = q.toString();
+        JsonParser parser = new JsonFactory().createParser(json);
+        parser.nextToken(); // move to START_OBJECT
+
+        Question question = QuestionListParser.parseQuestion(parser);
+        assertNotNull(question);
+        assertEquals("What is Java?", question.getQuestion());
+        assertEquals(1, question.getOptions().size());
+
+        String validQ = "{ \"question\": \"What is Java?\", \"options\": [ { \"text\": \"Lang\", \"isCorrect\": true } ], \"explication\": \"A language\", \"img_src\": \"img.png\" }";
+        parser = new JsonFactory().createParser(validQ);
+        parser.nextToken(); // move to START_OBJECT
+        q = QuestionListParser.parseQuestion(parser);
+        assertNotNull(q);
+        assertEquals("What is Java?", q.getQuestion());
+    }
+
+    // --- 8. Test parseQuestionList() ---
+    @Test
+    void testParseQuestionList_valid() throws IOException {
+        String json = """
+        [
+          {
+            "question": "Q1?",
+            "explication": "Exp1",
+            "img_src": "img1.png",
+            "options": [{"text":"T1", "isCorrect":true, "explication":"E1"}]
+          },
+          {
+            "question": "Q2?",
+            "explication": "Exp2",
+            "img_src": "img2.png",
+            "options": [{"text":"T2", "isCorrect":false, "explication":"E2"}]
+          }
+        ]
+        """;
+        JsonParser parser = new JsonFactory().createParser(json);
+        parser.nextToken(); // move to START_ARRAY
+
+        List<Question> questions = QuestionListParser.parseQuestionList(parser);
+        assertNotNull(questions);
+        assertEquals(2, questions.size());
+
+        String valid = "[ { \"question\": \"Q1?\", \"options\": [ { \"text\": \"A\", \"isCorrect\": true } ] }, { \"question\": \"Q2?\", \"options\": [ { \"text\": \"B\", \"isCorrect\": false } ] } ]";
+        parser = new JsonFactory().createParser(valid);
+        parser.nextToken(); // move to START_ARRAY
+        questions = QuestionListParser.parseQuestionList(parser);
+        assertNotNull(questions);
+        assertEquals(2, questions.size());
     }
 }
