@@ -3,6 +3,7 @@ package com.linked.quizbot.commands.list;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -81,27 +82,29 @@ public class DeleteCommand extends BotCommand{
 	@Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         
-        String res; 
-        int n = args.length;
-        if (n<2){
+        String res,ownerId; 
+        MessageCreateAction send;
+        QuestionList l;
+        Consumer<Message> success;
+        if (args.length<getOptionData().size()){
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
-        int fst = Integer.parseInt(args[0]);
-        int snd = Integer.parseInt(args[1]);
-        UserLists userLists = new UserLists(sender.getId());
-		String theme = userLists.getAllThemes().get(fst>0?fst-1:0);
-        QuestionList l = userLists.getListsByTheme(theme).get(snd>0?snd-1:0);
-        l.setAuthorId(userLists.getUserId());
-        res = "Are you sure you want to delete :\n\""+l.getName()+"\"?";
-        MessageCreateAction send;
+        l = getSelectedQuestionList(args[0]);
+        ownerId = l.getAuthorId(); 
+        if (ownerId.equals(sender.getId())){
+            res = "Are you sure you want to delete :\n\""+l.getName()+"\"?";
+            success = msg ->{
+                msg.addReaction(Constants.EMOJIDEL).queue();
+                BotCore.comfirmDeletion(msg, l);
+            };
+        }else {
+            res = "You are not the owner of the list:\n\""+l.getName()+"\"";
+            success = null;
+        }
         send = channel.sendMessage(res);
         if(message!=null){send.setMessageReference(message);}
-        send.queue(msg ->{
-            msg.addReaction(Constants.EMOJIDEL).queue();
-            BotCore.comfirmDeletion(msg, l);
-        }
-        );
+        send.queue(success);
     }
 
 }
