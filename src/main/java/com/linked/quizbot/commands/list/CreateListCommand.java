@@ -79,9 +79,9 @@ public class CreateListCommand extends BotCommand {
         return res;
     }
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
-		// Répondre avec le temps de latence
         int n = args.length;
-        String res = "";
+        MessageCreateAction send;
+        String res = "Failed invalid question list";
         String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
@@ -90,9 +90,7 @@ public class CreateListCommand extends BotCommand {
         for (int i = 0; i<n; i++) {
             QuestionList l = QuestionListParser.stringToQuestionList(args[i]);
             if (l!=null) {
-                if (l.getAuthorId()==null) {
-                    l.setAuthorId(userId);
-                }
+                l.setAuthorId(userId);
                 if (l.getName()!=null && l.getTheme()!=null) {
                     if(UserLists.getUserListQuestions(userId).contains(l)) {
                         res = "Failed, list of name : \""+l.getName()+"\" and theme : \""+l.getTheme()+"\" already exists.";
@@ -106,7 +104,6 @@ public class CreateListCommand extends BotCommand {
                 }
             }
         }
-        MessageCreateAction send;
         send = channel.sendMessage(res);
         if(message!=null){send.setMessageReference(message);}
         send.queue(msg -> msg.delete().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES));

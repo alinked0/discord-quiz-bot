@@ -123,9 +123,9 @@ public class QuizBot extends ListenerAdapter {
 		sendNextQuestion();
 	}
 
-	public int getDelaySec(){
-		return delaySec;
-	}
+	public int getDelaySec(){ return this.delaySec;}
+	
+	public void setDelay(int sec) { this.delaySec = sec;}
 
     public Question getCurrQuestion() {
         if (!isActive() || getCurrentQuestionIndex()>=quizQuestions.size()) { return null;}
@@ -368,5 +368,4 @@ public class QuizBot extends ListenerAdapter {
         }
         return score;
     }
-    public void setDelay(int sec) { this.delaySec = sec;}
 }
