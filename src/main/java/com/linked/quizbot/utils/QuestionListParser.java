@@ -45,7 +45,7 @@ public class QuestionListParser {
 				}
 				switch (jp.currentName().toLowerCase()){
 					case "authorid" -> result.setAuthorId(jp.getText());
-					case "theme" -> result.setTheme(jp.getText());
+					//case "theme" -> result.setTheme(jp.getText());
 					case "name" -> result.setName(jp.getText());
 					case "timecreatedmillis" -> result.setTimeCreatedMillis(jp.getValueAsLong());
 					case "listid" -> result.setListId(jp.getText());

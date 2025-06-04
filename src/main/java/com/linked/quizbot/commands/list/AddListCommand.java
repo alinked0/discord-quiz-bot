@@ -70,7 +70,7 @@ public static final String CMDNAME = "addlist";
             res += "The example list cannot be modified.\n";
             return res;
         }
-        if (l.getName()!=null && l.getTheme()!=null) {
+        if (l.getName()!=null /*&& l.getTheme()!=null*/) {
             for (QuestionList k : UserLists.getUserListQuestions(l.getAuthorId())){
                 if(k.getName().equals(l.getName())) {
                     UserLists.addListToUser(l.getAuthorId(), l);

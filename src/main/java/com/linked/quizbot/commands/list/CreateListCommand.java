@@ -91,9 +91,9 @@ public class CreateListCommand extends BotCommand {
             QuestionList l = QuestionListParser.stringToQuestionList(args[i]);
             if (l!=null) {
                 l.setAuthorId(userId);
-                if (l.getName()!=null && l.getTheme()!=null) {
+                if (l.getName()!=null /*&& l.getTheme()!=null*/) {
                     if(UserLists.getUserListQuestions(userId).contains(l)) {
-                        res = "Failed, list of name : \""+l.getName()+"\" and theme : \""+l.getTheme()+"\" already exists.";
+                        res = "Failed, list of name : \""+l.getName()+"\" already exists.";
                     } else {
                         UserLists.addListToUser(l.getAuthorId(), l);
                         String index = UserLists.getCodeForIndexQuestionList(l);

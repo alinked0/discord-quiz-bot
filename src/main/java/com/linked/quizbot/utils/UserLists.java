@@ -20,8 +20,6 @@ public class UserLists implements Iterable<QuestionList>{
     private int totalPointsEverGained;
     private List<Double> sessionPointsPerQuestion;
     private List<QuestionList> allLists;
-    private List<String> allThemes;
-    private Map<String, List<QuestionList>> listsByTheme;
     public static Set<UserLists> allUserLists = new HashSet<>();
     //private HashMap<String, Double> pointsPerTheme;
 
@@ -29,13 +27,11 @@ public class UserLists implements Iterable<QuestionList>{
         this.userId = userId.replace("[a-zA-Z]", "");
         allLists = getUserListQuestions(userId);
         initAttributes();
-        initThemes();
     }
     public UserLists(String userId, Collection<? extends QuestionList> c){
         this.userId = userId.replace("[a-zA-Z]", "");
         allLists = new ArrayList<>(c);
         initAttributes();
-        initThemes();
     } 
     private void initAttributes(){
         numberOfGamesPlayed = 0;
@@ -45,23 +41,6 @@ public class UserLists implements Iterable<QuestionList>{
             l.setAuthorId(getUserId());
         }
         allLists.sort(QuestionList.comparatorByListId());
-    }
-    private void initThemes(){
-        listsByTheme = new HashMap<>();
-        allThemes = new ArrayList<>();
-        for (QuestionList l : allLists){
-            String theme = l.getTheme(); 
-            if(!allThemes.contains(theme)){
-                allThemes.add(theme);
-            }
-        }
-        allThemes.sort((e,f)-> e.compareTo(f));
-        for(String t : allThemes) {
-            listsByTheme.put(t, new ArrayList<QuestionList>());
-        }
-        for (QuestionList l : allLists){
-            listsByTheme.get(l.getTheme()).add(l);
-        }
     }
     public static String getCodeForIndexQuestionList(QuestionList l){
         return l.getListId();
@@ -76,33 +55,20 @@ public class UserLists implements Iterable<QuestionList>{
     }
     public void addList(QuestionList l) {
         allUserLists.remove(this);
-        //System.out.println("    $> "+allThemes);
-        int indexTheme = myBinarySearchIndexOf(allThemes, 0, allThemes.size()-1, l.getTheme(), (e,f)-> e.compareTo(f));
-        //System.out.println("    $> index "+indexTheme+" for:"+l.getTheme());
-        String theme = l.getTheme();
         int indexList = myBinarySearchIndexOf(allLists, 0, allLists.size()-1, l, QuestionList.comparatorByName());
         //System.out.println("    $> index "+indexList+" for:"+l.getName());
         if (indexList>=0) {
             QuestionList k = allLists.get(indexList);
             k.addAll(l);
-            int i = listsByTheme.get(theme).indexOf(k);
-            listsByTheme.get(theme).set(i,k);
-            i = allLists.indexOf(k);
+            int i = allLists.indexOf(k);
             allLists.set(i, k);
             k.exportListQuestionAsJson();
             allUserLists.add(this);
             return;
         }
-        if (indexTheme<0){
-            allThemes.add(theme);
-            listsByTheme.put(theme, new ArrayList<>());
-        }
         allLists.add(l);
-        listsByTheme.get(theme).add(l);
         l.exportListQuestionAsJson();
         allLists.sort(QuestionList.comparatorByListId());
-        allThemes.sort((e,f)-> e.compareTo(f));
-        listsByTheme.get(theme).sort(QuestionList.comparatorByListId());
         allUserLists.add(this);
     }
     public static void deleteList(QuestionList l){
@@ -110,12 +76,6 @@ public class UserLists implements Iterable<QuestionList>{
         userLists.allLists.remove(l);
         File f = new File(l.getPathToList());
         f.delete();
-        String theme=l.getTheme(); 
-        int n = userLists.listsByTheme.get(theme).size();
-        if (n<=1) {
-            userLists.listsByTheme.remove(theme);
-            userLists.allThemes.remove(theme);
-        }
         allUserLists.remove(userLists);
         allUserLists.add(userLists);
     }
@@ -141,13 +101,7 @@ public class UserLists implements Iterable<QuestionList>{
         return res;
     }
     public String getUserId(){ return userId;}
-
-    public List<String> getAllThemes() { return allThemes;}
-
-    public Map<String, List<QuestionList>> getListsByTheme(){ return listsByTheme;}
-    public List<QuestionList> getListsByTheme(String theme){ 
-        return getListsByTheme().getOrDefault(theme, null);
-    }
+    
     public long getUserIdLong(){ return Long.parseLong(userId);}
 
     public QuestionList get(int index) {

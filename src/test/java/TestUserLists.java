@@ -44,17 +44,17 @@ public class TestUserLists {
             f.delete();
         }
         // Create sample question lists
-        sampleList1 = new QuestionList(TEST_USER_ID, "Science Quiz", "Science");
+        sampleList1 = new QuestionList(TEST_USER_ID, "Science Quiz");
         Question q1 = new Question("What is H2O?", 1, "Water", "Carbon Dioxide");
         Question q2 = new Question("What is the closest planet to the Sun?", 1, "Mercury", "Venus", "Earth");
         sampleList1.add(q1);
         sampleList1.add(q2);
         
-        sampleList2 = new QuestionList(TEST_USER_ID, "History Quiz", "History");
+        sampleList2 = new QuestionList(TEST_USER_ID, "History Quiz");
         Question q3 = new Question("Who was the first president of the United States?", 1, "George Washington", "Thomas Jefferson");
         sampleList2.add(q3);
         
-        sampleList3 = new QuestionList(TEST_USER_ID, "Math Quiz", "Science");
+        sampleList3 = new QuestionList(TEST_USER_ID, "Math Quiz");
         Question q4 = new Question("What is 2+2?", 1, "4", "5");
         sampleList3.add(q4);
         
@@ -128,26 +128,6 @@ public class TestUserLists {
     }
     
     /**
-     * Tests the theme initialization and organization of lists by theme.
-     */
-    @Test
-    public void testThemeInitialization() {
-        // Check themes are extracted correctly
-        List<String> themes = userLists.getAllThemes();
-        assertEquals(2, themes.size());
-        assertTrue(themes.contains("Science"));
-        assertTrue(themes.contains("History"));
-        
-        // Check lists are organized by theme correctly
-        Map<String, List<QuestionList>> listsByTheme = userLists.getListsByTheme();
-        assertEquals(2, listsByTheme.size());
-        assertEquals(1, listsByTheme.get("Science").size());
-        assertEquals(1, listsByTheme.get("History").size());
-        assertEquals("Science Quiz", listsByTheme.get("Science").get(0).getName());
-        assertEquals("History Quiz", listsByTheme.get("History").get(0).getName());
-    }
-    
-    /**
      * Tests adding a new list to a user.
      */
     @Test
@@ -159,10 +139,6 @@ public class TestUserLists {
         List<QuestionList> allLists = userLists.getAllLists();
         assertEquals(3, allLists.size());
         assertTrue(allLists.contains(sampleList3));
-        
-        // Check theme organization was updated
-        Map<String, List<QuestionList>> listsByTheme = userLists.getListsByTheme();
-        assertEquals(2, listsByTheme.get(sampleList3.getTheme()).size());
     }
     
     /**
@@ -171,7 +147,7 @@ public class TestUserLists {
     @Test
     public void testAddListWithSameName() {
         // Create a list with the same name but different content
-        QuestionList sameNameList = new QuestionList(TEST_USER_ID, "Science Quiz", "Science");
+        QuestionList sameNameList = new QuestionList(TEST_USER_ID, "Science Quiz");
         Question q5 = new Question("What is the speed of light?", 1, "299,792,458 m/s", "150,000 m/s");
         sameNameList.add(q5);
         
@@ -258,16 +234,16 @@ public class TestUserLists {
     @Test
     public void testBinarySearchForQuestionLists() {
         List<QuestionList> sortedLists = new ArrayList<>();
-        sortedLists.add(new QuestionList(TEST_USER_ID, "A Quiz", "Test"));
-        sortedLists.add(new QuestionList(TEST_USER_ID, "B Quiz", "Test"));
-        sortedLists.add(new QuestionList(TEST_USER_ID, "C Quiz", "Test"));
+        sortedLists.add(new QuestionList(TEST_USER_ID, "A Quiz"));
+        sortedLists.add(new QuestionList(TEST_USER_ID, "B Quiz"));
+        sortedLists.add(new QuestionList(TEST_USER_ID, "C Quiz"));
         
         // Test finding existing elements
-        QuestionList testList = new QuestionList(TEST_USER_ID, "B Quiz", "Test");
+        QuestionList testList = new QuestionList(TEST_USER_ID, "B Quiz");
         assertEquals(1, UserLists.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, testList, QuestionList.comparatorByName()));
         
         // Test for element that doesn't exist
-        QuestionList missingList = new QuestionList(TEST_USER_ID, "D Quiz", "Test");
+        QuestionList missingList = new QuestionList(TEST_USER_ID, "D Quiz");
         int result = UserLists.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, missingList, QuestionList.comparatorByName());
         assertTrue(result < 0); // Should be negative for not found
     }
@@ -287,11 +263,6 @@ public class TestUserLists {
         List<QuestionList> allLists = reloadedUserLists.getAllLists();
         assertEquals(1, allLists.size());
         assertFalse(allLists.contains(sampleList1));
-        
-        // Check theme organization was updated if needed
-        List<String> themes = reloadedUserLists.getAllThemes();
-        assertEquals(1, themes.size());
-        assertEquals("History", themes.get(0));
     }
     
     /**
@@ -300,7 +271,7 @@ public class TestUserLists {
     @Test
     public void testExportAllUserLists() {
         // Add a new list without exporting it
-        QuestionList newList = new QuestionList(TEST_USER_ID, "New Quiz", "New");
+        QuestionList newList = new QuestionList(TEST_USER_ID, "New Quiz");
         Question q5 = new Question("What is the capital of France?", 1, "Paris", "London");
         newList.add(q5);
         

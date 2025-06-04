@@ -9,12 +9,15 @@ import java.util.List;
 
 import com.linked.quizbot.Constants;
 
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 
 /**
  * The ListQuestion class is a specialized extension of the LinkedList class, designed to manage a collection
- * of {@link Question} objects. It includes additional metadata such as author ID, theme, and name, and provides
+ * of {@link Question} objects. It includes additional metadata such as author ID, and name, and provides
  * utility methods for importing and exporting the list in JSON format.
  *
  * <p>This class is primarily intended for use in quiz or survey applications, where a structured collection
@@ -22,7 +25,7 @@ import java.util.Comparator;
  *
  * <h2>Features:</h2>
  * <ul>
- *   <li>Supports creating instances with metadata (author ID, theme, and name) and an initial collection of questions.</li>
+ *   <li>Supports creating instances with metadata (author ID and name) and an initial collection of questions.</li>
  *   <li>Facilitates JSON import/export of the question list.</li>
  *   <li>Automatically handles file naming and path generation based on metadata attributes.</li>
  *   <li>Overrides methods like {@code toString()}, {@code equals()}, and {@code hashCode()} for custom behavior.</li>
@@ -49,52 +52,48 @@ import java.util.Comparator;
  */
 public class QuestionList extends LinkedList<Question> {
 	private String authorId;
-	private String theme;
+	private HashMap<String, Emoji> tags;
 	private String name;
 	private long timeCreatedMillis;
 	private String listId;
 
 	/**
 	 * Default constructor for ListQuestion.
-	 * Initializes the list with default values for authorId, name, and theme.
+	 * Initializes the list with default values for authorId, name, and tags.
 	 */
 	public QuestionList() {
 		super();
 		this.authorId = null;
 		this.name = null;
-		this.theme = null;
+		this.tags = null;
 		this.listId = "";
 		this.timeCreatedMillis = 0L;
 	}
 
 	/**
-	 * Constructs a ListQuestion with the specified authorId, name, theme, and a collection of questions.
+	 * Constructs a ListQuestion with the specified authorId, name, and a collection of questions.
 	 *
 	 * @param authorId the ID of the author of this question list
 	 * @param name the name of this question list
-	 * @param theme the theme of this question list
 	 * @param c the initial collection of questions to populate the list
 	 */
-	public QuestionList(String authorId, String name, String theme, Collection<? extends Question> c) {
+	public QuestionList(String authorId, String name, Collection<? extends Question> c) {
 		super(c);
 		this.authorId = authorId;
 		this.name = name;
-		this.theme = theme;
 		this.timeCreatedMillis = System.currentTimeMillis();
 		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);;
 	}
 
 	/**
-	 * Constructs a ListQuestion with the specified authorId, name, and theme.
+	 * Constructs a ListQuestion with the specified authorId, and name.
 	 *
 	 * @param authorId the ID of the author of this question list
 	 * @param name the name of this question list
-	 * @param theme the theme of this question list
 	 */
-	public QuestionList(String authorId, String name, String theme){
+	public QuestionList(String authorId, String name){
 		this.authorId = authorId;
 		this.name = name;
-		this.theme = theme;
 		this.timeCreatedMillis = System.currentTimeMillis();
 		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);
 	}
@@ -110,7 +109,6 @@ public class QuestionList extends LinkedList<Question> {
 		if (res!=null) {
 			this.addAll(res);
 			this.name = res.getName();
-			this.theme = res.getTheme();
 			this.authorId = res.getAuthorId();
 			this.timeCreatedMillis = res.getTimeCreatedMillis();
 			this.listId = res.getListId();
@@ -139,22 +137,6 @@ public class QuestionList extends LinkedList<Question> {
 		// if(dir.getParentFile().exists()) {
 		// 	if(!dir.renameTo(new File(getPathToList()).getParentFile())){
 		// 		System.out.println("Error: Change of author folder failed");
-		// 	}
-		// }
-	}
-
-	/**
-	 * Sets the theme for this ListQuestion.
-	 * Renames the associated file if necessary.
-	 *
-	 * @param theme the new theme to set
-	 */
-	public void setTheme(String theme) {
-		//File file = new File(getPathToList());
-		this.theme= theme;
-		// if(file.exists()) {
-		// 	if(!file.renameTo(new File(getPathToList()))){
-		// 		System.out.println("Error: renaming of questions file failed");
 		// 	}
 		// }
 	}
@@ -228,15 +210,6 @@ public class QuestionList extends LinkedList<Question> {
 	}
 
 	/**
-	 * Gets the theme of this ListQuestion.
-	 *
-	 * @return the theme
-	 */
-	public String getTheme() {
-		return theme;
-	}
-
-	/**
 	 * Returns the path to the list file for a given ListQuestion.
 	 *
 	 * @param questions the ListQuestion to get the path for
@@ -296,7 +269,7 @@ public class QuestionList extends LinkedList<Question> {
 		if (!e.equals(f)) {
 			return null;
 		}
-		QuestionList res = new QuestionList(e.getAuthorId(),e.getName(), e.getTheme());
+		QuestionList res = new QuestionList(e.getAuthorId(),e.getName());
 		res.addAll(e);
 		res.addAll(f);
 		return res;
@@ -359,7 +332,7 @@ public class QuestionList extends LinkedList<Question> {
 		res += "{\n";
 		tab = "\t";
 		res += tab+"\"authorId\":\""+getAuthorId()+"\",\n";
-		res += tab + "\"theme\":\""+getTheme()+"\",\n";
+		//res += tab + "\"tags\":\""+getTags()+"\",\n";
 		res += tab + "\"name\":\""+getName()+"\",\n";
 		res += tab + "\"listId\":\""+getListId()+"\",\n";
 		res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
@@ -421,7 +394,7 @@ public class QuestionList extends LinkedList<Question> {
 	 */
 	@Override
 	public int hashCode() {
-		return getAuthorId().hashCode()*7 + getTheme().hashCode()*5+ getName().hashCode()
+		return getAuthorId().hashCode()*7 + getName().hashCode()
 				+ super.hashCode() + (int) (getTimeCreatedMillis() % Integer.MAX_VALUE)
 				+ getListId().hashCode();
 	}
@@ -437,7 +410,6 @@ public class QuestionList extends LinkedList<Question> {
 		if (!(o instanceof QuestionList l)) return false;
 		if (!super.equals(l)) return false;
 		return getAuthorId().equals(l.getAuthorId())
-				&& getTheme().equals(l.getTheme())
 				&& getName().equals(l.getName());
 	}
 
@@ -445,7 +417,6 @@ public class QuestionList extends LinkedList<Question> {
 		QuestionList l = new QuestionList();
 		l.setAuthorId("ExampleAuthor");
 		l.setName("Example QuestionList");
-		l.setTheme("Example Theme");
 		l.setListId("abcdefg");
 		l.add(Question.getExampleQuestion());
 		return l;

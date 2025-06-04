@@ -32,7 +32,7 @@ public class TestQuestionListParser {
     private QuestionList originalList;
     private static final String AUTHOR_ID = "test_author";
     private static final String LIST_NAME = "Test Quiz";
-    private static final String THEME = "Science";
+    //private static final String THEME = "Science";
     private File jsonFile;
 
     @BeforeEach
@@ -73,7 +73,7 @@ public class TestQuestionListParser {
      * Creates a sample QuestionList with various test cases
      */
     private QuestionList createSampleQuestionList() {
-        QuestionList list = new QuestionList(AUTHOR_ID, LIST_NAME, THEME);
+        QuestionList list = new QuestionList(AUTHOR_ID, LIST_NAME);
 
         // Add a simple question with basic options
         Question q1 = new Question("What is H2O?", createOptions(
@@ -127,7 +127,7 @@ public class TestQuestionListParser {
         // Verify the metadata
         assertEquals(originalList.getAuthorId(), importedList.getAuthorId(), "Author ID should match");
         assertEquals(originalList.getName(), importedList.getName(), "List name should match");
-        assertEquals(originalList.getTheme(), importedList.getTheme(), "Theme should match");
+        //assertEquals(originalList.getTheme(), importedList.getTheme(), "Theme should match");
 
         // Verify the number of questions
         assertEquals(originalList.size(), importedList.size(), "Number of questions should match");
@@ -168,12 +168,12 @@ public class TestQuestionListParser {
         assertEquals(0, importedList.size(), "List should be empty");
         assertNull(importedList.getAuthorId(), "Author ID should be null");
         assertNull(importedList.getName(), "Name should be null");
-        assertNull(importedList.getTheme(), "Theme should be null");
+        //assertNull(importedList.getTheme(), "Theme should be null");
     }
 
     @Test
     void testExportToInvalidPath() {
-        QuestionList list = new QuestionList(AUTHOR_ID, LIST_NAME, THEME);
+        QuestionList list = new QuestionList(AUTHOR_ID, LIST_NAME);
         File invalidPath = new File("/invalid/path/test.json");
         
         // No exception should be thrown, but the file should not be created
@@ -201,7 +201,7 @@ public class TestQuestionListParser {
         assertEquals(0, importedList.size(), "Invalid JSON should result in empty list");
         assertNull(importedList.getAuthorId(), "Author ID should be null for invalid JSON");
         assertNull(importedList.getName(), "Name should be null for invalid JSON");
-        assertNull(importedList.getTheme(), "Theme should be null for invalid JSON");
+        //assertNull(importedList.getTheme(), "Theme should be null for invalid JSON");
         f.delete();
         jsonFile.delete();
     }

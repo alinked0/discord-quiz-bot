@@ -84,7 +84,7 @@ public class EmbedCommand extends BotCommand {
         // Créer l'embed
         EmbedBuilder embed = new EmbedBuilder()
                     .setTitle(question.getQuestion())
-                    .setDescription(list.getTheme())
+                    //.setDescription(list.getTheme())
                     .setFooter("Java Bot Server Test")
                     .setAuthor("Java Bot Server Test")
                     .setTimestamp(java.time.Instant.now());

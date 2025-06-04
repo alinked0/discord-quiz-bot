@@ -27,17 +27,17 @@ public class TestQuestionLists {
     @BeforeEach
     public void setUp() {
         // Create the first QuestionList with specific attributes and questions
-        questionList1 = new QuestionList("author1", "Test Questions", "Science");
+        questionList1 = new QuestionList("author1", "Test Questions");
         questionList1.add(new Question("What is H2O?", createSampleOptions("Water", "Carbon Dioxide")));
         questionList1.add(new Question("What is the capital of France?", createSampleOptions("Paris", "London")));
 
         // Create a second QuestionList with the same attributes and questions (should be equal)
-        questionList2 = new QuestionList("author1", "Test Questions", "Science");
+        questionList2 = new QuestionList("author1", "Test Questions");
         questionList2.add(new Question("What is H2O?", createSampleOptions("Water", "Carbon Dioxide")));
         questionList2.add(new Question("What is the capital of France?", createSampleOptions("Paris", "London")));
 
         // Create a third QuestionList with different attributes (should not be equal)
-        questionList3 = new QuestionList("author2", "Different Questions", "History");
+        questionList3 = new QuestionList("author2", "Different Questions");
         questionList3.add(new Question("Who was the first U.S. President?", createSampleOptions("George Washington", "Thomas Jefferson")));
 
         // Initialize the collection of QuestionLists
@@ -112,8 +112,7 @@ public class TestQuestionLists {
         // Create a copy of questionList1 with the same content 
         QuestionList questionList1Copy = new QuestionList(
             questionList1.getAuthorId(), 
-            questionList1.getName(), 
-            questionList1.getTheme()
+            questionList1.getName()
         );
         
         // Add the same questions
@@ -131,8 +130,7 @@ public class TestQuestionLists {
         // Create a copy of questionList1
         QuestionList modifiedList = new QuestionList(
             questionList1.getAuthorId(), 
-            questionList1.getName(), 
-            questionList1.getTheme()
+            questionList1.getName()
         );
         
         // Add the same questions
