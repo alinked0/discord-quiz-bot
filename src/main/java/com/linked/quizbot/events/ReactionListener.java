@@ -85,7 +85,7 @@ public class ReactionListener extends ListenerAdapter {
             QuestionList l = BotCore.toBeDeleted.get(messageId);
             //System.out.println("  $> "+reaction+"?="+Constants.EMOJIDEL +" list="+ l);
             if (l!=null && reaction.equals(Constants.EMOJIDEL)) {
-                BotCore.deleteCollection(l, messageId);
+                BotCore.deleteList(l, messageId);
                 return;
             }
         });

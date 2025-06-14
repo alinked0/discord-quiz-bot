@@ -14,7 +14,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import com.linked.quizbot.events.ReactionListener;
 import com.linked.quizbot.events.SlashCommandListener;
 import com.linked.quizbot.events.readyEvent;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 
 import net.dv8tion.jda.api.entities.Activity;
 
@@ -23,7 +23,7 @@ public class Main {
 		String s = "";
 		s+=" isBugFree: "+Constants.isBugFree();
 		s+="\n Prefixe: "+Constants.CMDPREFIXE;
-		s+= "\n NumberOfUsers: "+UserLists.allUserLists.size();
+		s+= "\n NumberOfUsers: "+UserData.allUserLists.size();
 		return s;
 	}
 	public static void usageMain(){

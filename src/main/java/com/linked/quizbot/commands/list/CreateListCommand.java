@@ -1,19 +1,14 @@
 package com.linked.quizbot.commands.list;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListParser;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -38,7 +33,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * <ul>
  *     <li>Validates the provided JSON structure to ensure it contains a "name" and "theme".</li>
  *     <li>Assigns an author ID to the ID of the sender.</li>
- *     <li>Stores the list persistently using {@link UserLists}.</li>
+ *     <li>Stores the list persistently using {@link UserData}.</li>
  *     <li>Removes temporary files after processing.</li>
  *     <li>Provides feedback to the user on success or failure.</li>
  * </ul>
@@ -53,7 +48,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * @version 1.0
  * @see BotCommand
  * @see QuestionList
- * @see UserLists
+ * @see UserData
  */
 public class CreateListCommand extends BotCommand {
     public static final String CMDNAME = "createlist";
@@ -92,11 +87,11 @@ public class CreateListCommand extends BotCommand {
             if (l!=null) {
                 l.setAuthorId(userId);
                 if (l.getName()!=null /*&& l.getTheme()!=null*/) {
-                    if(UserLists.getUserListQuestions(userId).contains(l)) {
+                    if(UserData.getUserListQuestions(userId).contains(l)) {
                         res = "Failed, list of name : \""+l.getName()+"\" already exists.";
                     } else {
-                        UserLists.addListToUser(l.getAuthorId(), l);
-                        String index = UserLists.getCodeForIndexQuestionList(l);
+                        UserData.addListToUser(l.getAuthorId(), l);
+                        String index = UserData.getCodeForIndexQuestionList(l);
                         res = "Success, list has been created, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
                     }
                 }else {
@@ -106,6 +101,6 @@ public class CreateListCommand extends BotCommand {
         }
         send = channel.sendMessage(res);
         if(message!=null){send.setMessageReference(message);}
-        send.queue(msg -> msg.delete().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES));
+        send.queue();
     }
 }

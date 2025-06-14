@@ -1,44 +1,43 @@
 package com.linked.quizbot.commands;
-import java.util.List;
-import java.util.Random;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.Arrays;
-import java.util.Comparator;
 
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.list.AddListCommand;
 import com.linked.quizbot.commands.list.CollectionCommand;
+import com.linked.quizbot.commands.list.CreateListCommand;
+import com.linked.quizbot.commands.list.CreateTagCommand;
+import com.linked.quizbot.commands.list.DeleteCommand;
+import com.linked.quizbot.commands.list.EmbedCommand;
 import com.linked.quizbot.commands.list.EndCommand;
 import com.linked.quizbot.commands.list.ExplainCommand;
-import com.linked.quizbot.commands.list.LeaderBoardCommand;
-import com.linked.quizbot.commands.list.StartCommand;
-import com.linked.quizbot.commands.list.NextCommand;
-import com.linked.quizbot.commands.list.PreviousCommand;
-import com.linked.quizbot.commands.list.MoreTimeCommand;
-import com.linked.quizbot.commands.list.ViewCommand;
-import com.linked.quizbot.commands.list.DeleteCommand;
 import com.linked.quizbot.commands.list.HelpCommand;
 import com.linked.quizbot.commands.list.InviteCommand;
-import com.linked.quizbot.commands.list.CreateListCommand;
-import com.linked.quizbot.commands.list.AddListCommand;
-import com.linked.quizbot.commands.list.EmbedCommand;
+import com.linked.quizbot.commands.list.LeaderBoardCommand;
+import com.linked.quizbot.commands.list.MoreTimeCommand;
+import com.linked.quizbot.commands.list.NextCommand;
 import com.linked.quizbot.commands.list.PingCommand;
+import com.linked.quizbot.commands.list.PreviousCommand;
+import com.linked.quizbot.commands.list.StartCommand;
+import com.linked.quizbot.commands.list.UserInfoCommand;
+import com.linked.quizbot.commands.list.ViewCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
@@ -83,7 +82,7 @@ public abstract class BotCommand {
 			new CollectionCommand(),
 			new DeleteCommand(),
 			new EndCommand(),
-			new ExplainCommand(),
+			//new ExplainCommand(),
 			new EmbedCommand(),
 			new HelpCommand(),
 			new InviteCommand(),
@@ -94,7 +93,9 @@ public abstract class BotCommand {
 			new PreviousCommand(),
 			new StartCommand(),
 			new AddListCommand(),
-			new ViewCommand()
+			new ViewCommand(),
+			new CreateTagCommand(),
+			new UserInfoCommand()
 		));
 		return res;
 	}
@@ -115,7 +116,10 @@ public abstract class BotCommand {
 		}
 		return null;
 	}
-
+	public static Emoji getEmojiFromArg(String arg){
+		Emoji emoji = Emoji.fromFormatted(arg);
+		return emoji;
+	}
 	public static String getUserIdFromArg(String arg, JDA jda) {
         long start = System.nanoTime();
 		if (arg.startsWith("<@")) {
@@ -156,29 +160,7 @@ public abstract class BotCommand {
 	}
 
 	public static QuestionList getSelectedQuestionList(String listId) {
-		long start = System.nanoTime();
-		QuestionList res= null;
-		if (QuestionList.getExampleQuestionList().getListId().equals(listId)){
-			res =  QuestionList.getExampleQuestionList();
-		} else {
-			QuestionList searched = new QuestionList(); 
-			searched.setListId(listId);
-			int i=-1, k;
-			List<QuestionList> l=null;
-			for (UserLists u : UserLists.allUserLists){
-				l = u.getAllLists();
-				k = UserLists.myBinarySearchIndexOf(l, 0, l.size()-1, searched, QuestionList.comparatorByListId());
-				if (k!=-1){
-					i=k;
-					break;
-				}
-			}
-			if (i>=0){
-				res = l.get(i);
-			}
-		}
-		if (!Constants.isBugFree())System.out.printf("  $> time getSelectedQuestionList = %.3f ms\n", (System.nanoTime() - start) / 1000000.00);
-		return res;
+		return UserData.getQuestionList(listId);
 	}
 	public SlashCommandData getSlashCommandData(){
 		return Commands.slash(getName(), getDescription()).addOptions(getOptionData());
@@ -222,6 +204,13 @@ public abstract class BotCommand {
 			}
 		}
     }
+	public List<OptionData> getRequiredOptionData(){
+		ArrayList<OptionData> res = new ArrayList<>();
+		for (OptionData opt:getOptionData()){
+			res.add(opt);
+		}
+		return res;
+	}
 	@Override
 	public int hashCode() {
 		return getName().hashCode()*7 + getDescription().hashCode()*2 + getCategory().hashCode();

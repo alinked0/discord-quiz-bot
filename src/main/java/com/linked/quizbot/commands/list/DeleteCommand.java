@@ -2,22 +2,18 @@ package com.linked.quizbot.commands.list;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
@@ -53,7 +49,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * @author alinked
  * @version 1.0
  * @see BotCommand
- * @see UserLists
+ * @see UserData
  * @see QuestionList
  * @see BotCore#comfirmDeletion
  */
@@ -90,6 +86,7 @@ public class DeleteCommand extends BotCommand{
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
+        
         l = getSelectedQuestionList(args[0]);
         ownerId = l.getAuthorId(); 
         if (ownerId.equals(sender.getId())){

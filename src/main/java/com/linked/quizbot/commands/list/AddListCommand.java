@@ -1,14 +1,13 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListParser;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -17,7 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class AddListCommand extends BotCommand{
-public static final String CMDNAME = "addlist";
+    public static final String CMDNAME = "addlist";
     private String cmdDesrciption = "adding a list of questions to a user's lists";
 	private String[] abbrevs = new String[]{"add", "al"};
     
@@ -62,7 +61,7 @@ public static final String CMDNAME = "addlist";
         MessageCreateAction send;
         send = channel.sendMessage(res);
         if(message!=null){send.setMessageReference(message);}
-        send.queue(msg -> msg.delete().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES));
+        send.queue();
     }
     private String addListAndReturnMessage(QuestionList l) {
         String res = "";
@@ -71,10 +70,10 @@ public static final String CMDNAME = "addlist";
             return res;
         }
         if (l.getName()!=null /*&& l.getTheme()!=null*/) {
-            for (QuestionList k : UserLists.getUserListQuestions(l.getAuthorId())){
+            for (QuestionList k : UserData.getUserListQuestions(l.getAuthorId())){
                 if(k.getName().equals(l.getName())) {
-                    UserLists.addListToUser(l.getAuthorId(), l);
-                    String index = UserLists.getCodeForIndexQuestionList(l);
+                    UserData.addListToUser(l.getAuthorId(), l);
+                    String index = UserData.getCodeForIndexQuestionList(l);
                     res += "Success, list has been added, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
                     return res;
                 }

@@ -14,7 +14,7 @@ import com.linked.quizbot.commands.list.ExplainCommand;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -124,8 +124,8 @@ public class BotCore {
 			currQuizBot.userScoreApproxi.put(user, currQuizBot.getUserScore(user) +point);
 		}
 	}
-	public static void deleteCollection(QuestionList l, String messageId){
-		UserLists.deleteList(l);
+	public static void deleteList(QuestionList l, String messageId){
+		UserData.deleteList(l);
 		Message message = BotCore.deletionMessages.get(messageId);
 		int n = l.toString().length();
 		if (n>Constants.CHARSENDLIM) {

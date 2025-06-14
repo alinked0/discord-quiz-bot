@@ -7,7 +7,7 @@ import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListHash;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.Question;
@@ -31,7 +31,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  *
  * <h2>Features:</h2>
  * <ul>
- *     <li>Retrieves questions from {@link UserLists} and {@link QuestionList}.</li>
+ *     <li>Retrieves questions from {@link UserData} and {@link QuestionList}.</li>
  *     <li>Randomizes questions if no specific list is provided.</li>
  *     <li>Initiates a new {@link QuizBot} instance to handle quiz interactions.</li>
  * </ul>
@@ -55,14 +55,14 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @version 1.0
  * @see BotCommand
  * @see QuizBot
- * @see UserLists
+ * @see UserData
  * @see QuestionList
  * @see Question
  */
 public class StartCommand extends BotCommand{
     public static final String CMDNAME = "start";
     private String cmdDesrciption = "starting a given quiz, whether its your own or another users";
-	private String[] abbrevs = new String[]{"s"};
+	private String[] abbrevs = new String[]{"s", "play"};
 
 	@Override
 	public String[] getAbbreviations(){ return abbrevs;}
@@ -77,7 +77,7 @@ public class StartCommand extends BotCommand{
 	@Override
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<OptionData>();
-        res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME).setRequiredLength(QuestionListHash.DEFAULT_LENGTH, QuestionListHash.DEFAULT_LENGTH));
+        res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME, true).setRequiredLength(QuestionListHash.DEFAULT_LENGTH, QuestionListHash.DEFAULT_LENGTH));
         return res;
     }
     @Override

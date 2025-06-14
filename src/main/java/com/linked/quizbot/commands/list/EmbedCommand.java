@@ -3,22 +3,19 @@ package com.linked.quizbot.commands.list;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.ArrayList;
 import java.awt.Color;
 
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.core.BotCore;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.TimeFormat;
 
 /**
@@ -37,7 +34,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  * <h2>Features:</h2>
  * <ul>
  *     <li>Uses {@link EmbedBuilder} to format the question and answers.</li>
- *     <li>Retrieves question data from {@link UserLists} and {@link QuestionList}.</li>
+ *     <li>Retrieves question data from {@link UserData} and {@link QuestionList}.</li>
  *     <li>Includes a timestamp and a themed description.</li>
  *     <li>Adds emoji reactions based on the number of available answer options.</li>
  *     <li>Deletes the message after 30 seconds to prevent clutter.</li>
@@ -59,7 +56,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  * @version 1.0
  * @see BotCommand
  * @see EmbedBuilder
- * @see UserLists
+ * @see UserData
  * @see QuestionList
  * @see Question
  * @see Option
@@ -78,8 +75,8 @@ public class EmbedCommand extends BotCommand {
     @Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         //Liste de l'utilisateur
-        UserLists userLists = new UserLists(sender.getId());
-        QuestionList list = userLists.get(0);
+        UserData UserData = new UserData(sender.getId());
+        QuestionList list = UserData.get(0);
         Question question = list.get(0);
         // Créer l'embed
         EmbedBuilder embed = new EmbedBuilder()

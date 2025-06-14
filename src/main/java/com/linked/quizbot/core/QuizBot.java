@@ -21,7 +21,7 @@ import com.linked.quizbot.commands.list.PreviousCommand;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -78,7 +78,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  * @see Question
  * @see Option
  * @see BotCore
- * @see UserLists
+ * @see UserData
  */
 public class QuizBot extends ListenerAdapter {
 	public final Map<User, Double> userScoreApproxi = new HashMap<>();

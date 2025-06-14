@@ -5,7 +5,7 @@ import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListParser;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.entities.emoji.UnicodeEmoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -76,7 +76,7 @@ public class TestQuestionListParser {
         JsonParser parser = new JsonFactory().createParser(json);
         parser.nextToken(); // move to START_OBJECT
 
-        Map<String, UnicodeEmoji> tags = QuestionListParser.parseTags(parser);
+        Map<String, Emoji> tags = QuestionListParser.parseTags(parser);
         assertNotNull(tags);
         assertEquals(2, tags.size());
         assertTrue(tags.containsKey("Science"));

@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import com.linked.quizbot.Constants;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.entities.emoji.UnicodeEmoji;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -55,7 +55,7 @@ import java.util.HashMap;
  */
 public class QuestionList extends LinkedList<Question> {
 	private String authorId;
-	private Map<String,UnicodeEmoji> tags;
+	private Map<String,Emoji> tags;
 	private String name;
 	private long timeCreatedMillis;
 	private String listId;
@@ -68,8 +68,8 @@ public class QuestionList extends LinkedList<Question> {
 		super();
 		this.authorId = null;
 		this.name = null;
-		this.tags = null;
-		this.listId = "";
+		this.tags = new HashMap<>();
+		this.listId = null;
 		this.timeCreatedMillis = 0L;
 	}
 
@@ -86,7 +86,7 @@ public class QuestionList extends LinkedList<Question> {
 		this.name = name;
 		this.tags = new HashMap<>();
 		this.timeCreatedMillis = System.currentTimeMillis();
-		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);;
+		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);
 	}
 
 	/**
@@ -208,19 +208,15 @@ public class QuestionList extends LinkedList<Question> {
 	 *
 	 * @return an instance of tags
 	 */
-	public HashMap<String,UnicodeEmoji> getTags() {
-		HashMap<String, UnicodeEmoji> res = new HashMap<>(tags);
+	public HashMap<String,Emoji> getTags() {
+		HashMap<String, Emoji> res = new HashMap<>(tags);
 		return res;
 	}
 
-	public boolean addTag(String tagName, UnicodeEmoji emoji) {
-		if(tags.get(tagName) != null){
-			return false;
-		}
+	public void addTag(String tagName, Emoji emoji) {
 		tags.put(tagName, emoji);
-		return true;
 	}
-	public void setTags(Map<? extends String,? extends UnicodeEmoji> m) {
+	public void setTags(Map<? extends String,? extends Emoji> m) {
 		tags = new HashMap<>(m);
 	}
 
@@ -276,7 +272,11 @@ public class QuestionList extends LinkedList<Question> {
 			e.printStackTrace();
 		}
 	}
-
+	public void removeTag(String tagName) {
+		if (tags.containsKey(tagName)) {
+			tags.remove(tagName);
+		}
+	}
 	public static QuestionList mergeQuestionLists(QuestionList e, QuestionList f) {
 		if (e==null || f == null) {
 			return null;
@@ -352,11 +352,11 @@ public class QuestionList extends LinkedList<Question> {
 		res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
 
 		res += tab + "\"tags\":{";
-		Iterator<Entry<String, UnicodeEmoji>> iter = tags.entrySet().iterator();
-		Entry<String, UnicodeEmoji> entry;
+		Iterator<Entry<String, Emoji>> iter = tags.entrySet().iterator();
+		Entry<String, Emoji> entry;
 		while (iter.hasNext()) {
 			entry = iter.next();
-			res += "\""+entry.getKey()+"\" : \""+entry.getValue().getAsCodepoints()+"\"";
+			res += "\""+entry.getKey()+"\" : \""+entry.getValue().getFormatted()+"\"";
 			if(iter.hasNext()){
 				res += ", ";
 			}
@@ -447,9 +447,26 @@ public class QuestionList extends LinkedList<Question> {
 
 		l.add(Question.getExampleQuestion());
 
-		HashMap<String, UnicodeEmoji> m = new HashMap<>();
+		HashMap<String, Emoji> m = new HashMap<>();
 		m.put("Science", Emoji.fromUnicode("U+1F52D"));
 		l.setTags(m);
 		return l;
+	}
+	public static int myBinarySearchIndexOf(List<QuestionList> tab, int start, int end, String q, Comparator<? super String> compare){
+		if (start > end){
+			return -1*start-1;
+		}
+		int m = (start+end)/2;
+		int comp = compare.compare(tab.get(m).getName(), q);
+		if(comp == 0){
+			return m;
+		}
+		if (comp >0){
+			return myBinarySearchIndexOf(tab, start, m-1, q, compare);
+		}
+		return myBinarySearchIndexOf(tab, m+1, end, q, compare);
+	}
+	public static int myBinarySearchIndexOf(List<QuestionList> tab, String q, Comparator<? super String> compare){
+		return myBinarySearchIndexOf(tab, 0, tab.size()-1, q, compare);
 	}
 }

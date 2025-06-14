@@ -8,7 +8,7 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserLists;
+import com.linked.quizbot.utils.UserData;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -53,7 +53,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @author alinked0
  * @version 1.0
  * @see BotCommand
- * @see UserLists
+ * @see UserData
  * @see QuestionList
  */
 public class CollectionCommand extends BotCommand {
@@ -91,8 +91,8 @@ public class CollectionCommand extends BotCommand {
 		String res = "Collection of ";
 		res += "<@"+userId+">\n";
 
-		UserLists userLists = new UserLists(userId);
-		List<QuestionList> list = userLists.getAllLists();
+		UserData UserData = new UserData(userId);
+		List<QuestionList> list = UserData.getLists();
 		list.sort(QuestionList.comparatorByDate().reversed());
 		for (QuestionList l : list){
 			res += "`"+l.getListId()+"` "+l.getName()+"\n";

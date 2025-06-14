@@ -1,8 +1,5 @@
 package com.linked.quizbot.commands.list;
 
-import java.util.concurrent.TimeUnit;
-
-import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 
 import net.dv8tion.jda.api.entities.Message;
@@ -25,6 +22,6 @@ public class PingCommand extends BotCommand {
         MessageCreateAction send;
         send = channel.sendMessage(res);
         if(message!=null){send.setMessageReference(message);}
-        send.queue(msg -> msg.delete().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES));
+        send.queue();
     }
 }

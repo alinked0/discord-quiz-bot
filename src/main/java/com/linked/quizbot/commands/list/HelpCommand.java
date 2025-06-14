@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -69,7 +68,7 @@ public class HelpCommand extends BotCommand {
     @Override
     public List<OptionData> getOptionData(){
 		List<OptionData> res = new ArrayList<>();
-        res.add (new OptionData(OptionType.STRING, "command", "Command name for detailed description", true));
+        res.add (new OptionData(OptionType.STRING, "command", "Command name for detailed description", false));
         return res;
     }
 	@Override
@@ -143,7 +142,7 @@ public class HelpCommand extends BotCommand {
 			MessageCreateAction send;
 			send = channel.sendMessageEmbeds(k.build());
 			if(message!=null){send.setMessageReference(message);}
-			send.queue(msg -> msg.delete().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES));
+			send.queue();
 		}
     }
 }    

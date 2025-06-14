@@ -30,6 +30,7 @@ public class Constants {
 		SEPARATOR= root.equals("/")?"/":"\\",
 		RESOURCESPATH= "src"+SEPARATOR+"main"+SEPARATOR+"resources",
 		LISTSPATH=RESOURCESPATH+ SEPARATOR +"lists",
+		USERDATAPATH=RESOURCESPATH+ SEPARATOR +"user-data",
 		TOKEN,
 		AUTHORID = "",
 		DEBUGGUILDID = "",

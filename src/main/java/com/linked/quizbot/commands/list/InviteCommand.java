@@ -1,11 +1,7 @@
 package com.linked.quizbot.commands.list;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 
 import net.dv8tion.jda.api.Permission;
@@ -13,7 +9,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class InviteCommand extends BotCommand {
     public static String CMDNAME = "invite";
@@ -35,6 +30,6 @@ public class InviteCommand extends BotCommand {
         MessageCreateAction send;
         send = channel.sendMessage(res);
         if(message!=null){send.setMessageReference(message);}
-        send.queue(msg -> msg.delete().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES));
+        send.queue();
     }
 }
