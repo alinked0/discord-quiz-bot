@@ -82,8 +82,9 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  */
 public class QuizBot extends ListenerAdapter {
 	public final Map<User, Double> userScoreApproxi = new HashMap<>();
-    public final Map<User, Set<Option>> userAnswers = new HashMap<>();
+    public final Map<User, Set<Option>> userAnswersForCurrQuestion = new HashMap<>();
     public final Map<Question, Map<User, Set<Option>>> awnsersByUserByQuestion = new HashMap<>();
+    public final Set<User> players = new HashSet<>();
 	public Map<User, Double> userScoreExact = null;
     public QuestionList quizQuestions;
     public boolean quizActive;
@@ -118,7 +119,7 @@ public class QuizBot extends ListenerAdapter {
 		quizActive = true;
 		currentQuestionIndex = 0;
 		userScoreApproxi.clear();
-		userAnswers.clear();
+		userAnswersForCurrQuestion.clear();
         awnsersByUserByQuestion.clear();
 		sendNextQuestion();
 	}
@@ -140,7 +141,12 @@ public class QuizBot extends ListenerAdapter {
 	public QuestionList getQuizQuestionList(){
         return quizQuestions;
     }
-
+	public Set<User> getPlayers(){
+		return players;
+	}
+	public void addPlayer(User player){
+		players.add(player);
+	}
 	
     public int getCurrentQuestionIndex() { return currentQuestionIndex;}
 
@@ -207,7 +213,7 @@ public class QuizBot extends ListenerAdapter {
 		currentQuestionIndex++;
 		BotCore.explicationRequestByChannel.get(getChannel().getId()).remove(quizMessage.getId());
         sendNextQuestion();
-		userAnswers.clear();
+		userAnswersForCurrQuestion.clear();
     }
 	
     public void prevQuestion(){
@@ -219,7 +225,7 @@ public class QuizBot extends ListenerAdapter {
 		BotCore.explicationRequestByChannel.get(getChannel().getId()).remove(quizMessage.getId());
         currentQuestionIndex -=1;
         sendNextQuestion();
-		userAnswers.clear();
+		userAnswersForCurrQuestion.clear();
     }
 	
     public void currQuestion(){
@@ -230,20 +236,44 @@ public class QuizBot extends ListenerAdapter {
         sendNextQuestion();
     }
     private String formatQuestion (Question q) {
-        String quiz = "";
-        String questionText = "### "+q.getQuestion() + "\n";
-        String options = "";
+        String quiz = "", options = "";
+		String timeLimit = TimeFormat.RELATIVE.after(delaySec*1000)+"\n";
+		int index = quizQuestions.indexOf(q);
+        String questionText = "### "+(index+1)+"/"+quizQuestions.size()+" "+q.getQuestion()+"\n";
         for (int i = 0; i < q.size(); i++) {
 			options += (i + 1)+". "+q.get(i).getText()+"\n";
         }
-        options += TimeFormat.RELATIVE.after(delaySec*1000)+"\n";
-        quiz = questionText + options;
+        quiz = questionText + options + timeLimit;
         return quiz;
     }
     public void end() {
 		quizActive = false;
+		getExactUserScore();
     }
-	
+	private Map<User, Double> getExactUserScore(){
+		userScoreExact = new HashMap<>();
+		double point;
+		double score;
+		Iterator<Map.Entry<Question, Map<User, Set<Option>>>> iter_AwnsersByUserByQuestion = awnsersByUserByQuestion.entrySet().iterator();
+		while (iter_AwnsersByUserByQuestion.hasNext()) {
+			Map.Entry<Question, Map<User, Set<Option>>> entry_AwnsersByUserByQuestion = iter_AwnsersByUserByQuestion.next();
+			Question q = entry_AwnsersByUserByQuestion.getKey();
+			int numberOfTrueOptions = q.getTrueOptions().size();
+			Iterator<Map.Entry<User, Set<Option>>> iter_AwnsersByUser = entry_AwnsersByUserByQuestion.getValue().entrySet().iterator();
+			while (iter_AwnsersByUser.hasNext()){
+				Map.Entry<User, Set<Option>> awnsersByUser = iter_AwnsersByUser.next();
+				User u = awnsersByUser.getKey();
+				score = userScoreExact.getOrDefault( u, 0.00);
+				for (Option opt : awnsersByUser.getValue()) {
+					if (!Constants.isBugFree()) System.out.printf("   $> lb %s, %s\n", opt.isCorrect(), opt.getText());
+					point = (opt.isCorrect()?pointsForCorrect/numberOfTrueOptions:pointsForIncorrect);
+					score += point;
+				}
+				userScoreExact.put(u, score);
+			}
+		}
+		return userScoreExact;
+	}
 	private Set<Option> getUserSelOptions(User requester, Question q) {
 		Map<User, Set<Option>> e = awnsersByUserByQuestion.getOrDefault(q, null);
 		if(e != null) {
@@ -253,30 +283,10 @@ public class QuizBot extends ListenerAdapter {
 		return null;
 	}
 	public List<String> leaderBoard(){
-		userScoreExact = new HashMap<>();
 		List<String> res = new ArrayList<>();
 		double totalPoints = quizQuestions.size()*pointsForCorrect;
         String leaderboard = "Leaderboard:\n";
-		double point;
-		double score;
-        Iterator<Map.Entry<Question, Map<User, Set<Option>>>> iter_AwnsersByUserByQuestion = awnsersByUserByQuestion.entrySet().iterator();
-        while (iter_AwnsersByUserByQuestion.hasNext()) {
-            Map.Entry<Question, Map<User, Set<Option>>> entry_AwnsersByUserByQuestion = iter_AwnsersByUserByQuestion.next();
-            Question q = entry_AwnsersByUserByQuestion.getKey();
-			int numberOfTrueOptions = q.getTrueOptions().size();
-            Iterator<Map.Entry<User, Set<Option>>> iter_AwnsersByUser = entry_AwnsersByUserByQuestion.getValue().entrySet().iterator();
-            while (iter_AwnsersByUser.hasNext()){
-                Map.Entry<User, Set<Option>> awnsersByUser = iter_AwnsersByUser.next();
-				User u = awnsersByUser.getKey();
-				score = userScoreExact.getOrDefault( u, 0.00);
-                for (Option opt : awnsersByUser.getValue()) {
-                    if (!Constants.isBugFree()) System.out.printf("   $> lb %s, %s\n", opt.isCorrect(), opt.getText());
-                    point = (opt.isCorrect()?pointsForCorrect/numberOfTrueOptions:pointsForIncorrect);
-                    score += point;
-                }
-                userScoreExact.put(u, score);
-            }
-        }
+
         Iterator<Map.Entry<User, Double>> SortedScoreByUser = userScoreExact.entrySet().stream()
             .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).iterator();
 		
@@ -307,25 +317,31 @@ public class QuizBot extends ListenerAdapter {
 		} else {
 			main.addAll(quizQuestions);
 		}
-		Set<Option> opts;
+		Option opt;
+		Set<Option> optsUser;
 		String optsString;
 		Double points;
+		text += "For "+requester.getEffectiveName()+"\n";
 		text += "## "+quizQuestions.getName() + " `"+ getUserScore(requester)+"/"+quizQuestions.size()+"`\n";
 		for (Question q : main) {
 			points = 0.00;
-			opts = getUserSelOptions(requester, q);
+			optsUser = getUserSelOptions(requester, q);
 			int numberOfTrueOptions = q.getTrueOptions().size();
 			optsString = "";
 			index = quizQuestions.indexOf(q)+1;
-			text += "### "+(index)+". "+q.getQuestion();
-			if (opts!=null) {
-				for (Option opt : opts) {
-					explication = opt.getExplicationFriendly();
-					//System.out.println("   $> opt "+opt.isCorrect()+""+opt.getText() + "\n");
+			for (int i = 0; i < q.size(); i++) {
+				opt = q.get(i);
+				explication = opt.getExplicationFriendly();
+				optsString += "> "+(i + 1)+". "+opt.getText()+"\n";
+				if (optsUser!=null && optsUser.contains(opt)){
 					points += opt.isCorrect()?pointsForCorrect/numberOfTrueOptions:pointsForIncorrect;
 					optsString += "> "+(opt.isCorrect()?Constants.EMOJITRUE:Constants.EMOJIFALSE).getFormatted()+explication+"\n";
+				}else {
+					optsString += "> "+(opt.isCorrect()?Constants.EMOJICORRECT:Constants.EMOJIINCORRECT).getFormatted()+explication+"\n";
 				}
 			}
+
+			text += "### "+(index)+". "+q.getQuestion();
 			text += " `"+points+"/1`\n";
 			text += optsString;
 			explication = q.getExplicationFriendly();
