@@ -97,12 +97,26 @@ public class BotCore {
 		channelByQuizBot.remove(currChannelId);
 		listOfGames.remove(q);
 		q.end();
+		updateTotalPointsEverGained(q);
+	}
+	public static void updateTotalPointsEverGained(QuizBot q){
+		if (q.isActive()){
+			return;
+		}
+		for (User user : q.getPlayers()){
+			Users.getUser(user.getId()).incrTotalPointsEverGained(q.userScoreExact.get(user));
+		}
 	}
 	public static void updateUserScoreAddReaction(User user, QuizBot currQuizBot, Emoji reaction) {
 		Question currQuestion = currQuizBot.getCurrQuestion();
 
-		if (!currQuizBot.userAnswers.containsKey(user)) {
-			currQuizBot.userAnswers.put(user, new HashSet<>());
+		if (!currQuizBot.userAnswersForCurrQuestion.containsKey(user)) {
+			if (!currQuizBot.getPlayers().contains(user)){
+				Users u = new Users(user.getId());
+				u.incrNumberOfGamesPlayed();
+				currQuizBot.addPlayer(user);
+			}
+			currQuizBot.userAnswersForCurrQuestion.put(user, new HashSet<>());
 		}
 		Option userAwnser = null;
 		// Record user's answer (reaction)
@@ -111,12 +125,12 @@ public class BotCore {
 				userAwnser = currQuestion.get(i-1);
 				if (userAwnser != null) {
 					//System.out.printf("  $> awnser %s, %s ;\n", userAwnser.isCorrect(), userAwnser.getText());
-					currQuizBot.userAnswers.get(user).add(userAwnser);
+					currQuizBot.userAnswersForCurrQuestion.get(user).add(userAwnser);
 				}
 				break;
 			}
 		}
-		Map<User, Set<Option>> tmpUserAnswers = new HashMap<>(currQuizBot.userAnswers);
+		Map<User, Set<Option>> tmpUserAnswers = new HashMap<>(currQuizBot.userAnswersForCurrQuestion);
 		currQuizBot.awnsersByUserByQuestion.put(currQuestion, tmpUserAnswers);
 		// If it's the correct answer, increase their score
 		if (userAwnser != null) {
