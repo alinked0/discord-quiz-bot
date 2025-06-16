@@ -32,7 +32,8 @@ public class UserDataParser {
 			throw new IOException();
 		}
 		Users result = new Users();
-		int i=0,j=0;
+		double totalPointsEverGained=0;
+		int numberOfGamesPlayed = 0;
 		String fieldName;
 		Map<String, Emoji> m = new HashMap<>();
 		while (!jp.isClosed()){
@@ -42,10 +43,10 @@ public class UserDataParser {
 				jp.nextToken();
 				switch (fieldName){
 					case "totalPointsEverGained" -> {
-						i=jp.getValueAsInt();
+						totalPointsEverGained=jp.getDoubleValue();
 					}
 					case "numberOfGamesPlayed" -> {
-						j=jp.getValueAsInt();
+						numberOfGamesPlayed=jp.getValueAsInt();
 					}
 					case "tagEmojiPerTagName" -> {
 						m=parseEmojiPerTagName(jp);
@@ -55,8 +56,8 @@ public class UserDataParser {
 				jp.nextToken();
 			}
 		}
-		result.setTotalPointsEverGained(i);
-		result.setNumberOfGamesPlayed(j);
+		result.setTotalPointsEverGained(totalPointsEverGained);
+		result.setNumberOfGamesPlayed(numberOfGamesPlayed);
 		result.setTagEmojiPerTagName(m);
 		return result;
 	}

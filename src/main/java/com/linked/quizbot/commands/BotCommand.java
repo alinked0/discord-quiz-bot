@@ -27,6 +27,7 @@ import com.linked.quizbot.commands.list.NextCommand;
 import com.linked.quizbot.commands.list.PingCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
 import com.linked.quizbot.commands.list.StartCommand;
+import com.linked.quizbot.commands.list.TagListCommand;
 import com.linked.quizbot.commands.list.UserInfoCommand;
 import com.linked.quizbot.commands.list.ViewCommand;
 import com.linked.quizbot.core.BotCore;
@@ -82,7 +83,7 @@ public abstract class BotCommand {
 			new CollectionCommand(),
 			new DeleteCommand(),
 			new EndCommand(),
-			//new ExplainCommand(),
+			new ExplainCommand(),
 			new EmbedCommand(),
 			new HelpCommand(),
 			new InviteCommand(),
@@ -95,7 +96,8 @@ public abstract class BotCommand {
 			new AddListCommand(),
 			new ViewCommand(),
 			new CreateTagCommand(),
-			new UserInfoCommand()
+			new UserInfoCommand(),
+			new TagListCommand()
 		));
 		return res;
 	}
@@ -153,14 +155,14 @@ public abstract class BotCommand {
 		}
 		if (!Constants.isBugFree())System.out.printf("    $> approxiUserId %s;\n", approxiUserId);
 		if (!Constants.isBugFree()) System.out.printf("   $> time getUserIdFromArg = %.3f ms", (System.nanoTime() - start) / 1000000.00);
-		if (arg.length()==18){
+		if (arg.length()==Constants.DISCORDIDLENMAX){
 			return arg;
 		}
 		return approxiUserId;
 	}
 
 	public static QuestionList getSelectedQuestionList(String listId) {
-		return Users.getQuestionList(listId);
+		return Users.getQuestionListByListId(listId);
 	}
 	public SlashCommandData getSlashCommandData(){
 		return Commands.slash(getName(), getDescription()).addOptions(getOptionData());
@@ -186,21 +188,25 @@ public abstract class BotCommand {
 	}
     public static void recursive_send(Iterator<String> iter, Message message, MessageChannel channel){
 		if (iter.hasNext()){
-			if (message==null) {
-				MessageCreateAction send = channel.sendMessage(iter.next());
-				if (message != null){send.setMessageReference(message);}
-				send.queue(msg -> {
-					recursive_send(iter, msg, channel);
-				});
+			String s=iter.next();
+			if (s.length()>Constants.CHARSENDLIM){
+				recursive_send(trimMessage(s).iterator(), message, channel);
+				recursive_send(iter, message, channel);
 			} else {
-				MessageCreateAction send = message.getChannel().sendMessage(iter.next());
-				send.setMessageReference(message);
-				send.queue(
-					msg -> { 
+				if (message==null) {
+					MessageCreateAction send = channel.sendMessage(s);
+					send.queue(msg -> {
 						recursive_send(iter, msg, channel);
-						msg.delete().queueAfter(Constants.READTIMELONGMIN, TimeUnit.MINUTES);
-					}
-				);
+					});
+				} else {
+					MessageCreateAction send = message.getChannel().sendMessage(s);
+					send.setMessageReference(message);
+					send.queue(
+						msg -> { 
+							recursive_send(iter, msg, channel);
+						}
+					);
+				}
 			}
 		}
     }
@@ -211,6 +217,24 @@ public abstract class BotCommand {
 		}
 		return res;
 	}
+	public static List<String> trimMessage(String s){
+        List<String> res = new ArrayList<>();
+        if (s.length()>Constants.CHARSENDLIM){
+            String l=s.substring(0, Constants.CHARSENDLIM), r = s.substring(Constants.CHARSENDLIM);
+            int index = l.lastIndexOf("\n");
+            if (index >0){
+                res.add(l.substring(0, index+1));
+                res.addAll(trimMessage(l.substring(index+1)));
+                res.addAll(trimMessage(r));
+            } else {
+                res.add(l);
+                res.addAll(trimMessage(r));
+            }
+        } else {
+            res.add(s);
+        }
+        return res;
+    }
 	@Override
 	public int hashCode() {
 		return getName().hashCode()*7 + getDescription().hashCode()*2 + getCategory().hashCode();

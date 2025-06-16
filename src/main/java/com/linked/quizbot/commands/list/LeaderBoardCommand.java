@@ -47,7 +47,7 @@ public class LeaderBoardCommand extends BotCommand {
                 send.queue(msg -> {
                     BotCore.explicationRequestByChannel.get(channelId).add(msg.getId());
                     msg.addReaction(Constants.EMOJIEXPLICATION).queue();
-                    msg.delete().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES, tmp -> {
+                    msg.clearReactions().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES, tmp -> {
                         BotCore.explicationRequestByChannel.get(channelId).remove(msg.getId());
                     });
                 });

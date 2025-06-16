@@ -30,8 +30,8 @@ public class TestUserDataParser {
         sampleUserData = new Users("test_user_id");
         sampleUserData.setTotalPointsEverGained(100);
         sampleUserData.setNumberOfGamesPlayed(5);
-        sampleUserData.addTag("tagA", Emoji.fromFormatted("<:tagA:123456789012345678>"));
-        sampleUserData.addTag("tagB", Emoji.fromUnicode("👍"));
+        sampleUserData.createTag("tagA", Emoji.fromFormatted("<:tagA:123456789012345678>"));
+        sampleUserData.createTag("tagB", Emoji.fromUnicode("👍"));
 
         // Manually construct a sample JSON string that matches Users's userDataToString()
         // for direct string parsing tests.

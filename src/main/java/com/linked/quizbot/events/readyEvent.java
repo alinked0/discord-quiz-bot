@@ -47,6 +47,11 @@ public class readyEvent extends ListenerAdapter {
 			}
 		});
 		event.getGuild().updateCommands().addCommands(commandData).queue();
+		if (!Constants.isBugFree()){
+			if (event.getGuild().getId().equals(Constants.DEBUGGUILDID)){
+				event.getGuild().getTextChannelById(Constants.DEBUGCHANNELID).sendMessage("Bot is ready for testing.").queue();
+			}
+		}
 	}
 
 }

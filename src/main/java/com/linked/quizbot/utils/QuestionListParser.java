@@ -12,41 +12,25 @@ import com.fasterxml.jackson.core.JsonToken;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 public class QuestionListParser {
-    public static QuestionList fromJsonFile(String filePathToJson){
+    public static QuestionList fromJsonFile(String filePathToJson) throws IOException{
         long start = System.nanoTime();
 		QuestionList result = null;
-		try {
-			File f = new File(filePathToJson);
-			if (!f.exists()){
-				System.err.println("  $> File not found"+ f.getAbsoluteFile());
-				return null;
-			}
-			JsonParser jp =  new JsonFactory().createParser(new File(filePathToJson));
-			result = parser(jp);
-		} catch (IOException e) {
-			System.err.println("Error: Parser creation failed");
-			e.printStackTrace();
-		} catch (NullPointerException e) {
-			System.err.println("Error Json representation of ListQuestion is invalid");
-			e.printStackTrace();
+		File f = new File(filePathToJson);
+		if (!f.exists()){
+			System.err.println("  $> File not found"+ f.getAbsoluteFile());
+			return null;
 		}
+		JsonParser jp =  new JsonFactory().createParser(new File(filePathToJson));
+		result = parser(jp);
         //if (!Constants.isBugFree()) System.out.printf("   $> time fromJsonFile = `%.3f ms`\n",(System.nanoTime() - start) / 1000000.00);
 		return result;
     }
 
-	public static QuestionList fromString(String arg){
+	public static QuestionList fromString(String arg)throws IOException{
 		long start = System.nanoTime();
 		QuestionList result = null;
-		try {
-			JsonParser jp =  new JsonFactory().createParser(arg);
-			result = parser(jp);
-		} catch (IOException e) {
-			System.err.println("Error: Parser creation failed");
-			e.printStackTrace();
-		} catch (NullPointerException e) {
-			System.err.println("Error Json representation of ListQuestion is invalid");
-			e.printStackTrace();
-		}
+		JsonParser jp =  new JsonFactory().createParser(arg);
+		result = parser(jp);
         //if (!Constants.isBugFree()) System.out.printf("   $> time fromString = `%.3f ms`\n",(System.nanoTime() - start) / 1000000.00);
 		return result;
 	}

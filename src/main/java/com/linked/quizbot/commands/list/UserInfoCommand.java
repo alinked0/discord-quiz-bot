@@ -35,7 +35,7 @@ public class UserInfoCommand extends BotCommand{
 	@Override
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<OptionData>();
-        res.add(new OptionData(OptionType.STRING, "userid", "number identifing the user on discord", false).setRequiredLength(17, 18));
+        res.add(new OptionData(OptionType.STRING, "userid", "number identifing the user on discord", false).setRequiredLength(17, Constants.DISCORDIDLENMAX));
         return res;
     }
 	@Override

@@ -74,18 +74,18 @@ public class ExplainCommand extends BotCommand {
         if (q == null){
             q = BotCore.getPrevQuizBot(channelId);
         } 
-        if(q!=null) {
-            List<String> expl = q.explain(sender);
-            Iterator<String> iter = expl.iterator();
-            recursive_send(iter, message, channel);
-            if (q.isActive()) {
-                int delay = q.getDelaySec();
-				BotCommand.getCommandByName(MoreTimeCommand.CMDNAME)
-				.execute(sender, null, channel, new String[]{""+Constants.READTIMEMIN*60});
-                q.setDelay(delay);
-            }
-        } else {
+        if (q == null) {
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+            return;
         }
+        List<String> expl = q.explain(sender);
+        Iterator<String> iter = expl.iterator();
+        sender.openPrivateChannel().queue((channel2)-> recursive_send(iter, null, channel2));
+        int delay = q.getDelaySec();
+        if (q.isActive()) {
+            BotCommand.getCommandByName(MoreTimeCommand.CMDNAME)
+            .execute(sender, null, channel, new String[]{""+Constants.READTIMEMIN*60});
+        }
+        q.setDelay(delay);
     }
 }

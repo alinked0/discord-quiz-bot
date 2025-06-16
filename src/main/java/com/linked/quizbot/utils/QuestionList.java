@@ -14,6 +14,8 @@ import com.linked.quizbot.Constants;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -108,7 +110,7 @@ public class QuestionList extends LinkedList<Question> {
 	 *
 	 * @param filePath the file path of the JSON file to import the list from
 	 */
-	public QuestionList(String filePath) {
+	public QuestionList(String filePath) throws IOException {
 		this();
 		QuestionList res = QuestionListParser.fromJsonFile(filePath);
 		if (res!=null && res.getName()!=null) {
@@ -127,7 +129,7 @@ public class QuestionList extends LinkedList<Question> {
 	 * @param filePath the file path of the JSON file to import the list from
 	 * @return a new QuestionList instance populated with data from the JSON file
 	 */
-	public static QuestionList importListQuestionFromJson(String filePath) {
+	public static QuestionList importListQuestionFromJson(String filePath) throws IOException{
 		return new QuestionList(filePath);
 	}
 
@@ -211,6 +213,10 @@ public class QuestionList extends LinkedList<Question> {
 	public HashMap<String,Emoji> getTags() {
 		HashMap<String, Emoji> res = new HashMap<>(tags);
 		return res;
+	}
+
+	public Emoji getEmojiByTag(String tagName) {
+		return getTags().getOrDefault(tagName, null);
 	}
 
 	public void addTag(String tagName, Emoji emoji) {
@@ -452,21 +458,18 @@ public class QuestionList extends LinkedList<Question> {
 		l.setTags(m);
 		return l;
 	}
-	public static int myBinarySearchIndexOf(List<QuestionList> tab, int start, int end, String q, Comparator<? super String> compare){
-		if (start > end){
-			return -1*start-1;
-		}
-		int m = (start+end)/2;
-		int comp = compare.compare(tab.get(m).getName(), q);
-		if(comp == 0){
-			return m;
-		}
-		if (comp >0){
-			return myBinarySearchIndexOf(tab, start, m-1, q, compare);
-		}
-		return myBinarySearchIndexOf(tab, m+1, end, q, compare);
+	public static int myBinarySearchIndexOf(List<QuestionList> tab, int start, int end, String listName){
+		QuestionList searched = new QuestionList();
+		searched.name = listName;
+		return Users.myBinarySearchIndexOf(tab, 0, end, searched, QuestionList.comparatorByName());
 	}
-	public static int myBinarySearchIndexOf(List<QuestionList> tab, String q, Comparator<? super String> compare){
-		return myBinarySearchIndexOf(tab, 0, tab.size()-1, q, compare);
+	public static int myBinarySearchIndexOf(List<QuestionList> tab, String listName){
+		return myBinarySearchIndexOf(tab, 0, tab.size()-1, listName);
+	}
+	public static QuestionList getQuestionListByListId(String listId) {
+		return Users.getQuestionListByListId(listId);
+	}
+	public static QuestionList getQuestionListByName(String listName) {
+		return Users.getQuestionListByName(listName);
 	}
 }

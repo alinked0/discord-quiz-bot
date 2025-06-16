@@ -20,19 +20,11 @@ public class QuestionListHash {
     public static final char[] BASE36_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
     public static final int DEFAULT_LENGTH = 7;
     public static final Set<String> generatedCodes = new HashSet<>();
-    private final int codeLength;
 
-    public QuestionListHash(int codeLength) {
-        this.codeLength = codeLength;
-    }
-
-    public QuestionListHash() {
-        this(DEFAULT_LENGTH);
-    }
     public static void addGeneratedCode(String code ){
         QuestionListHash.generatedCodes.add(code);
     }
-    public String generate(String input, long timestamp) {
+    public static String generate(String input, long timestamp) {
         String code;
         int attempts = 0;
 
@@ -52,7 +44,27 @@ public class QuestionListHash {
         return code;
     }
 
-    private String createCode(String combinedInput) {
+    public static String generate(QuestionList l) {
+        String code, input = l.getAuthorId() + l.getName();
+        long timestamp = l.getTimeCreatedMillis();
+        int attempts = 0;
+
+        do {
+            String randomComponent = UUID.randomUUID().toString();
+            String combined = input + "|" + timestamp + "|" + randomComponent;
+            code = createCode(combined);
+            attempts++;
+
+            // Just in case something goes wrong
+            if (attempts > 10_000) {
+                throw new RuntimeException("Too many hash collisions. Aborting.");
+            }
+        } while (generatedCodes.contains(code));
+
+        QuestionListHash.addGeneratedCode(code);
+        return code;
+    }
+    private static String createCode(String combinedInput) {
         try {
             // SHA-256 hashing
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -68,14 +80,13 @@ public class QuestionListHash {
             }
 
             // Truncate or pad the code
-            return base36.length() >= codeLength ? base36.substring(0, codeLength) : padToLength(base36, codeLength);
+            return base36.length() >= DEFAULT_LENGTH ? base36.substring(0, DEFAULT_LENGTH) : padToLength(base36, DEFAULT_LENGTH);
 
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 not available", e);
         }
     }
-
-    private String toBase36(BigInteger value) {
+    private static String toBase36(BigInteger value) {
         StringBuilder sb = new StringBuilder();
         BigInteger base = BigInteger.valueOf(36);
 
@@ -87,8 +98,7 @@ public class QuestionListHash {
 
         return sb.toString();
     }
-
-    private String padToLength(String input, int length) {
+    private static String padToLength(String input, int length) {
         StringBuilder sb = new StringBuilder(input);
         while (sb.length() < length) {
             sb.append('a');

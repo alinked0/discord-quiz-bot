@@ -98,6 +98,9 @@ public class HelpCommand extends BotCommand {
 				embed.addField(c.toString(), s, true);
 			}
 			res.add(embed);
+			for (EmbedBuilder k : res) {
+				sender.openPrivateChannel().queue(ch -> ch.sendMessageEmbeds(k.build()).queue());
+			}
 		} else {
 			cmd = null;
 			for (int i = 0; i<args.length; i++) {
@@ -137,12 +140,12 @@ public class HelpCommand extends BotCommand {
 					res.add(embed);
 				}
 			}
-		}
-		for (EmbedBuilder k : res) {
-			MessageCreateAction send;
-			send = channel.sendMessageEmbeds(k.build());
-			if(message!=null){send.setMessageReference(message);}
-			send.queue();
+			for (EmbedBuilder k : res) {
+				MessageCreateAction send;
+				send = channel.sendMessageEmbeds(k.build());
+				if(message!=null){send.setMessageReference(message);}
+				send.queue();
+			}
 		}
     }
 }    

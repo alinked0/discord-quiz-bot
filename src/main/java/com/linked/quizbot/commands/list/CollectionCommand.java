@@ -13,6 +13,7 @@ import com.linked.quizbot.utils.Users;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -95,7 +96,11 @@ public class CollectionCommand extends BotCommand {
 		List<QuestionList> list = Users.getLists();
 		list.sort(QuestionList.comparatorByDate().reversed());
 		for (QuestionList l : list){
-			res += "`"+l.getListId()+"` "+l.getName()+"\n";
+			String emojiStr = "";
+			for (Emoji e: l.getTags().values()){
+				emojiStr +=e.getAsReactionCode();
+			}
+			res += "`"+l.getListId()+"` "+l.getName()+" "+emojiStr+"\n";
 			if (res.length()>Constants.CHARSENDLIM - 400) {
 				result.add(res);
 				res = "";

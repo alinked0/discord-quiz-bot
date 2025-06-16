@@ -37,7 +37,11 @@ public class TestQuestionListParser {
     @Test
     void testFromJsonFile_missingFile() {
         File missing = new File(tempDir, "does_not_exist.json");
-        QuestionList parsed = QuestionListParser.fromJsonFile(missing.getAbsolutePath());
+        QuestionList parsed = null;
+        try {
+            parsed = QuestionListParser.fromJsonFile(missing.getAbsolutePath());
+		} catch (IOException e) {
+        } 
         assertNull(parsed);
     }
 
@@ -45,7 +49,11 @@ public class TestQuestionListParser {
     @Test
     void testFromString_validJson() {
         QuestionList list = QuestionList.getExampleQuestionList();
-        QuestionList parsed = QuestionListParser.fromString(list.toJson());
+        QuestionList parsed = null;
+        try {
+            parsed = QuestionListParser.fromString(list.toJson());
+		} catch (IOException e) {
+        } 
 
         assertNotNull(parsed);
         assertEquals(list.size(), parsed.size());
@@ -54,7 +62,11 @@ public class TestQuestionListParser {
     @Test
     void testFromString_invalidJson() {
         String invalidJson = "{ invalid json }";
-        QuestionList parsed = QuestionListParser.fromString(invalidJson);
+        QuestionList parsed = null;
+        try {
+            parsed = QuestionListParser.fromString(invalidJson);
+		} catch (IOException e) {
+        } 
         assertNull(parsed);
     }
 

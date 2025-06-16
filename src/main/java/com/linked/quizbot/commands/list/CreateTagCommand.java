@@ -46,7 +46,7 @@ public class CreateTagCommand extends BotCommand{
         String res;
         
         
-        if (Users.addTag(sender.getId(), tagNameInput, emoji)){
+        if (Users.createTag(sender.getId(), tagNameInput, emoji)){
             res = "Tag has been created.";
         } else {
             res = "Tag already exists.";

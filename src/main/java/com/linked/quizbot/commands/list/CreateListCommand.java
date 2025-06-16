@@ -1,5 +1,6 @@
 package com.linked.quizbot.commands.list;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,32 +76,34 @@ public class CreateListCommand extends BotCommand {
     }
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         int n = args.length;
-        MessageCreateAction send;
-        String res = "Failed invalid question list";
+        List<String> res = new ArrayList<>();
         String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
             BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
             return;
         }
+        String s;
         for (int i = 0; i<n; i++) {
-            QuestionList l = QuestionListParser.fromString(args[i]);
-            if (l!=null) {
-                l.setAuthorId(userId);
-                if (l.getName()!=null /*&& l.getTheme()!=null*/) {
-                    if(Users.getUserListQuestions(userId).contains(l)) {
-                        res = "Failed, list of name : \""+l.getName()+"\" already exists.";
-                    } else {
-                        Users.addListToUser(l.getAuthorId(), l);
-                        String index = Users.getCodeForIndexQuestionList(l);
-                        res = "Success, list has been created, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
+            try {
+                QuestionList l = QuestionListParser.fromString(args[i]);
+                if (l!=null) {
+                    l.setAuthorId(userId);
+                    if (l.getName()!=null) {
+                        if(Users.getUserListQuestions(userId).contains(l)) {
+                            res.add("Failed, list of name : \""+l.getName()+"\" already exists.\n");
+                        } else {
+                            Users.addListToUser(l.getAuthorId(), l);
+                            String listId = Users.getCodeForQuestionListId(l);
+                            res.add("Success, list of name : \""+l.getName()+"\", has been created, \nuse `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+listId+"` command to verife.\n");
+                        }
+                    }else {
+                        res.add("Failed to import ```"+args[i]+"```, no \"name\" found\n");
                     }
-                }else {
-                    res = "Failed, no \"name\" or \"theme\" found\n" + res;
                 }
+            }catch (IOException e){
+                res.add("Failed to import ```js\n"+args[i]+"```, reason unknown\n");
             }
         }
-        send = channel.sendMessage(res);
-        if(message!=null){send.setMessageReference(message);}
-        send.queue();
+        BotCommand.recursive_send(res.iterator(), message, channel);
     }
 }
