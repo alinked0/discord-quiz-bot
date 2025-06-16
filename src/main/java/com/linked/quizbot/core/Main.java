@@ -109,19 +109,23 @@ public class Main {
             input = scanner.nextLine().toLowerCase();
 			System.out.println(" Input: " + input);
 			switch (input) {
-				case "stop","shutdown","exit":
+				case "stop","shutdown","exit" -> {
 					BotCore.SHUTINGDOWN = true;
 					System.out.println("Bot will soon shutdown");
-					break;
-				case "status":
+					Users.exportAllUserLists();
+					Users.exportAllUserData();
+					scanner.close();
+					jda.shutdown();
+					System.out.println("It is now safe to kill this proccess");
+				}
+				case "status"-> {
 					System.out.println(getStatus());
-					break;
-				default:
+				}
+				default -> {
 					usageInner();
-					break;
+				}
 			}
         }
-		scanner.close();
-		jda.shutdown();
+		jda.shutdownNow();
 	}
 }
