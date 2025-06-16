@@ -26,11 +26,15 @@ public class Constants {
 		CHARSENDLIM = 2000,
 		READTIMEMIN = 5,
 		READTIMELONGMIN = 10,
-		INCRTIMESEC = 5;
-	public static final Emoji 
+		INCRTIMESEC = 5,
+		DISCORDIDLENMIN= 17,
+		DISCORDIDLENMAX= 18;
+	public static final Emoji
 		EMOJIDEL = Emoji.fromUnicode("U+1F525"),
-		EMOJITRUE = Emoji.fromUnicode("U+2714 U+FE0F"),
-		EMOJIFALSE = Emoji.fromUnicode("U+274C"),
+		EMOJITRUE = Emoji.fromFormatted("✅"),
+		EMOJIFALSE = Emoji.fromFormatted("❌"),
+		EMOJICORRECT = Emoji.fromFormatted("✔️"),
+		EMOJIINCORRECT = Emoji.fromFormatted("✖️"),
 		EMOJIMORETIME = Emoji.fromUnicode("U+23F0"),
 		EMOJINEXTQUESTION = Emoji.fromUnicode("U+23ED U+FE0F"),
 		EMOJIPREVQUESTION = Emoji.fromUnicode("U+23EE U+FE0F"),
