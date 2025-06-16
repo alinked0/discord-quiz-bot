@@ -9,7 +9,7 @@ import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserData;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
@@ -49,7 +49,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * @author alinked
  * @version 1.0
  * @see BotCommand
- * @see UserData
+ * @see Users
  * @see QuestionList
  * @see BotCore#comfirmDeletion
  */

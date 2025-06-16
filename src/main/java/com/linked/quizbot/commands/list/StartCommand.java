@@ -7,7 +7,7 @@ import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListHash;
-import com.linked.quizbot.utils.UserData;
+import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.Question;
@@ -31,7 +31,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  *
  * <h2>Features:</h2>
  * <ul>
- *     <li>Retrieves questions from {@link UserData} and {@link QuestionList}.</li>
+ *     <li>Retrieves questions from {@link Users} and {@link QuestionList}.</li>
  *     <li>Randomizes questions if no specific list is provided.</li>
  *     <li>Initiates a new {@link QuizBot} instance to handle quiz interactions.</li>
  * </ul>
@@ -55,7 +55,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @version 1.0
  * @see BotCommand
  * @see QuizBot
- * @see UserData
+ * @see Users
  * @see QuestionList
  * @see Question
  */

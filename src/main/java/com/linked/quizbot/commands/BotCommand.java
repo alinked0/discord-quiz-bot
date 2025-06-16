@@ -31,7 +31,7 @@ import com.linked.quizbot.commands.list.UserInfoCommand;
 import com.linked.quizbot.commands.list.ViewCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserData;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -160,7 +160,7 @@ public abstract class BotCommand {
 	}
 
 	public static QuestionList getSelectedQuestionList(String listId) {
-		return UserData.getQuestionList(listId);
+		return Users.getQuestionList(listId);
 	}
 	public SlashCommandData getSlashCommandData(){
 		return Commands.slash(getName(), getDescription()).addOptions(getOptionData());

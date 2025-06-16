@@ -14,7 +14,7 @@ import com.linked.quizbot.commands.list.ExplainCommand;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserData;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -125,7 +125,7 @@ public class BotCore {
 		}
 	}
 	public static void deleteList(QuestionList l, String messageId){
-		UserData.deleteList(l);
+		Users.deleteList(l);
 		Message message = BotCore.deletionMessages.get(messageId);
 		int n = l.toString().length();
 		if (n>Constants.CHARSENDLIM) {

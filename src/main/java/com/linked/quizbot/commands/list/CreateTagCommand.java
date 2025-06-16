@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
-import com.linked.quizbot.utils.UserData;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -46,7 +46,7 @@ public class CreateTagCommand extends BotCommand{
         String res;
         
         
-        if (UserData.addTag(sender.getId(), tagNameInput, emoji)){
+        if (Users.addTag(sender.getId(), tagNameInput, emoji)){
             res = "Tag has been created.";
         } else {
             res = "Tag already exists.";

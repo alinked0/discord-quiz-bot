@@ -1,6 +1,6 @@
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Question;
-import com.linked.quizbot.utils.UserData;
+import com.linked.quizbot.utils.Users;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
@@ -19,19 +19,19 @@ import java.util.Map;
 import com.linked.quizbot.Constants;
 
 /**
- * Test class for UserData functionality.
+ * Test class for Users functionality.
  * Tests the creation, modification, and management of user question lists.
  */
 public class TestUserData {
     private static final String TEST_USER_ID = "tmp123456789";
-    private UserData userData;
+    private Users userData;
     private QuestionList sampleList1;
     private QuestionList sampleList2;
     private QuestionList sampleList3;
     
     /**
      * Sets up the test environment before each test.
-     * Creates sample QuestionList objects and a UserData instance.
+     * Creates sample QuestionList objects and a Users instance.
      */
     @BeforeEach
     public void setUp() {
@@ -65,11 +65,11 @@ public class TestUserData {
         sampleList1.exportListQuestionAsJson();
         sampleList2.exportListQuestionAsJson();
         
-        // Clear any existing UserData for this test user
-        UserData.allUserLists.removeIf(ul -> ul.getUserId().equals(TEST_USER_ID));
+        // Clear any existing Users for this test user
+        Users.allUsers.removeIf(ul -> ul.getUserId().equals(TEST_USER_ID));
         
-        // Create a UserData instance for testing
-        userData = new UserData(TEST_USER_ID);
+        // Create a Users instance for testing
+        userData = new Users(TEST_USER_ID);
     }
     
     /**
@@ -87,12 +87,12 @@ public class TestUserData {
             f.delete();
         }
         
-        // Clear any UserData for this test user
-        UserData.allUserLists.removeIf(ul -> ul.getUserId().equals(TEST_USER_ID));
+        // Clear any Users for this test user
+        Users.allUsers.removeIf(ul -> ul.getUserId().equals(TEST_USER_ID));
     }
     
     /**
-     * Tests the construction of UserData and initialization of attributes.
+     * Tests the construction of Users and initialization of attributes.
      */
     @Test
     public void testUserListsConstruction() {
@@ -111,7 +111,7 @@ public class TestUserData {
     }
     
     /**
-     * Tests the collection constructor for UserData.
+     * Tests the collection constructor for Users.
      */
     @Test
     public void testUserListsCollectionConstructor() {
@@ -119,7 +119,7 @@ public class TestUserData {
         testLists.add(sampleList1);
         testLists.add(sampleList2);
         
-        UserData collectionUserLists = new UserData(TEST_USER_ID, testLists);
+        Users collectionUserLists = new Users(TEST_USER_ID, testLists);
         
         assertEquals(TEST_USER_ID, collectionUserLists.getUserId());
         assertEquals(2, collectionUserLists.getLists().size());
@@ -175,8 +175,8 @@ public class TestUserData {
         // Add a list using the static method
         userData.addListToUser(TEST_USER_ID, sampleList3);
         
-        // Create a new UserData instance to verify the list was added
-        UserData reloadedUserLists = new UserData(TEST_USER_ID);
+        // Create a new Users instance to verify the list was added
+        Users reloadedUserLists = new Users(TEST_USER_ID);
         
         // Check list was added
         List<QuestionList> allLists = reloadedUserLists.getLists();
@@ -201,13 +201,13 @@ public class TestUserData {
         List<String> sortedList = Arrays.asList("Apple", "Banana", "Cherry", "Date", "Elderberry");
         
         // Test finding existing elements
-        assertEquals(0, UserData.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Apple", (e,f)-> e.compareTo(f)));
-        assertEquals(2, UserData.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Cherry", (e,f)-> e.compareTo(f)));
-        assertEquals(4, UserData.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Elderberry", (e,f)-> e.compareTo(f)));
+        assertEquals(0, Users.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Apple", (e,f)-> e.compareTo(f)));
+        assertEquals(2, Users.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Cherry", (e,f)-> e.compareTo(f)));
+        assertEquals(4, Users.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Elderberry", (e,f)-> e.compareTo(f)));
         
         // Test for element that doesn't exist but should be at a specific position
         int expectedPosition = -3; // -position-1 where position is 2
-        assertEquals(expectedPosition, UserData.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Carrot", (e,f)-> e.compareTo(f)));
+        assertEquals(expectedPosition, Users.myBinarySearchIndexOf(sortedList, 0, sortedList.size() - 1, "Carrot", (e,f)-> e.compareTo(f)));
     }
     
     /**
@@ -222,11 +222,11 @@ public class TestUserData {
         
         // Test finding existing elements
         QuestionList testList = new QuestionList(TEST_USER_ID, "B Quiz");
-        assertEquals(1, UserData.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, testList, QuestionList.comparatorByName()));
+        assertEquals(1, Users.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, testList, QuestionList.comparatorByName()));
         
         // Test for element that doesn't exist
         QuestionList missingList = new QuestionList(TEST_USER_ID, "D Quiz");
-        int result = UserData.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, missingList, QuestionList.comparatorByName());
+        int result = Users.myBinarySearchIndexOf(sortedLists, 0, sortedLists.size() - 1, missingList, QuestionList.comparatorByName());
         assertTrue(result < 0); // Should be negative for not found
     }
     
@@ -236,10 +236,10 @@ public class TestUserData {
     @Test
     public void testDeleteList() {
         // Delete a list
-        UserData.deleteList(sampleList1);
+        Users.deleteList(sampleList1);
         
-        // Create a new UserData instance to verify the list was deleted
-        UserData reloadedUserLists = new UserData(TEST_USER_ID);
+        // Create a new Users instance to verify the list was deleted
+        Users reloadedUserLists = new Users(TEST_USER_ID);
         
         // Check list was deleted
         List<QuestionList> allLists = reloadedUserLists.getLists();
@@ -272,7 +272,7 @@ public class TestUserData {
         assertFalse(file.exists());
         
         // Export all user lists
-        UserData.exportAllUserLists();
+        Users.exportAllUserLists();
         
         // Verify the file exists again
         assertTrue(file.exists());
@@ -297,8 +297,8 @@ public class TestUserData {
      */
     @Test
     public void testEqualsAndHashCode() {
-        // Create another UserData instance with the same user ID
-        UserData sameUserLists = new UserData(TEST_USER_ID);
+        // Create another Users instance with the same user ID
+        Users sameUserLists = new Users(TEST_USER_ID);
         
         // Check equals
         assertEquals(userData, sameUserLists);
@@ -307,8 +307,8 @@ public class TestUserData {
         // Check hashCode
         assertEquals(userData.hashCode(), sameUserLists.hashCode());
         
-        // Create a UserData with a different user ID
-        UserData differentUserLists = new UserData("987654321");
+        // Create a Users with a different user ID
+        Users differentUserLists = new Users("987654321");
         
         // Check not equals
         assertNotEquals(userData, differentUserLists);

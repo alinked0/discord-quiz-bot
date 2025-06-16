@@ -7,9 +7,7 @@ import java.util.List;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
-import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.QuestionListHash;
-import com.linked.quizbot.utils.UserData;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
@@ -43,9 +41,9 @@ public class UserInfoCommand extends BotCommand{
 	@Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         String res = "```js\n";
-		UserData user = args.length>0?new UserData(args[0]): null;
+		Users user = args.length>0?new Users(args[0]): null;
         if (user==null){
-            user = new UserData(sender.getId());
+            user = new Users(sender.getId());
         }
 		res += user.toString()+"\n```";
         

@@ -7,7 +7,7 @@ import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListParser;
-import com.linked.quizbot.utils.UserData;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -70,10 +70,10 @@ public class AddListCommand extends BotCommand{
             return res;
         }
         if (l.getName()!=null /*&& l.getTheme()!=null*/) {
-            for (QuestionList k : UserData.getUserListQuestions(l.getAuthorId())){
+            for (QuestionList k : Users.getUserListQuestions(l.getAuthorId())){
                 if(k.getName().equals(l.getName())) {
-                    UserData.addListToUser(l.getAuthorId(), l);
-                    String index = UserData.getCodeForIndexQuestionList(l);
+                    Users.addListToUser(l.getAuthorId(), l);
+                    String index = Users.getCodeForIndexQuestionList(l);
                     res += "Success, list has been added, use ```"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getAuthorId()+" "+index+"``` command to verife.\n" +res;
                     return res;
                 }

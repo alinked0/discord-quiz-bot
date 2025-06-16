@@ -3,7 +3,7 @@ package com.linked.quizbot.commands.list;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.UserData;
+import com.linked.quizbot.utils.Users;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +34,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  * <h2>Features:</h2>
  * <ul>
  *     <li>Uses {@link EmbedBuilder} to format the question and answers.</li>
- *     <li>Retrieves question data from {@link UserData} and {@link QuestionList}.</li>
+ *     <li>Retrieves question data from {@link Users} and {@link QuestionList}.</li>
  *     <li>Includes a timestamp and a themed description.</li>
  *     <li>Adds emoji reactions based on the number of available answer options.</li>
  *     <li>Deletes the message after 30 seconds to prevent clutter.</li>
@@ -56,7 +56,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  * @version 1.0
  * @see BotCommand
  * @see EmbedBuilder
- * @see UserData
+ * @see Users
  * @see QuestionList
  * @see Question
  * @see Option
@@ -75,8 +75,8 @@ public class EmbedCommand extends BotCommand {
     @Override
     public void execute(User sender, Message message, MessageChannel channel, String[] args){
         //Liste de l'utilisateur
-        UserData UserData = new UserData(sender.getId());
-        QuestionList list = UserData.get(0);
+        Users Users = new Users(sender.getId());
+        QuestionList list = Users.get(0);
         Question question = list.get(0);
         // Créer l'embed
         EmbedBuilder embed = new EmbedBuilder()

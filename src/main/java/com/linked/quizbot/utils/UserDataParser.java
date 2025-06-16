@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 public class UserDataParser {
-    public static UserData fromJsonFile(String filePathToJson)throws IOException{
+    public static Users fromJsonFile(String filePathToJson)throws IOException{
 		File f = new File(filePathToJson);
 		if (!f.exists()){
 			throw new FileNotFoundException(filePathToJson);
@@ -22,16 +22,16 @@ public class UserDataParser {
 		return parser(jp);
     }
 
-	public static UserData fromString(String arg) throws IOException{
+	public static Users fromString(String arg) throws IOException{
 		JsonParser jp =  new JsonFactory().createParser(arg);
 		return parser(jp);
 	}
 
-	public static UserData parser(JsonParser jp) throws IOException{
+	public static Users parser(JsonParser jp) throws IOException{
 		if (jp.nextToken() != JsonToken.START_OBJECT){
 			throw new IOException();
 		}
-		UserData result = new UserData();
+		Users result = new Users();
 		int i=0,j=0;
 		String fieldName;
 		Map<String, Emoji> m = new HashMap<>();
