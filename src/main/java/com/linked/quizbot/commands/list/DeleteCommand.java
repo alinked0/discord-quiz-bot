@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -56,10 +58,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class DeleteCommand extends BotCommand{
     public static final String CMDNAME = "delete";
     private String cmdDesrciption = "deleting a list of questions";
-	private String[] abbrevs = new String[]{"del"};
+	private List<String> abbrevs = List.of("del");
     
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){
 		return CommandCategory.EDITING;
@@ -76,18 +78,18 @@ public class DeleteCommand extends BotCommand{
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
         
         String res,ownerId; 
         MessageCreateAction send;
         QuestionList l;
         Consumer<Message> success;
-        if (args.length<getOptionData().size()){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+        if (args.size()<getOptionData().size()){
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
             return;
         }
         
-        l = getSelectedQuestionList(args[0]);
+        l = getSelectedQuestionList(args.get(0));
         ownerId = l.getAuthorId(); 
         if (ownerId.equals(sender.getId())){
             res = "Are you sure you want to delete :\n\""+l.getName()+"\"?";

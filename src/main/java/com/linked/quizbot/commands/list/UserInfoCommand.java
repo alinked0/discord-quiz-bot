@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +22,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class UserInfoCommand extends BotCommand{
     public static final String CMDNAME = "userinfo";
     private String cmdDesrciption = "showing user information in a json format";
-	private String[] abbrevs = new String[]{"ui"};
+	private List<String> abbrevs = List.of("ui");
     
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){
 		return CommandCategory.READING;
@@ -35,13 +37,13 @@ public class UserInfoCommand extends BotCommand{
 	@Override
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<OptionData>();
-        res.add(new OptionData(OptionType.STRING, "userid", "number identifing the user on discord", false).setRequiredLength(17, Constants.DISCORDIDLENMAX));
+        res.add(new OptionData(OptionType.STRING, "userid", "number identifing the user on discord", false).setRequiredLength(Constants.DISCORDIDLENMIN, Constants.DISCORDIDLENMAX));
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
         String res = "```js\n";
-		Users user = args.length>0?new Users(args[0]): null;
+		Users user = args.size()>0?new Users(args.get(0)): null;
         if (user==null){
             user = new Users(sender.getId());
         }

@@ -59,13 +59,12 @@ public class BotCore {
 		listOfGames.add(q);
 		channelByQuizBot.get(currChannel).start();
 	}
-
 	public static void explicationRequest(User sender, MessageChannel channel, String messageId){
 		Set<String> msgIds = BotCore.explicationRequestByChannel.get(channel.getId());
 		if (msgIds != null) {
 			if (msgIds.contains(messageId)){
 				BotCommand.getCommandByName(ExplainCommand.CMDNAME)
-				.execute(sender, null, channel, new String[0]);
+				.execute(sender, null, channel, List.of());
 			}
 		}
 	}

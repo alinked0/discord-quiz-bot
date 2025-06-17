@@ -1,7 +1,8 @@
 package com.linked.quizbot.commands.list;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -20,10 +21,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class TagListCommand extends BotCommand{
     public static final String CMDNAME = "taglist";
     private String cmdDesrciption = "add a tag to a list of questions";
-	private String[] abbrevs = new String[]{"tag", "tl"};
+	private List<String> abbrevs = List.of("tag", "tl");
     
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){ return CommandCategory.EDITING;}
     @Override
@@ -38,12 +39,12 @@ public class TagListCommand extends BotCommand{
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
-        if (args.length < getRequiredOptionData().size()){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+        if (args.size() < getRequiredOptionData().size()){
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
             return;
         }
-        String tagNameInput=args[0];
+        String tagNameInput=args.get(0);
         Users user = new Users(sender.getId());
         Emoji emoji = user.getEmojiFomTagName(tagNameInput);
         String res = "";
@@ -53,10 +54,10 @@ public class TagListCommand extends BotCommand{
         int totalNotOwned = 0;
         QuestionList k;
         if (emoji!=null){
-            for(int i=1; i<args.length; i++){
-                k= user.getUserQuestionListByListId(args[i]);
+            for(int i=1; i<args.size(); i++){
+                k= user.getUserQuestionListByListId(args.get(i));
                 if (k==null){
-                    notOwnedStr += " `"+args[i]+"`";
+                    notOwnedStr += " `"+args.get(i)+"`";
                     totalNotOwned +=1;
                 } else {
                     Users.addTagToList( k.getListId(), tagNameInput);

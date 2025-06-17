@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
@@ -64,16 +66,16 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 public class EmbedCommand extends BotCommand {
     public static final String CMDNAME = "embed";
     private String cmdDesrciption = "old test for printing questions using discord embeds";
-	private String[] abbrevs = new String[0];
+	private List<String> abbrevs = List.of();
     
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
     public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
     @Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
         //Liste de l'utilisateur
         Users Users = new Users(sender.getId());
         QuestionList list = Users.get(0);

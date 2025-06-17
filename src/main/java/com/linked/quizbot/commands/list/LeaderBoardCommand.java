@@ -18,10 +18,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class LeaderBoardCommand extends BotCommand {
     public static final String CMDNAME = "leaderboard";
     private String cmdDesrciption = "displaying the leaderboard of the last played game.";
-	private String[] abbrevs = new String[]{"lb"};
+	private List<String> abbrevs = List.of("lb");
     
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){
         return CommandCategory.GAME;
@@ -31,7 +31,7 @@ public class LeaderBoardCommand extends BotCommand {
     @Override
     public String getDescription(){ return cmdDesrciption;}
     @Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
         String channelId = channel.getId();
         QuizBot q = BotCore.getCurrQuizBot(channelId);
         if (q == null){
@@ -53,7 +53,7 @@ public class LeaderBoardCommand extends BotCommand {
                 });
             }
         } else {
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
         }
     }
 }

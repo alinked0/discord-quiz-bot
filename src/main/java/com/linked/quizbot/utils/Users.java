@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 public class Users implements Iterable<QuestionList>{
 	private String userId;
+	private String perferedPrefix = null;
 	protected List<QuestionList> listsSortedByListId;
 	public static List<Users> allUsers = new ArrayList<>();
 	private int numberOfGamesPlayed=0;
@@ -58,15 +59,10 @@ public class Users implements Iterable<QuestionList>{
 	private void initTags(){
 		Map<String, Emoji> tags;
 		listsSortedByListId.sort(QuestionList.comparatorByListId());
-		if (tagEmojiPerTagName == null) {
-			tagEmojiPerTagName = new HashMap<>();
-			for(QuestionList l: listsSortedByListId){
-				tags = l.getTags();
-				tagEmojiPerTagName.putAll(tags);
-			}
-		}
 		for(QuestionList l: listsSortedByListId){
+			QuestionListHash.addGeneratedCode(l.getListId());
 			tags = l.getTags();
+			tagEmojiPerTagName.putAll(tags);
 			for (String tagName : tags.keySet()){
 				if (questionListPerTags.getOrDefault(tagName, null)==null){
 					questionListPerTags.put(tagName, new ArrayList<QuestionList>());
@@ -85,6 +81,7 @@ public class Users implements Iterable<QuestionList>{
 	public void initStats(){
 		try{
 			Users tmp = UserDataParser.fromJsonFile(getPathToUserData());
+			perferedPrefix = tmp.getPrefix();
 			numberOfGamesPlayed = tmp.getNumberOfGamesPlayed();
 			totalPointsEverGained = tmp.getTotalPointsEverGained();
 			tagEmojiPerTagName = tmp.getTagEmojiPerTagName();
@@ -93,6 +90,13 @@ public class Users implements Iterable<QuestionList>{
 			totalPointsEverGained = 0;
 			tagEmojiPerTagName = new HashMap<>();
 		}
+	}
+	public String getPrefix(){
+		return perferedPrefix;
+	}
+	public void setPrefix(String perferedPrefix){
+		this.perferedPrefix= perferedPrefix;
+		exportUserData();
 	}
 	public List<QuestionList> getLists() {
 		List<QuestionList> res = new ArrayList<>(listsSortedByListId);
@@ -106,6 +110,9 @@ public class Users implements Iterable<QuestionList>{
 	public QuestionList get(int index) {
 		return listsSortedByListId.get(index);
 	}
+	public static Users get(String userId) {
+		return Users.getUser(userId);
+	}
 	public static String getCodeForQuestionListId(QuestionList l){
 		String listId = l.getListId();
 		if (listId==null || listId.length()<Constants.DISCORDIDLENMIN){
@@ -118,7 +125,8 @@ public class Users implements Iterable<QuestionList>{
 		if (index >=0){
 			return allUsers.get(index);
 		}
-		return null;
+		new Users(userId);
+		return getUser(userId);
 	}
 	public double getTotalPointsEverGained(){
 		return totalPointsEverGained;
@@ -466,6 +474,7 @@ public class Users implements Iterable<QuestionList>{
 			}
 		}
 		res += "},\n";
+		res += tab1+"\"prefixe\":\""+getPrefix()+"\",\n";
 		res += tab1+"\"totalPointsEverGained\":"+getTotalPointsEverGained()+",\n";
 		res += tab1+"\"numberOfGamesPlayed\":"+getNumberOfGamesPlayed()+"\n";
 		res +="}";

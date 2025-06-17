@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.io.File;
 import java.util.List;
 
@@ -18,10 +20,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class ViewCommand extends BotCommand{
     public static final String CMDNAME = "view";
     private String cmdDesrciption = "showing a list of questions in a json format";
-	private String[] abbrevs = new String[]{"v"};
+	private List<String> abbrevs = List.of("v");
     
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){
 		return CommandCategory.READING;
@@ -36,11 +38,11 @@ public class ViewCommand extends BotCommand{
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
         String res = "```js\n";
-		QuestionList l = args.length>0?getSelectedQuestionList(args[0]): null;
+		QuestionList l = args.size()>0?getSelectedQuestionList(args.get(0)): null;
         if (l==null){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
             return;
         }
 		res += l.toString()+"\n```";

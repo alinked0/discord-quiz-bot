@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import net.dv8tion.jda.api.entities.Message;
@@ -23,16 +25,15 @@ public class EndCommand extends BotCommand {
     @Override
     public String getDescription(){ return cmdDesrciption;}
     @Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
         QuizBot q = BotCore.getCurrQuizBot(channel);
         if (q == null) {
             BotCommand.getCommandByName(HelpCommand.CMDNAME)
-            .execute(sender, message, channel, new String[]{getName()});
+            .execute(sender, message, channel, List.of(getName()));
         } else{
             BotCore.endQuizBot(q);
-            String[] arg = new String[0];
             BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME)
-            .execute(sender, message, channel, arg);
+            .execute(sender, message, channel, List.of());
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.commands.BotCommand;
@@ -33,11 +35,11 @@ public class NextCommand extends BotCommand {
 	@Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
         String channelId = channel.getId();
         QuizBot q = BotCore.getCurrQuizBot(channelId);
         if (q == null){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
         }else {
             Message msg = q.getQuizMessage();
             q.nextQuestion();

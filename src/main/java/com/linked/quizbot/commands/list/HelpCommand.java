@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
@@ -57,10 +59,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class HelpCommand extends BotCommand {
     public static final String CMDNAME = "help";
     private String cmdDesrciption = "helping people understands the commands.";
-	private String[] abbrevs = new String[]{"h"};
+	private List<String> abbrevs = List.of("h");
 	
     @Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
     @Override
     public String getName(){ return CMDNAME;}
     @Override
@@ -72,9 +74,9 @@ public class HelpCommand extends BotCommand {
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
 		ArrayList<EmbedBuilder> res = new ArrayList<>();
-		boolean allAtOnce = args.length < 1;
+		boolean allAtOnce = args.size() < 1;
 		BotCommand cmd;
 		Set<BotCommand> commands = BotCommand.getCommands();
 		if (allAtOnce) {
@@ -103,15 +105,15 @@ public class HelpCommand extends BotCommand {
 			}
 		} else {
 			cmd = null;
-			for (int i = 0; i<args.length; i++) {
+			for (int i = 0; i<args.size(); i++) {
 				cmd = null;
 				for (BotCommand c: commands){
-					if (c.getName().equals(args[i])) {
+					if (c.getName().equals(args.get(i))) {
 						cmd = c;
 						break;
 					} 
-					for (int j=0; j<c.getAbbreviations().length; j++){ 
-						if (c.getAbbreviations()[j].equals(args[i])){
+					for (int j=0; j<c.getAbbreviations().size(); j++){ 
+						if (c.getAbbreviations().get(j).equals(args.get(i))){
 							cmd = c;
 							break;
 						}
@@ -121,10 +123,10 @@ public class HelpCommand extends BotCommand {
 				if (cmd != null) {
 					EmbedBuilder embed = new EmbedBuilder();
 					embed.setTitle("Command Info: `"+cmd.getName()+"`");
-					int n = cmd.getAbbreviations().length;
+					int n = cmd.getAbbreviations().size();
 					String s = "";
 					for (int j=0; j<n; j++){ 
-						s+="`"+cmd.getAbbreviations()[j]+"`";
+						s+="`"+cmd.getAbbreviations().get(j)+"`";
 						if (j+1<n) {
 							s+= ", ";
 						}

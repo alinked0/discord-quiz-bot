@@ -1,5 +1,7 @@
 package com.linked.quizbot.events;
 
+import java.util.List;
+
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
@@ -54,19 +56,19 @@ public class ReactionListener extends ListenerAdapter {
             BotCommand cmd ;
             if (reaction.equals(Constants.EMOJIMORETIME)){
                 cmd = BotCommand.getCommandByName("moretime");
-                cmd.execute(sender, message, channel, new String[0]);
+                cmd.execute(sender, message, channel, List.of());
                 System.out.println("  $> "+cmd.getName());
                 return;
             }
             if(reaction.equals(Constants.EMOJINEXTQUESTION)){
                 cmd = BotCommand.getCommandByName("next");
-                cmd.execute(sender, message, channel, new String[0]);
+                cmd.execute(sender, message, channel, List.of());
                 System.out.println("  $> "+cmd.getName());
                 return;
             }
             if(reaction.equals(Constants.EMOJIPREVQUESTION)){
                 cmd = BotCommand.getCommandByName("previous");
-                cmd.execute(sender, message, channel, new String[0]);
+                cmd.execute(sender, message, channel, List.of());
                 System.out.println("  $> "+cmd.getName());
                 return;
             }

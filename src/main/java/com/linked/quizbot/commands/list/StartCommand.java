@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,10 +64,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class StartCommand extends BotCommand{
     public static final String CMDNAME = "start";
     private String cmdDesrciption = "starting a given quiz, whether its your own or another users";
-	private String[] abbrevs = new String[]{"s", "play"};
+	private List<String> abbrevs = List.of("s", "play");
 
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){
         return CommandCategory.GAME;
@@ -81,10 +83,10 @@ public class StartCommand extends BotCommand{
         return res;
     }
     @Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
-		QuestionList quizQuestions = args.length>0?getSelectedQuestionList(args[0]): null;
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+		QuestionList quizQuestions = args.size()>0?getSelectedQuestionList(args.get(0)): null;
         if (quizQuestions==null){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
             return;
         }
         QuizBot newQuizBot = new QuizBot(channel, quizQuestions);

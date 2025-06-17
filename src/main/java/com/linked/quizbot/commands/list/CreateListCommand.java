@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +10,7 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandCategory;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.QuestionListHash;
 import com.linked.quizbot.utils.QuestionListParser;
 import com.linked.quizbot.utils.Users;
 
@@ -54,9 +57,9 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class CreateListCommand extends BotCommand {
     public static final String CMDNAME = "createlist";
     private String cmdDesrciption = "adding a list of questions to a user's lists";
-	private String[] abbrevs = new String[]{"create","cl"};
+	private List<String> abbrevs = List.of("create","cl");
     
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){
 		return CommandCategory.EDITING;
@@ -74,34 +77,35 @@ public class CreateListCommand extends BotCommand {
         res.add(new OptionData(OptionType.ATTACHMENT, "jsonfile", "question list written as a json"));
         return res;
     }
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
-        int n = args.length;
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+        int n = args.size();
         List<String> res = new ArrayList<>();
         String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
             return;
         }
         String s;
         for (int i = 0; i<n; i++) {
             try {
-                QuestionList l = QuestionListParser.fromString(args[i]);
+                QuestionList l = QuestionListParser.fromString(args.get(i));
                 if (l!=null) {
                     l.setAuthorId(userId);
                     if (l.getName()!=null) {
                         if(Users.getUserListQuestions(userId).contains(l)) {
                             res.add("Failed, list of name : \""+l.getName()+"\" already exists.\n");
                         } else {
+                            String listId = QuestionListHash.generate(l);
+                            l.setListId(listId);
                             Users.addListToUser(l.getAuthorId(), l);
-                            String listId = Users.getCodeForQuestionListId(l);
                             res.add("Success, list of name : \""+l.getName()+"\", has been created, \nuse `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+listId+"` command to verife.\n");
                         }
                     }else {
-                        res.add("Failed to import ```"+args[i]+"```, no \"name\" found\n");
+                        res.add("Failed to import ```"+args.get(i)+"```, no \"name\" found\n");
                     }
                 }
             }catch (IOException e){
-                res.add("Failed to import ```js\n"+args[i]+"```, reason unknown\n");
+                res.add("Failed to import ```js\n"+args.get(i)+"```, reason unknown\n");
             }
         }
         BotCommand.recursive_send(res.iterator(), message, channel);

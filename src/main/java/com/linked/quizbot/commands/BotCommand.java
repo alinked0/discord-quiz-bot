@@ -26,6 +26,7 @@ import com.linked.quizbot.commands.list.MoreTimeCommand;
 import com.linked.quizbot.commands.list.NextCommand;
 import com.linked.quizbot.commands.list.PingCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
+import com.linked.quizbot.commands.list.SetPrefixeCommand;
 import com.linked.quizbot.commands.list.StartCommand;
 import com.linked.quizbot.commands.list.TagListCommand;
 import com.linked.quizbot.commands.list.UserInfoCommand;
@@ -53,7 +54,7 @@ public abstract class BotCommand {
 	private final static Map<CommandCategory, Set<BotCommand>> commandByCategory = new HashMap<>();
 	public static Random rand = new Random();
 	
-	public abstract void execute(User sender, Message message, MessageChannel channel, String[] args);
+	public abstract void execute(User sender, Message message, MessageChannel channel,List<String> args);
 
 	public abstract String getName();
 
@@ -61,8 +62,8 @@ public abstract class BotCommand {
 		return CommandCategory.OTHER;
 	}
 
-	public String[] getAbbreviations(){
-		return new String[0];
+	public List<String> getAbbreviations(){
+		return List.of();
 	}
 
     public List<OptionData> getOptionData(){
@@ -79,8 +80,10 @@ public abstract class BotCommand {
 	public static Set<BotCommand> getCommands() { 
 		Set<BotCommand> res = new HashSet<>();
 		res.addAll(Arrays.asList(
+			new AddListCommand(),
 			new CreateListCommand(),
 			new CollectionCommand(),
+			new CreateTagCommand(),
 			new DeleteCommand(),
 			new EndCommand(),
 			new ExplainCommand(),
@@ -92,12 +95,11 @@ public abstract class BotCommand {
 			new NextCommand(),
 			new PingCommand(),
 			new PreviousCommand(),
+			new SetPrefixeCommand(),
 			new StartCommand(),
-			new AddListCommand(),
-			new ViewCommand(),
-			new CreateTagCommand(),
+			new TagListCommand(),
 			new UserInfoCommand(),
-			new TagListCommand()
+			new ViewCommand()
 		));
 		return res;
 	}
@@ -109,9 +111,8 @@ public abstract class BotCommand {
 			}
 		}
 		for (BotCommand cmd : BotCommand.getCommands()) {
-			String[] abbrev = cmd.getAbbreviations();
-			for(int i=0; i<abbrev.length; i++) {
-				if(abbrev[i].equals(name)) {
+			for(int i=0; i<cmd.getAbbreviations().size(); i++) {
+				if(cmd.getAbbreviations().get(i).equals(name)) {
 					return cmd;
 				}
 			}

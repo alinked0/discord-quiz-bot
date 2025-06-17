@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,10 +20,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class CreateTagCommand extends BotCommand{
     public static final String CMDNAME = "createtag";
     private String cmdDesrciption = "creating a tag that can be use to sort question lists";
-	private String[] abbrevs = new String[]{"ct"};
+	private List<String> abbrevs = List.of("ct");
     
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){ return CommandCategory.EDITING;}
     @Override
@@ -36,12 +38,12 @@ public class CreateTagCommand extends BotCommand{
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
-        if (args.length < getRequiredOptionData().size()){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+        if (args.size() < getRequiredOptionData().size()){
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
             return;
         }
-        String tagNameInput=args[0], tagEmojiInput=args[1];
+        String tagNameInput=args.get(0), tagEmojiInput=args.get(1);
         Emoji emoji = getEmojiFromArg(tagEmojiInput);
         String res;
         

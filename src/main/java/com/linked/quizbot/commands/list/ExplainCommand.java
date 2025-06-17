@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -55,10 +57,10 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 public class ExplainCommand extends BotCommand {
     public static final String CMDNAME = "explain";
     private String cmdDesrciption = "explaining the scoring for, the current question if a game is ongoing, or all question if not.";
-	private String[] abbrevs = new String[]{"expl"};
+	private List<String> abbrevs = List.of("expl");
     
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){
         return CommandCategory.GAME;
@@ -68,14 +70,14 @@ public class ExplainCommand extends BotCommand {
 	@Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
         String channelId = channel.getId();
         QuizBot q = BotCore.getCurrQuizBot(channelId);
         if (q == null){
             q = BotCore.getPrevQuizBot(channelId);
         } 
         if (q == null) {
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
             return;
         }
         List<String> expl = q.explain(sender);
@@ -84,7 +86,7 @@ public class ExplainCommand extends BotCommand {
         int delay = q.getDelaySec();
         if (q.isActive()) {
             BotCommand.getCommandByName(MoreTimeCommand.CMDNAME)
-            .execute(sender, null, channel, new String[]{""+Constants.READTIMEMIN*60});
+            .execute(sender, null, channel, List.of(""+Constants.READTIMEMIN*60));
         }
         q.setDelay(delay);
     }

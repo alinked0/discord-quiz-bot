@@ -8,6 +8,7 @@ import java.net.URL;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.Channels;
 import java.nio.file.Files;
+import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -108,7 +109,7 @@ public class SlashCommandListener extends ListenerAdapter {
 				System.out.print("  $> /"+cmd.getName());System.out.print(" ; args :");for (i=0; i<args.length; i++) { System.out.print(args[i]+":");}
 				
 				Message message = null;
-				cmd.execute(sender, message, channel, args);
+				cmd.execute(sender, message, channel, List.of(args));
 				if (!Constants.isBugFree()) System.out.printf("   $> time "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
 				return;
 			}

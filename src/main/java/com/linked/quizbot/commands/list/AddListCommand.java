@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +23,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class AddListCommand extends BotCommand{
     public static final String CMDNAME = "addlist";
     private String cmdDesrciption = "adding a list of questions to a user's lists";
-	private String[] abbrevs = new String[]{"add", "al"};
+	private List<String> abbrevs = List.of("add", "al");
     
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public CommandCategory getCategory(){
         return CommandCategory.EDITING;
@@ -44,17 +46,17 @@ public class AddListCommand extends BotCommand{
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, String[] args){
-        int n = args.length;
+    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+        int n = args.size();
         List<String> res = new ArrayList<>();
         String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, new String[]{getName()});
+            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
             return;
         }
         for (int i = 0; i<n; i++) {
             try {
-                QuestionList l = QuestionListParser.fromString(args[i]);
+                QuestionList l = QuestionListParser.fromString(args.get(i));
                 if (l!=null) {
                     if (l.getAuthorId()==null) {
                         l.setAuthorId(userId);
@@ -62,7 +64,7 @@ public class AddListCommand extends BotCommand{
                     res.add(addListAndReturnMessage(l));
                 }
             }catch (IOException e){
-                res.add("Failed to import ```js\n"+args[i]+"```\n");
+                res.add("Failed to import ```js\n"+args.get(i)+"```\n");
             }
         }
         BotCommand.recursive_send(res.iterator(), message, channel);

@@ -1,5 +1,7 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.List;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -60,7 +62,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class CollectionCommand extends BotCommand {
 	public static final String CMDNAME = "collection";
     private String cmdDesrciption = "listing all questions";
-	private String[] abbrevs = new String[]{"c", "ls"};
+	private List<String> abbrevs = List.of("c", "ls");
 	
 	@Override
 	public String getName(){ return CMDNAME;}
@@ -69,7 +71,7 @@ public class CollectionCommand extends BotCommand {
 		return CommandCategory.READING;
 	}
 	@Override
-	public String[] getAbbreviations(){ return abbrevs;}
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
@@ -79,16 +81,16 @@ public class CollectionCommand extends BotCommand {
         return res;
     }
 	@Override
-	public void execute(User sender, Message message, MessageChannel channel, String[] args){
+	public void execute(User sender, Message message, MessageChannel channel, List<String> args){
 		List<String> col = exec1(sender, message, channel, args);
 		Iterator<String> iter = col.iterator();
 		recursive_send(iter, message, channel);
     }
 
 	//execution 1 is two times faster than exec 2
-	private List<String> exec1 (User sender, Message message, MessageChannel channel, String[] args){
+	private List<String> exec1 (User sender, Message message, MessageChannel channel, List<String> args){
 		List<String> result = new ArrayList<>();
-		String userId = (args.length>0)?args[0]:sender.getId();
+		String userId = (args.size()>0)?args.get(0):sender.getId();
 		String res = "Collection of ";
 		res += "<@"+userId+">\n";
 
