@@ -46,7 +46,7 @@ public class SetPrefixeCommand extends BotCommand{
         }
         String prefixe=args.get(0);
         Users.get(sender.getId()).setPrefix(prefixe);
-        String res = sender.getEffectiveName()+"'s was prefixe has been set to '"+prefixe+"'";
+        String res = sender.getEffectiveName()+"'s prefixe has been set to '"+prefixe+"'";
         MessageCreateAction send = channel.sendMessage(res);
         if (message != null){send.setMessageReference(message);}
         send.queue();
