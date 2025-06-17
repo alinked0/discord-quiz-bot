@@ -22,7 +22,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public class SetPrefixeCommand extends BotCommand{
     public static final String CMDNAME = "setprefixe";
     private String cmdDesrciption = "choose your perffere prefixe";
-	private List<String> abbrevs = List.of("tag", "tl");
+	private List<String> abbrevs = List.of();
     
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
