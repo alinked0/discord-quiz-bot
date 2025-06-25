@@ -1,6 +1,7 @@
 package com.linked.quizbot.commands;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.list.AddListCommand;
@@ -53,6 +53,35 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 public abstract class BotCommand {
 	private final static Map<CommandCategory, Set<BotCommand>> commandByCategory = new HashMap<>();
 	public static Random rand = new Random();
+
+    // Static set to hold all command instances, initialized once.
+    private static final Set<BotCommand> ALL_COMMANDS;
+
+    static {
+        ALL_COMMANDS = new HashSet<>();
+        ALL_COMMANDS.addAll(List.of(
+            new AddListCommand(),
+            new CreateListCommand(),
+            new CollectionCommand(),
+            new CreateTagCommand(),
+            new DeleteCommand(),
+            new EndCommand(),
+            new ExplainCommand(),
+            new EmbedCommand(),
+            new HelpCommand(),
+            new InviteCommand(),
+            new LeaderBoardCommand(),
+            new MoreTimeCommand(),
+            new NextCommand(),
+            new PingCommand(),
+            new PreviousCommand(),
+            new SetPrefixeCommand(),
+            new StartCommand(),
+            new TagListCommand(),
+            new UserInfoCommand(),
+            new ViewCommand()
+        ));
+    }
 	
 	public abstract void execute(User sender, Message message, MessageChannel channel,List<String> args);
 
@@ -77,31 +106,8 @@ public abstract class BotCommand {
 		return "no examples found.";
 	}
 
-	public static Set<BotCommand> getCommands() { 
-		Set<BotCommand> res = new HashSet<>();
-		res.addAll(Arrays.asList(
-			new AddListCommand(),
-			new CreateListCommand(),
-			new CollectionCommand(),
-			new CreateTagCommand(),
-			new DeleteCommand(),
-			new EndCommand(),
-			new ExplainCommand(),
-			new EmbedCommand(),
-			new HelpCommand(),
-			new InviteCommand(),
-			new LeaderBoardCommand(),
-			new MoreTimeCommand(),
-			new NextCommand(),
-			new PingCommand(),
-			new PreviousCommand(),
-			new SetPrefixeCommand(),
-			new StartCommand(),
-			new TagListCommand(),
-			new UserInfoCommand(),
-			new ViewCommand()
-		));
-		return res;
+	public static Set<BotCommand> getCommands() {
+		return ALL_COMMANDS;
 	}
 
 	public static BotCommand getCommandByName(String name) {
@@ -119,44 +125,65 @@ public abstract class BotCommand {
 		}
 		return null;
 	}
-	public static Emoji getEmojiFromArg(String arg){
-		Emoji emoji = Emoji.fromFormatted(arg);
-		return emoji;
-	}
+    public static Emoji getEmojiFromArg(String arg){
+        try {
+            return Emoji.fromFormatted(arg);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Failed to parse emoji from argument: " + arg + " - " + e.getMessage());
+            return null;
+        }
+    }
 	public static String getUserIdFromArg(String arg, JDA jda) {
         long start = System.nanoTime();
 		if (arg.startsWith("<@")) {
-			return arg.substring(2, arg.length());
+			return arg.substring(2, arg.length()-1);
 		}
+
 		String approxiUserId = null;
-		int minDistTo0 = 10;
+		int minDistTo0 = Integer.MAX_VALUE;
+
 		Set<User> allUsers = new HashSet<>();
 		allUsers.addAll(jda.getUsers());
 		allUsers.addAll(BotCore.getAllUsers());
 		for (User u : allUsers){
-			if (!u.isBot()) {
-				ArrayList<String> l = new ArrayList<>();
-				String userId = u.getId().toLowerCase();
+			if (!u.isBot()) { // Ignore bot users
+				ArrayList<String> identifiers = new ArrayList<>();
+				String userId = u.getId();
 				String userName = u.getName().toLowerCase();
-				String userEffectiveName = u.getEffectiveName().toLowerCase();
-				String userTag = u.getAsTag().toLowerCase();
-				l.add(userId);l.add(userName);l.add(userEffectiveName);l.add(userTag);
-				if (!Constants.isBugFree())System.out.printf("   $> %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
-				for (String s : l){
-					int v = arg.compareTo(s);
-					if(v==0){
+				String userEffectiveName = u.getEffectiveName().toLowerCase(); // Nickname in server
+				String userTag = u.getAsTag().toLowerCase(); // Username#Discriminator (if not new system)
+				identifiers.add(userId);
+				identifiers.add(userName);
+				identifiers.add(userEffectiveName);
+				identifiers.add(userTag);
+
+				if (!Constants.isBugFree()) { // Debug logging
+					System.out.printf("   $> %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
+				}
+
+				String lowerArg = arg.toLowerCase();
+				for (String s : identifiers){
+					// Exact match first
+					if(lowerArg.equals(s)){
 						return userId;
 					}
-					if(Math.abs(v)<minDistTo0){
+					// Simple difference for approximate matching 
+					// TODO improve with Levenshtein distance
+					int v = lowerArg.compareTo(s);
+					if(Math.abs(v) < minDistTo0){
 						approxiUserId = userId;
 						minDistTo0 = Math.abs(v);
 					}
 				}
 			}
 		}
-		if (!Constants.isBugFree())System.out.printf("    $> approxiUserId %s;\n", approxiUserId);
-		if (!Constants.isBugFree()) System.out.printf("   $> time getUserIdFromArg = %.3f ms", (System.nanoTime() - start) / 1000000.00);
-		if (arg.length()==Constants.DISCORDIDLENMAX){
+		if (!Constants.isBugFree()) { // Debug logging
+			System.out.printf("    $> approxiUserId %s;\n", approxiUserId);
+			System.out.printf("   $> time getUserIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
+		}
+
+		// If the arg itself is a raw ID of the correct length
+		if (Constants.DISCORDIDLENMIN<=arg.length() && arg.length()<=Constants.DISCORDIDLENMAX){
 			return arg;
 		}
 		return approxiUserId;
@@ -176,16 +203,24 @@ public abstract class BotCommand {
 		return commandData;
 	}
 	public static Set<BotCommand> getCommandsByCategory(CommandCategory cat){
-		if(!commandByCategory.isEmpty()){
-			return commandByCategory.get(cat);
+		if(commandByCategory.isEmpty()){
+			for (CommandCategory c : CommandCategory.getCategories()){
+				commandByCategory.put(c, new HashSet<>());
+			}
+			for (BotCommand cmd : getCommands()){
+				commandByCategory.get(cmd.getCategory()).add(cmd);
+			}
 		}
-		for (CommandCategory c : CommandCategory.getCategories()){
-			commandByCategory.put(c, new HashSet<>());
+		return commandByCategory.getOrDefault(cat, Collections.emptySet());
+	}
+	public List<OptionData> getRequiredOptionData(){
+		ArrayList<OptionData> res = new ArrayList<>();
+		for (OptionData opt:getOptionData()){
+			if (opt.isRequired()){
+				res.add(opt);
+			}
 		}
-		for (BotCommand cmd : getCommands()){
-			commandByCategory.get(cmd.getCategory()).add(cmd);
-		}
-		return commandByCategory.get(cat);
+		return res;
 	}
     public static void recursive_send(Iterator<String> iter, Message message, MessageChannel channel){
 		if (iter.hasNext()){
@@ -211,13 +246,6 @@ public abstract class BotCommand {
 			}
 		}
     }
-	public List<OptionData> getRequiredOptionData(){
-		ArrayList<OptionData> res = new ArrayList<>();
-		for (OptionData opt:getOptionData()){
-			res.add(opt);
-		}
-		return res;
-	}
 	public static List<String> trimMessage(String s){
         List<String> res = new ArrayList<>();
         if (s.length()>Constants.CHARSENDLIM){
