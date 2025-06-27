@@ -13,6 +13,7 @@ import com.linked.quizbot.commands.CommandOutput;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.utils.AttachedFile;
@@ -28,8 +29,20 @@ public class MessageSender {
 			System.out.println("Warning: Command output was null, nothing to send.");
 			return;
 		}
+		// Schedule the message sending if a delay is specified.
+		treeatDelay(output, channel, originalMessage);
+	}
+	private static void treeatDelay(CommandOutput output, MessageChannel channel, Message originalMessage){
+		 if (output.getDelayMillis() > 0) {
+			scheduler.schedule(() -> sendConditions(output, channel, originalMessage),
+							   output.getDelayMillis(), TimeUnit.MILLISECONDS);
+		} else {
+			sendConditions(output, channel, originalMessage);
+		}
+	}
+	private static void sendConditions(CommandOutput output, MessageChannel channel, Message originalMessage) {
 		// output will be limite by the dicord char limit
-		if (output.editOriginalMessage()){
+		if (output.sendInOriginalMessage()){
 			String content = "";
 			for (String s : output.getTextMessages()){
 				if (!s.isEmpty()){
@@ -42,14 +55,36 @@ public class MessageSender {
 				.setAttachments(output.getFiles().stream().map(f->AttachedFile.fromData(f)).toList())
 				.setEmbeds(output.getEmbeds())
 				.build()).queue();
+			return;
+		} 
+		if (output.sendInThread()  && channel.getType().isGuild() && !channel.getType().isThread()){
+			String s = output.getTextMessages().get(0);
+			
+			int i = s.indexOf("\n");
+			final String title;
+			if (i<0){
+				title = s;
+			} else {
+				i = s.indexOf("\n", i+1);
+				if (i<0){
+					i=s.length();
+					title = s;
+				} else {
+					s = s.substring(0, i);
+					title = s;
+				}
+			}
+			channel.sendMessage(s).queue(msg -> msg.createThreadChannel(title).queue(chaine -> sendActualOutput(output, chaine, null)));
+			return;
 		}
-		// Schedule the message sending if a delay is specified.
-		else if (output.getDelayMillis() > 0) {
-			scheduler.schedule(() -> sendActualOutput(output, channel, originalMessage),
-							   output.getDelayMillis(), TimeUnit.MILLISECONDS);
-		} else {
-			sendActualOutput(output, channel, originalMessage);
+		if (output.sendAsPrivateMessage() && channel.getType().isGuild()){
+			User u = BotCore.getUser(output.getRequesterId());
+			if (u!=null){
+				u.openPrivateChannel().queue(chaine -> sendActualOutput(output, chaine, null));
+				return;
+			}
 		}
+		sendActualOutput(output, channel, originalMessage);
 	}
 	private static void sendActualOutput(CommandOutput output, MessageChannel channel, Message originalMessage) {
 		// Send text messages first
@@ -84,16 +119,11 @@ public class MessageSender {
 				);
 			}
 		}
-		// TODO: Add logic for sending files, components, etc., if needed in CommandOutput
 		if (!output.getFiles().isEmpty()){
 			MessageCreateAction sendAction = channel.sendFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
 			if (output.shouldReplyToSender() && originalMessage != null) {
 				sendAction.setMessageReference(originalMessage);
 			}
-			// Handle ephemeral if this was a slash command interaction and output.isEphemeral() is true
-			// Note: For actual slash commands, you'd use event.deferReply().setEphemeral(true).queue()
-			// or event.getHook().sendMessage(...).setEphemeral(true).queue()
-			// This example focuses on MessageChannel.sendMessage for simplicity.
 			sendAction.queue(
 				sentMessage -> { // Execute post-send actions for embeds too
 					for (Consumer<Message> action : output.getPostSendActions()) {

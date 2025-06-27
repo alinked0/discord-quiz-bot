@@ -90,12 +90,14 @@ public class ExplainCommand extends BotCommand {
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
         }
         List<String> expl = q.explain(userId);
+        q.setExplainTriger(true);
         CommandOutput.Builder outputBuild = new CommandOutput.Builder().addAllTextMessage(expl);
         int delay = q.getDelaySec();
         if (q.isActive()) {
-            args = List.of(""+Constants.READTIMEMIN*60);
-            outputBuild.editResponseIntoOriginalMessage(true)
+            outputBuild.sendInOriginalMessage(true)
             .addTextMessage(q.getLastTimestamp().toString());
+        } else {
+            outputBuild.sendInThread(true);
         }
         q.setDelay(delay);
 		return outputBuild.build();

@@ -27,20 +27,22 @@ public class CommandOutput {
 	private final List<MessageEmbed> embeds;
 	private final List<Consumer<Message>> postSendActions;
 	private final List<File> attachedFiles;
-	private final boolean editResponseIntoOriginalMessage;
+	private final boolean sendInOriginalMessage;
 	private final boolean replyToSender;
+	private final boolean sendInThread;
 	private boolean ephemeral;
-	private boolean sendAsPrivateMessage;
 	private final long delayMillis;
-
+	private String userId;
+	
 	public static class Builder {
 		private final List<String> textMessages = new ArrayList<>();
 		private final List<MessageEmbed> embeds = new ArrayList<>();
         private final List<Consumer<Message>> postSendActions = new ArrayList<>();
 		private final List<File> attachedFiles= new ArrayList<>();
-		private boolean editResponseIntoOriginalMessage = false;
+		private boolean sendInOriginalMessage = false;
 		private boolean replyToSender = true;
-		private boolean sendAsPrivateMessage = false;
+		private boolean sendInThread= false;
+		private String userId = null;
 		private boolean ephemeral = false;
 		private long delayMillis = 0;
 
@@ -78,8 +80,11 @@ public class CommandOutput {
 			this.replyToSender = replyToSender;
 			return this;
 		}
-		public Builder sendAsPrivateMessage(boolean sendAsPrivateMessage){
-			this.sendAsPrivateMessage = sendAsPrivateMessage;
+		public Builder sendAsPrivateMessage(String userId){
+			if (userId != null && !userId.isEmpty() && userId.length()>= Constants.DISCORDIDLENMIN){
+				this.sendInOriginalMessage = false;
+				this.userId = userId;
+			}
 			return this;
 		}
 		public Builder addFile(File file){
@@ -104,8 +109,12 @@ public class CommandOutput {
 			this.ephemeral = ephemeral;
 			return this;
 		}
-		public Builder editResponseIntoOriginalMessage(boolean b){
-			this.editResponseIntoOriginalMessage = b;
+		public Builder sendInThread(boolean b){
+			this.sendInThread = b;
+			return this;
+		}
+		public Builder sendInOriginalMessage(boolean b){
+			this.sendInOriginalMessage = b;
 			return this;
 		}
 		public Builder addPostSendAction(Consumer<Message> action) {
@@ -131,8 +140,7 @@ public class CommandOutput {
 			addAllPostSendAction(t.postSendActions);
 			addAllFile(t.attachedFiles);
 			this.delayMillis = t.delayMillis;
-			this.sendAsPrivateMessage = t.sendAsPrivateMessage;
-			this.editResponseIntoOriginalMessage = t.editResponseIntoOriginalMessage;
+			this.sendInOriginalMessage = t.sendInOriginalMessage;
 			return this;
 		}
 		public CommandOutput build(){
@@ -147,17 +155,24 @@ public class CommandOutput {
 		this.delayMillis = builder.delayMillis;
 		this.postSendActions = builder.postSendActions;
 		this.attachedFiles = builder.attachedFiles;
-		this.sendAsPrivateMessage = builder.sendAsPrivateMessage;
-		this.editResponseIntoOriginalMessage = builder.editResponseIntoOriginalMessage;
+		this.sendInOriginalMessage = builder.sendInOriginalMessage;
+		this.sendInThread = builder.sendInThread;
+		this.userId = builder.userId;
 	}
 	public List<File> getFiles(){
 		return attachedFiles;
 	}
-	public boolean editOriginalMessage(){
-		return editResponseIntoOriginalMessage;
+	public boolean sendInThread(){
+		return sendInThread;
+	}
+	public boolean sendInOriginalMessage(){
+		return sendInOriginalMessage;
 	}
 	public List<String> getTextMessages(){
 		return textMessages;
+	}
+	public String getRequesterId(){
+		return userId;
 	}
 	public List<String> getAsText(){
 		List<String> res = new ArrayList<>();
@@ -192,8 +207,8 @@ public class CommandOutput {
 	public List<MessageEmbed> getEmbeds(){
 		return embeds;
 	}
-	public boolean shouldSendAsPrivateMessage(){
-		return sendAsPrivateMessage;
+	public boolean sendAsPrivateMessage(){
+		return userId!=null;
 	}
 	public boolean shouldReplyToSender(){
 		return replyToSender;

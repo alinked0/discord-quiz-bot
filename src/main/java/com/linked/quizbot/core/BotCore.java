@@ -160,34 +160,7 @@ public class BotCore {
 		}
 	}
 	public static void updateUserScoreAddReaction(String userId, QuizBot currQuizBot, Emoji reaction) {
-		Question currQuestion = currQuizBot.getCurrQuestion();
-
-		if (!currQuizBot.userAnswersForCurrQuestion.containsKey(userId)) {
-			if (!currQuizBot.getPlayers().contains(userId)){
-				Users.getUser(userId).incrNumberOfGamesPlayed();
-				currQuizBot.addPlayer(userId);
-			}
-			currQuizBot.userAnswersForCurrQuestion.put(userId, new HashSet<>());
-		}
-		Option userAwnser = null;
-		// Record user's answer (reaction)
-		for (int i = 1; i<=currQuestion.size(); i++) {
-			if (reaction.equals(currQuizBot.getReactionForAnswer(i))) {
-				userAwnser = currQuestion.get(i-1);
-				if (userAwnser != null) {
-					//System.out.printf("  $> awnser %s, %s ;\n", userAwnser.isCorrect(), userAwnser.getText());
-					currQuizBot.userAnswersForCurrQuestion.get(userId).add(userAwnser);
-				}
-				break;
-			}
-		}
-		Map<String, Set<Option>> tmpUserAnswers = new HashMap<>(currQuizBot.userAnswersForCurrQuestion);
-		currQuizBot.awnsersByUserByQuestion.put(currQuestion, tmpUserAnswers);
-		// If it's the correct answer, increase their score
-		if (userAwnser != null) {
-			double point = (userAwnser.isCorrect()?currQuizBot.pointsForCorrect:currQuizBot.pointsForIncorrect)/currQuestion.getTrueOptions().size();
-			currQuizBot.userScoreApproxi.put(userId, currQuizBot.getUserScore(userId) +point);
-		}
+		currQuizBot.updateUserScoreAddReaction( userId, reaction);
 	}
 	public static void deleteList(QuestionList l, String messageId){
 		Users.deleteList(l);
@@ -203,9 +176,38 @@ public class BotCore {
 	}
 	public void setPrefixe(String prefixe) { cmdPrefixe = prefixe;}
 	public static String getEffectiveNameFromId(String userId){
-		if (getJDA()==null){
-			return userId;
+		String res;User user;
+		if (getJDA()!=null){
+			user = getJDA().getUserById(userId);
+			if (user!=null){
+				res = user.getEffectiveName();
+				if (res!=null){
+					return res;
+				}
+			}
 		}
-		return getJDA().getUserById(userId).getEffectiveName();
+		List<User> l= BotCore.allUsers.stream().filter(u -> u.getId().equals(userId)).toList();
+		if(!l.isEmpty()){
+			user=l.getFirst();
+			user = getJDA().getUserById(userId);
+			if (user!=null){
+				res = user.getEffectiveName();
+				if (res!=null){
+					return res;
+				}
+			}
+		}
+		return userId;
+	}
+	public static User getUser(String userId){
+		Set<User> allUsers = new HashSet<>();
+		allUsers.addAll(BotCore.getAllUsers());
+		allUsers.addAll(jda.getUsers());
+		for (User u : allUsers){
+			if (u.getId().equals(userId)){
+				return u;
+			}
+		}
+		return null;
 	}
 }

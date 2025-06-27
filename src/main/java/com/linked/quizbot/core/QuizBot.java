@@ -94,6 +94,7 @@ public class QuizBot extends ListenerAdapter {
 	public Map<String, Double> userScoreExact = null;
     public QuestionList quizQuestions;
     public boolean quizActive;
+    public boolean explainWasTrigerred = false;
     public int currentQuestionIndex;
     public int previousQuestionIndex;
     public Message quizMessage = null;
@@ -104,6 +105,7 @@ public class QuizBot extends ListenerAdapter {
     public String channelId;
 	public Timestamp timeLimit;
 	public static Random random = BotCore.getRandom();
+
     public QuizBot(String channelId){
         this.channelId = channelId;
         quizActive = false;
@@ -128,6 +130,8 @@ public class QuizBot extends ListenerAdapter {
 		return timeLimit;
 	}
     public Boolean isActive() { return quizActive;}
+    public Boolean explainWasTrigerred() { return explainWasTrigerred;}
+    public void setExplainTriger(boolean b) { explainWasTrigerred=b;}
 
 	public CommandOutput start() {
 		BotCore.explicationRequestByChannel.put(getChannelId(), new HashSet<>());
@@ -190,11 +194,16 @@ public class QuizBot extends ListenerAdapter {
 				BotCore.explicationRequestByChannel.get(getChannelId()).add(quizMessage.getId());
 			}).build();
     }
-	public List<Emoji> getButtons(){
+	public List<Emoji> getButtonsForOptions(){
 		List<Emoji> emojis = new ArrayList<>();
 		for (int i = 0; i < getCurrQuestion().size(); i++) {
 			emojis.add(getReactionForAnswer(i + 1));
 		}
+		return emojis;
+	}
+	public List<Emoji> getButtons(){
+		List<Emoji> emojis = new ArrayList<>();
+		emojis.addAll(getButtonsForOptions());
 		if (delaySec == 0|| awnsersByUserByQuestion.get(getCurrQuestion()).isEmpty()){
 			emojis.addAll(Arrays.asList(
 				Constants.EMOJIWHITESQUARE,
@@ -203,7 +212,9 @@ public class QuizBot extends ListenerAdapter {
 				Constants.EMOJIWHITESQUARE,
 				Constants.EMOJIEXPLICATION
 			));
-		}else{
+		}
+		// TODO : find a use of the moreTime button, its currently inaccessible
+		else{
 			emojis.addAll(Arrays.asList(
 				Constants.EMOJIWHITESQUARE,
 				Constants.EMOJIPREVQUESTION,
@@ -318,79 +329,87 @@ public class QuizBot extends ListenerAdapter {
 		}
 		return null;
 	}
-	public List<String> leaderBoard(){
+	public List<String> leaderBoard() {
 		List<String> res = new ArrayList<>();
-		double totalPoints = quizQuestions.size()*pointsForCorrect;
-        String leaderboard = "Leaderboard:\n";
+		double totalPoints = quizQuestions.size() * pointsForCorrect;
+		String leaderboard = "Leaderboard:\n";
 
-        Iterator<Map.Entry<String, Double>> SortedScoreByUser = userScoreExact.entrySet().stream()
-            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).iterator();
-		
+		Iterator<Map.Entry<String, Double>> SortedScoreByUser = userScoreExact.entrySet().stream()
+			.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).iterator();
+
 		int i = 1;
-        while(SortedScoreByUser.hasNext()) {
-            Map.Entry<String, Double> entry = SortedScoreByUser.next();
-            leaderboard += "#"+i+"."+BotCore.getEffectiveNameFromId(entry.getKey());
-            leaderboard += ": `"+entry.getValue()+"`\n";
-            i++;
-			if (leaderboard.length()>(Constants.CHARSENDLIM-1000)) {
+		while (SortedScoreByUser.hasNext()) {
+			Map.Entry<String, Double> entry = SortedScoreByUser.next();
+			leaderboard += String.format("#%d. %s: `%s`\n", i, BotCore.getEffectiveNameFromId(entry.getKey()), entry.getValue());
+			i++;
+			if (leaderboard.length() > (Constants.CHARSENDLIM - 1000)) {
 				res.add(leaderboard);
-				leaderboard="";
+				leaderboard = "";
 			}
-        }
-		leaderboard += "Max points :`"+totalPoints+"`\n";
+		}
+		leaderboard += String.format("Max points :`%s`\n", totalPoints);
 		res.add(leaderboard);
 		return res;
 	}
-	
-	public List<String> explain(String userId){
+	public List<String> explain(String userId) {
 		List<Question> main = new ArrayList<>();
 		String text = "";
 		List<String> res = new ArrayList<>();
 		String explication;
 		int index;
+
 		if (isActive()) {
 			main.add(getCurrQuestion());
 		} else {
 			main.addAll(quizQuestions);
 		}
+
 		Option opt;
 		Set<Option> optsUser;
 		String optsString;
 		Double points;
-		text += "For "+BotCore.getEffectiveNameFromId(userId)+"\n";
-		text += "## "+quizQuestions.getName() + " `"+ getUserScore(userId)+"/"+quizQuestions.size()+"`\n";
-		for (Question q : main) {
+
+		text += String.format("## %s `%s/%d`\n", quizQuestions.getName(), getUserScore(userId), quizQuestions.size());
+		text += String.format("For %s\n", BotCore.getEffectiveNameFromId(userId));
+		Question q;
+		Iterator<Question> iterQuestion = main.iterator();
+		while (iterQuestion.hasNext()) {
+			q = iterQuestion.next();
 			points = 0.00;
 			optsUser = getUserSelOptions(userId, q);
 			int numberOfTrueOptions = q.getTrueOptions().size();
 			optsString = "";
-			index = quizQuestions.indexOf(q)+1;
+			index = quizQuestions.indexOf(q) + 1;
+
 			for (int i = 0; i < q.size(); i++) {
 				opt = q.get(i);
 				explication = opt.getExplicationFriendly();
-				optsString += "> "+(i + 1)+". "+opt.getText()+"\n";
-				if (optsUser!=null && optsUser.contains(opt)){
-					points += opt.isCorrect()?pointsForCorrect/numberOfTrueOptions:pointsForIncorrect;
-					optsString += "> "+(opt.isCorrect()?Constants.EMOJITRUE:Constants.EMOJIFALSE).getFormatted()+explication+"\n";
-				}else {
-					optsString += "> "+(opt.isCorrect()?Constants.EMOJICORRECT:Constants.EMOJIINCORRECT).getFormatted()+explication+"\n";
+				optsString += String.format("> %d. %s\n", i + 1, opt.getText());
+
+				if (optsUser != null && optsUser.contains(opt)) {
+					points += opt.isCorrect() ? pointsForCorrect / numberOfTrueOptions : pointsForIncorrect;
+					optsString += String.format("> %s%s\n",
+						(opt.isCorrect() ? Constants.EMOJITRUE : Constants.EMOJIFALSE).getFormatted(),
+						explication);
+				} else {
+					optsString += String.format("> %s%s\n",
+						(opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT).getFormatted(),
+						explication);
 				}
 			}
 
-			text += "### "+(index)+". "+q.getQuestion();
-			text += " `"+points+"/1`\n";
-			text += optsString;
-			explication = q.getExplicationFriendly();
-			text += "> \n> **"+explication+"**\n\n";
+			text += String.format("### %d. %s `%s/1`\n%s", index, q.getQuestion(), points, optsString);
+			text += String.format("> \n> **%s**\n%s", q.getExplicationFriendly(), (iterQuestion.hasNext()?"\n":""));
 
-			if (text.length()>(Constants.CHARSENDLIM-1000)) {
+			if (text.length() > (Constants.CHARSENDLIM - 500)) {
 				res.add(text);
-				text="";
+				text = "";
 			}
 		}
 		if (!text.isEmpty()) res.add(text);
 		return res;
 	}
+
 
     public Emoji getReactionForAnswer(int index) {
         return Emoji.fromUnicode("U+3"+index+"U+fe0fU+20e3");
@@ -420,4 +439,34 @@ public class QuizBot extends ListenerAdapter {
         }
         return score;
     }
+
+	public void updateUserScoreAddReaction(String userId, Emoji reaction) {
+		Question currQuestion = this.getCurrQuestion();
+		if (!this.userAnswersForCurrQuestion.containsKey(userId)) {
+			if (!this.getPlayers().contains(userId)){
+				Users.getUser(userId).incrNumberOfGamesPlayed();
+				this.addPlayer(userId);
+			}
+			this.userAnswersForCurrQuestion.put(userId, new HashSet<>());
+		}
+		Option userAwnser = null;
+		// Record user's answer (reaction)
+		for (int i = 1; i<=currQuestion.size(); i++) {
+			if (reaction.equals(this.getReactionForAnswer(i))) {
+				userAwnser = currQuestion.get(i-1);
+				if (userAwnser != null) {
+					//System.out.printf("  $> awnser %s, %s ;\n", userAwnser.isCorrect(), userAwnser.getText());
+					this.userAnswersForCurrQuestion.get(userId).add(userAwnser);
+				}
+				break;
+			}
+		}
+		Map<String, Set<Option>> tmpUserAnswers = new HashMap<>(this.userAnswersForCurrQuestion);
+		this.awnsersByUserByQuestion.put(currQuestion, tmpUserAnswers);
+		// If it's the correct answer, increase their score
+		if (userAwnser != null) {
+			double point = (userAwnser.isCorrect()?this.pointsForCorrect:this.pointsForIncorrect)/currQuestion.getTrueOptions().size();
+			this.userScoreApproxi.put(userId, this.getUserScore(userId) +point);
+		}
+	}
 }

@@ -13,6 +13,9 @@ import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.ExplainCommand;
+import com.linked.quizbot.commands.list.MoreTimeCommand;
+import com.linked.quizbot.commands.list.NextCommand;
+import com.linked.quizbot.commands.list.PreviousCommand;
 
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.Timestamp;
@@ -65,7 +68,7 @@ public class ReactionListener extends ListenerAdapter {
         event.getChannel().retrieveMessageById(messageId).queue(message -> {
             BotCommand cmd ;
             if (reaction.equals(Constants.EMOJIMORETIME)){
-                cmd = BotCommand.getCommandByName("moretime");
+                cmd = BotCommand.getCommandByName(MoreTimeCommand.CMDNAME);
                 MessageSender.sendCommandOutput(
                     cmd.execute(userId, channelId, List.of(message.getId()), false),
                     channel,
@@ -75,7 +78,7 @@ public class ReactionListener extends ListenerAdapter {
                 return;
             }
             if(reaction.equals(Constants.EMOJINEXTQUESTION)){
-                cmd = BotCommand.getCommandByName("next");
+                cmd = BotCommand.getCommandByName(NextCommand.CMDNAME);
                 MessageSender.sendCommandOutput(
                     cmd.execute(userId, channelId, List.of(message.getId()), false),
                     channel,
@@ -85,7 +88,7 @@ public class ReactionListener extends ListenerAdapter {
                 return;
             }
             if(reaction.equals(Constants.EMOJIPREVQUESTION)){
-                cmd = BotCommand.getCommandByName("previous");
+                cmd = BotCommand.getCommandByName(PreviousCommand.CMDNAME);
                 MessageSender.sendCommandOutput(
                     cmd.execute(userId, channelId, List.of(message.getId()), false),
                     channel,
@@ -112,12 +115,12 @@ public class ReactionListener extends ListenerAdapter {
             QuizBot currQuizBot = BotCore.getCurrQuizBot(channel);
             if (currQuizBot!=null) {
                 if (currQuizBot.isActive() && event.getMessageIdLong() == currQuizBot.getQuizMessage().getIdLong()) {
-                    if (currQuizBot.getButtons().contains(reaction)){
+                    if (currQuizBot.getButtonsForOptions().contains(reaction)){
                         BotCore.updateUserScoreAddReaction(userId, currQuizBot, reaction);
                         if (currQuizBot.getDelaySec()>0 && currQuizBot.awnsersByUserByQuestion.get(currQuizBot.getCurrQuestion()).size()==1){
                             CommandOutput out = currQuizBot.currQuestion();
                             MessageSender.sendCommandOutput(
-                                new CommandOutput.Builder().addCommandOutput(out).editResponseIntoOriginalMessage(true).build(),
+                                new CommandOutput.Builder().addCommandOutput(out).sendInOriginalMessage(true).build(),
                                 channel,
                                 message 
                             );
@@ -128,8 +131,8 @@ public class ReactionListener extends ListenerAdapter {
                             }catch (Exception e){
                                 e.printStackTrace();
                             }
-                            if(oldQ.equals(currQuizBot.getCurrQuestion()) && oldT.equals(oldT)){
-                                cmd = BotCommand.getCommandByName("next");
+                            if(!currQuizBot.explainWasTrigerred() && oldQ.equals(currQuizBot.getCurrQuestion()) && oldT.equals(oldT)){
+                                cmd = BotCommand.getCommandByName(NextCommand.CMDNAME);
                                 MessageSender.sendCommandOutput(
                                     cmd.execute(userId, channelId, List.of(message.getId()), false),
                                     channel,
@@ -137,6 +140,8 @@ public class ReactionListener extends ListenerAdapter {
                                 );
                             }
                             return;
+                        }else{
+                            currQuizBot.setExplainTriger(false);
                         }
                     }
                 }

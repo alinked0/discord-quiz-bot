@@ -33,7 +33,7 @@ public class CommandLineInterface {
 		s+= String.format("\t%s\t%s\n", "status","gets the bot status");
 		s+= String.format("\t%s\t%s\n", "stop, shutdown","stops the bots");
 		s+= String.format("\t%s\t%s\n", "exit","stops the bot, kills this process");
-		s+= String.format("\t%s\t%s\n", "startjda"," bot, kills this process");
+		s+= String.format("\t%s\t%s\n", "startjda"," starts the bot and connects it to discord");
 		s+= String.format("\t%s\t%s\n", "q![BotCommand] [Argumments]","executes a command and returns a text output");
 		s+= "Example: \n";
         s+= "\t$ status\n";

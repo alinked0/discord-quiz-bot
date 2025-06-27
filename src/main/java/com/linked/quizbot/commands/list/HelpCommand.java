@@ -72,75 +72,64 @@ public class HelpCommand extends BotCommand {
     }
 	@Override
     public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
-		ArrayList<EmbedBuilder> res = new ArrayList<>();
-		boolean allAtOnce = args.size() < 1;
+		boolean newbie = args.size() < 1;
 		BotCommand cmd;
-		Set<BotCommand> commands = BotCommand.getCommands();
 		CommandOutput.Builder outBuilder = new CommandOutput.Builder();
-		outBuilder.sendAsPrivateMessage(allAtOnce);
-		if (allAtOnce) {
-			EmbedBuilder embed = new EmbedBuilder();
-			embed.setTitle("All Commands");
-			embed.setDescription("Type `"+Constants.CMDPREFIXE+getName()+"` followed by a command name to see more details about that particular command.")
-			.setTimestamp(java.time.Instant.now());
-			for (BotCommand.CommandCategory c : BotCommand.CommandCategory.getCategories()){
-				String s = "";
-				Set<BotCommand> cmds = BotCommand.getCommandsByCategory(c);
-				if(cmds!=null && !cmds.isEmpty()){
-					Iterator<BotCommand> iter = cmds.iterator();
-					while (iter.hasNext()){
-						cmd=iter.next();
-						s += "`"+cmd.getName()+"`";
-						if (iter.hasNext()) {
-							s+= ", ";
-						}
-					}
-				}
-				embed.addField(c.toString(), s, true);
-			}
-			res.add(embed);
+		if (newbie) {
+			outBuilder.sendAsPrivateMessage(userId);
+			outBuilder.addEmbed(getEmbed());
 		} else {
-			for (int i = 0; i<args.size(); i++) {
-				cmd = null;
-				for (BotCommand c: commands){
-					if (c.getName().equals(args.get(i))) {
-						cmd = c;
-						break;
-					} 
-					for (int j=0; j<c.getAbbreviations().size(); j++){ 
-						if (c.getAbbreviations().get(j).equals(args.get(i))){
-							cmd = c;
-							break;
-						}
-					}
-					if (cmd!=null) {break;}
-				}	
+			for (String s : args) {
+				cmd = getCommandByName(s);
 				if (cmd != null) {
-					EmbedBuilder embed = new EmbedBuilder();
-					embed.setTitle("Command Info: `"+cmd.getName()+"`");
-					int n = cmd.getAbbreviations().size();
-					String s = "";
-					for (int j=0; j<n; j++){ 
-						s+="`"+cmd.getAbbreviations().get(j)+"`";
-						if (j+1<n) {
-							s+= ", ";
-						}
-					}
-					embed.addField("Shortcuts: ", s, false);
-					s = "`"+Constants.CMDPREFIXE+cmd.getName()+"`";
-					for (OptionData opt : cmd.getOptionData()) {
-						s += " `<"+opt.getName()+">`";
-					}
-					s+="\n";
-					embed.addField("Usage", s+cmd.getDescription(), false);
-					embed.addField("examples", cmd.getDetailedExamples(), false);
-					res.add(embed);
+					outBuilder.addEmbed(getEmbed( cmd));
 				}
 			}
-		}
-		for (EmbedBuilder k : res) {
-			outBuilder.addEmbed(k).reply(reply);
 		}
 		return outBuilder.build();
     }
+	private static EmbedBuilder getEmbed(BotCommand cmd){
+		EmbedBuilder embed = new EmbedBuilder();
+		embed.setTitle("Command Info: `"+cmd.getName()+"`");
+		int n = cmd.getAbbreviations().size();
+		String s = "";
+		for (int j=0; j<n; j++){ 
+			s+="`"+cmd.getAbbreviations().get(j)+"`";
+			if (j+1<n) {
+				s+= ", ";
+			}
+		}
+		embed.addField("Shortcuts: ", s, false);
+		s = "`"+Constants.CMDPREFIXE+cmd.getName()+"`";
+		for (OptionData opt : cmd.getOptionData()) {
+			s += " `<"+opt.getName()+">`";
+		}
+		s+="\n";
+		embed.addField("Usage", s+cmd.getDescription(), false);
+		embed.addField("examples", cmd.getDetailedExamples(), false);
+		return embed;
+	}
+	private static EmbedBuilder getEmbed(){
+		BotCommand cmd;
+		EmbedBuilder embed = new EmbedBuilder();
+		embed.setTitle("All Commands");
+		embed.setDescription("Type `"+Constants.CMDPREFIXE+HelpCommand.CMDNAME+"` followed by a command name to see more details about that particular command.")
+		.setTimestamp(java.time.Instant.now());
+		for (BotCommand.CommandCategory c : BotCommand.CommandCategory.getCategories()){
+			String s = "";
+			Set<BotCommand> cmds = BotCommand.getCommandsByCategory(c);
+			if(cmds!=null && !cmds.isEmpty()){
+				Iterator<BotCommand> iter = cmds.iterator();
+				while (iter.hasNext()){
+					cmd=iter.next();
+					s += "`"+cmd.getName()+"`";
+					if (iter.hasNext()) {
+						s+= ", ";
+					}
+				}
+			}
+			embed.addField(c.toString(), s, true);
+		}
+		return embed;
+	}
 }    
