@@ -3,18 +3,18 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -67,8 +67,8 @@ public class CollectionCommand extends BotCommand {
 	@Override
 	public String getName(){ return CMDNAME;}
 	@Override
-	public CommandCategory getCategory(){
-		return CommandCategory.READING;
+	public BotCommand.CommandCategory getCategory(){
+		return BotCommand.CommandCategory.READING;
 	}
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
@@ -76,41 +76,46 @@ public class CollectionCommand extends BotCommand {
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
     public List<OptionData> getOptionData(){
-        List<OptionData> res = new ArrayList<>();
-		res.add(new OptionData(OptionType.STRING, "user-id", "id of the user who's questions will be listed"));
-        return res;
+        List<OptionData> tmp = new ArrayList<>();
+		tmp.add(new OptionData(OptionType.STRING, "user-id", "id of the user who's questions will be listed"));
+        return tmp;
     }
 	@Override
-	public void execute(User sender, Message message, MessageChannel channel, List<String> args){
-		List<String> col = exec1(sender, message, channel, args);
-		Iterator<String> iter = col.iterator();
-		recursive_send(iter, message, channel);
-    }
+	public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+		List<String> res = new ArrayList<>();
+		String tmp = "Collection of ";
+		tmp += String.format("<@%s>\n",userId);
 
-	//execution 1 is two times faster than exec 2
-	private List<String> exec1 (User sender, Message message, MessageChannel channel, List<String> args){
-		List<String> result = new ArrayList<>();
-		String userId = (args.size()>0)?args.get(0):sender.getId();
-		String res = "Collection of ";
-		res += "<@"+userId+">\n";
-
-		Users Users = new Users(userId);
-		List<QuestionList> list = Users.getLists();
+		User user = new User(userId);
+		List<QuestionList> list = user.getLists();
+		QuestionList example = QuestionList.getExampleQuestionList();
 		list.sort(QuestionList.comparatorByDate().reversed());
+		list.add(example);
+		int maxTags = 0;
 		for (QuestionList l : list){
-			String emojiStr = "";
-			for (Emoji e: l.getTags().values()){
+			maxTags = Math.max(maxTags, l.getTags().size());
+		}
+		Collection<Emoji> emojis;
+		String emojiStr = "";
+		for (QuestionList l : list){
+			emojiStr = "";
+			emojis = l.getTags().values();
+			if (emojis.size()<maxTags){
+				emojiStr += Constants.EMOJIWHITESQUARE.getAsReactionCode().repeat(maxTags-emojis.size());
+			}
+			for (Emoji e: emojis){
 				emojiStr +=e.getAsReactionCode();
 			}
-			res += "`"+l.getListId()+"` "+l.getName()+" "+emojiStr+"\n";
-			if (res.length()>Constants.CHARSENDLIM - 400) {
-				result.add(res);
-				res = "";
+			tmp += String.format("`%s`%s`%s`\n", l.getListId(),emojiStr,l.getName());
+			if (tmp.length()>Constants.CHARSENDLIM - 400) {
+				res.add(tmp);
+				tmp = "";
 			}
 		}
-        QuestionList example = QuestionList.getExampleQuestionList();
-		res += "`"+example.getListId()+"` "+example.getName()+"\n";
-		result.add(res);
-		return result;
-	}	
+		if (tmp.length()>0) res.add(tmp);
+		return new CommandOutput.Builder()
+				.addAllTextMessage(res)
+				.reply(reply)
+				.build();
+    }
 }

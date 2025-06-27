@@ -1,4 +1,12 @@
 package com.linked.quizbot.commands;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,13 +45,13 @@ import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 /**
  * The  BotCommand is an abstract class that represents any command that can be ran by the bot.
@@ -51,7 +59,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * This class takes insparation from {@link https://github.com/Tran-Antoine/Askigh-Bot/}
  */
 public abstract class BotCommand {
-	private final static Map<CommandCategory, Set<BotCommand>> commandByCategory = new HashMap<>();
+	private final static Map<BotCommand.CommandCategory, Set<BotCommand>> commandByCategory = new HashMap<>();
 	public static Random rand = new Random();
 
     // Static set to hold all command instances, initialized once.
@@ -82,13 +90,33 @@ public abstract class BotCommand {
             new ViewCommand()
         ));
     }
+
+	public static enum CommandCategory {
+		GAME, NAVIGATION, EDITING, READING, OTHER;
+		private String name;
+		static {
+			GAME.name = "Game"; 
+			NAVIGATION.name = "Navigation"; 
+			EDITING.name = "Editing"; 
+			READING.name = "Reading"; 
+			OTHER.name = "Other";
+		}
+		public static Set<CommandCategory> getCategories() {
+			Set<CommandCategory> res = new HashSet<>();
+			res.addAll(Arrays.asList(GAME, NAVIGATION, EDITING, READING, OTHER));
+			return res;
+		}
+		public String toString(){
+			return name;
+		}
+	}
 	
-	public abstract void execute(User sender, Message message, MessageChannel channel,List<String> args);
+	public abstract CommandOutput execute(String userId, String channelId, List<String> args, boolean reply);
 
 	public abstract String getName();
 
-	public CommandCategory getCategory(){
-		return CommandCategory.OTHER;
+	public BotCommand.CommandCategory getCategory(){
+		return BotCommand.CommandCategory.OTHER;
 	}
 
 	public List<String> getAbbreviations(){
@@ -109,6 +137,88 @@ public abstract class BotCommand {
 	public static Set<BotCommand> getCommands() {
 		return ALL_COMMANDS;
 	}
+
+	public List<String> parseArguments(String cmndLineArgs){
+		int k = 0;
+		List<String> res = new ArrayList<>();
+		String [] tmp = cmndLineArgs.split("\\s+");
+		for (; k<tmp.length; ++k){
+			if (tmp[k]!=null && !tmp[k].isEmpty() && tmp[k]!=""){
+				res.add(tmp[k]);
+			}
+		}
+		return res;
+	}
+    public static  List<String> splitJson(String argumment){
+        int k = 0;
+        int start = -1;
+        List<String> res = new ArrayList<>();
+        String[] l = argumment.split("");
+        int i=0;
+        for (i = 0; i<argumment.length(); i++){
+            if (l[i].equals("{")){
+                start = i;
+                break;
+            }
+        }
+        if (start==-1){return res;}
+        for (; i<argumment.length(); i++){
+            if (l[i].equals("{")){k+=1;}
+            else if (l[i].equals("}")){k-=1;}
+            if (k==0){
+                res.add(argumment.substring(start, i+1));
+                start = i+1;
+                if (i+1<argumment.length()) res.addAll(splitJson(argumment.substring(start)));
+                return res;
+            }
+        }
+        return res;
+    }
+    public static List<String> getArgFromAttachments(String userId, Attachment attachment){
+        List<String> res = new ArrayList<>();
+        if (attachment==null){
+            return res;
+        }
+		String tmpStr = "";
+		try {
+			URL website = new URL(attachment.getUrl());
+			String path = Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp";
+			File f = new File(path);
+			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			FileOutputStream fos = new FileOutputStream(f);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			if(!f.getParentFile().exists()) {
+				f.getParentFile().mkdirs();
+			}
+			BufferedReader fd = Files.newBufferedReader(f.toPath());
+
+			String k = "";
+			do {
+				tmpStr+= k;
+				k=fd.readLine();
+			}while(k!=null);
+			fd.close();
+			f.delete();
+			fos.close();
+			if (!tmpStr.isEmpty()){
+				res.addAll(BotCommand.splitJson(tmpStr));
+			}
+		} catch (IOException e) {
+			System.err.println(" $> An error occurred while taking an attachment.");
+			e.printStackTrace();
+		}
+        return res;
+    }
+    public static List<String> getArgFromAttachments(String userId, List<Attachment> c){
+        List<String> res = new ArrayList<>();
+        if (c==null){
+            return res;
+        }
+        for (Attachment attachment : c){
+            res.addAll(getArgFromAttachments( userId, attachment));
+        }
+        return res;
+    }
 
 	public static BotCommand getCommandByName(String name) {
 		for (BotCommand cmd : BotCommand.getCommands()) {
@@ -202,9 +312,9 @@ public abstract class BotCommand {
 		}
 		return commandData;
 	}
-	public static Set<BotCommand> getCommandsByCategory(CommandCategory cat){
+	public static Set<BotCommand> getCommandsByCategory(BotCommand.CommandCategory cat){
 		if(commandByCategory.isEmpty()){
-			for (CommandCategory c : CommandCategory.getCategories()){
+			for (BotCommand.CommandCategory c : BotCommand.CommandCategory.getCategories()){
 				commandByCategory.put(c, new HashSet<>());
 			}
 			for (BotCommand cmd : getCommands()){
@@ -222,48 +332,6 @@ public abstract class BotCommand {
 		}
 		return res;
 	}
-    public static void recursive_send(Iterator<String> iter, Message message, MessageChannel channel){
-		if (iter.hasNext()){
-			String s=iter.next();
-			if (s.length()>Constants.CHARSENDLIM){
-				recursive_send(trimMessage(s).iterator(), message, channel);
-				recursive_send(iter, message, channel);
-			} else {
-				if (message==null) {
-					MessageCreateAction send = channel.sendMessage(s);
-					send.queue(msg -> {
-						recursive_send(iter, msg, channel);
-					});
-				} else {
-					MessageCreateAction send = message.getChannel().sendMessage(s);
-					send.setMessageReference(message);
-					send.queue(
-						msg -> { 
-							recursive_send(iter, msg, channel);
-						}
-					);
-				}
-			}
-		}
-    }
-	public static List<String> trimMessage(String s){
-        List<String> res = new ArrayList<>();
-        if (s.length()>Constants.CHARSENDLIM){
-            String l=s.substring(0, Constants.CHARSENDLIM), r = s.substring(Constants.CHARSENDLIM);
-            int index = l.lastIndexOf("\n");
-            if (index >0){
-                res.add(l.substring(0, index+1));
-                res.addAll(trimMessage(l.substring(index+1)));
-                res.addAll(trimMessage(r));
-            } else {
-                res.add(l);
-                res.addAll(trimMessage(r));
-            }
-        } else {
-            res.add(s);
-        }
-        return res;
-    }
 	@Override
 	public int hashCode() {
 		return getName().hashCode()*7 + getDescription().hashCode()*2 + getCategory().hashCode();

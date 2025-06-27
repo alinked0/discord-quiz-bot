@@ -13,13 +13,6 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 public class readyEvent extends ListenerAdapter {
-    @Override
-	public void onGenericEvent(GenericEvent event){
-		if (Constants.AREWETESTING){
-			System.out.println(" $> - "+event);
-		}
-	}
-
 	@Override
 	public void onReady(ReadyEvent event){
 		List<SlashCommandData> commandData = BotCommand.getSlashCommandDataList();

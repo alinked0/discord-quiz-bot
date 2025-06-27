@@ -3,7 +3,9 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
+
 import net.dv8tion.jda.api.entities.Message;
 
 import com.linked.quizbot.core.BotCore;
@@ -17,23 +19,20 @@ public class EndCommand extends BotCommand {
     private String cmdDesrciption = "ending an already ongoing quiz.";
 
 	@Override
-	public CommandCategory getCategory(){
-        return CommandCategory.GAME;
+	public BotCommand.CommandCategory getCategory(){
+        return BotCommand.CommandCategory.GAME;
 	}
     @Override
     public String getName(){ return CMDNAME;}
     @Override
     public String getDescription(){ return cmdDesrciption;}
     @Override
-    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
-        QuizBot q = BotCore.getCurrQuizBot(channel);
+    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+        QuizBot q = BotCore.getCurrQuizBot(channelId);
         if (q == null) {
-            BotCommand.getCommandByName(HelpCommand.CMDNAME)
-            .execute(sender, message, channel, List.of(getName()));
-        } else{
-            BotCore.endQuizBot(q);
-            BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME)
-            .execute(sender, message, channel, List.of());
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
         }
+        BotCore.endQuizBot(q);
+        return BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME).execute(userId, channelId, List.of(), reply);
     }
 }

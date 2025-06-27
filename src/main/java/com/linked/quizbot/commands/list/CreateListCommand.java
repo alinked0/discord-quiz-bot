@@ -8,18 +8,15 @@ import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListHash;
 import com.linked.quizbot.utils.QuestionListParser;
 import com.linked.quizbot.utils.Users;
 
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 /**
  * The {@code CreateListCommand} class allows users to create a list of questions to their personal lists.
@@ -61,8 +58,8 @@ public class CreateListCommand extends BotCommand {
     
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
-	public CommandCategory getCategory(){
-		return CommandCategory.EDITING;
+	public BotCommand.CommandCategory getCategory(){
+		return BotCommand.CommandCategory.EDITING;
 	}
     public String getName(){ return CMDNAME;}
     public String getDescription(){ return cmdDesrciption;}
@@ -77,13 +74,11 @@ public class CreateListCommand extends BotCommand {
         res.add(new OptionData(OptionType.ATTACHMENT, "jsonfile", "question list written as a json"));
         return res;
     }
-    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
         int n = args.size();
         List<String> res = new ArrayList<>();
-        String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
-            return;
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
         }
         String s;
         for (int i = 0; i<n; i++) {
@@ -108,6 +103,16 @@ public class CreateListCommand extends BotCommand {
                 res.add("Failed to import ```js\n"+args.get(i)+"```, reason unknown\n");
             }
         }
-        BotCommand.recursive_send(res.iterator(), message, channel);
+		return new CommandOutput.Builder()
+				.addAllTextMessage(res)
+				.reply(reply)
+				.build();
     }
+    @Override
+	public List<String> parseArguments(String cmndLineArgs){
+		int k = 0;
+		List<String> res = new ArrayList<>();
+        res.addAll(splitJson(cmndLineArgs));
+		return res;
+	}
 }

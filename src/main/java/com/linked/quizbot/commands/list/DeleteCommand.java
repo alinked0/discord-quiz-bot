@@ -9,13 +9,11 @@ import java.util.function.Consumer;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
 
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
@@ -63,8 +61,8 @@ public class DeleteCommand extends BotCommand{
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
-	public CommandCategory getCategory(){
-		return CommandCategory.EDITING;
+	public BotCommand.CommandCategory getCategory(){
+		return BotCommand.CommandCategory.EDITING;
 	}
 	@Override
     public String getName(){ return CMDNAME;}
@@ -78,20 +76,19 @@ public class DeleteCommand extends BotCommand{
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
         
         String res,ownerId; 
         MessageCreateAction send;
         QuestionList l;
         Consumer<Message> success;
         if (args.size()<getOptionData().size()){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
-            return;
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
         }
         
         l = getSelectedQuestionList(args.get(0));
         ownerId = l.getAuthorId(); 
-        if (ownerId.equals(sender.getId())){
+        if (ownerId.equals(userId)){
             res = "Are you sure you want to delete :\n\""+l.getName()+"\"?";
             success = msg ->{
                 msg.addReaction(Constants.EMOJIDEL).queue();
@@ -101,9 +98,11 @@ public class DeleteCommand extends BotCommand{
             res = "You are not the owner of the list:\n\""+l.getName()+"\"";
             success = null;
         }
-        send = channel.sendMessage(res);
-        if(message!=null){send.setMessageReference(message);}
-        send.queue(success);
+		return new CommandOutput.Builder()
+				.addTextMessage(res)
+				.reply(reply)
+                .addPostSendAction(success)
+				.build();
     }
 
 }

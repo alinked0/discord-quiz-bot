@@ -1,19 +1,14 @@
 package com.linked.quizbot.events;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.Channels;
-import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.core.MessageSender;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -32,7 +27,6 @@ public class SlashCommandListener extends ListenerAdapter {
 	
 	@Override
 	public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-		long start = System.nanoTime();
 		User sender = event.getUser();
 		// Ignorer les messages des bots
 		if (sender.isBot()) return;
@@ -44,75 +38,44 @@ public class SlashCommandListener extends ListenerAdapter {
         }
 		String userId = sender.getId();
 		MessageChannel channel = event.getInteraction().getChannel();
-		
+        String channelId = channel.getId();
 		
 		// log User
 		BotCore.addUser(sender);
 		
-		int i =0, n;
-		String[] args;
+		List<String> args = new ArrayList<>();
 		String k;
-		for (BotCommand cmd : BotCommand.getCommands()) {
-			if (event.getName().equals(cmd.getName())) {
-				if(BotCore.isShutingDown()){
-					CommandCategory category = cmd.getCategory();
-					if(category.equals(CommandCategory.EDITING) || category.equals(CommandCategory.GAME)){
-						event.reply(Constants.UPDATEEXPLANATION).queue();
-						return;
-					}
-				}
-				n= event.getOptions().size();
-				args = new String[n];
-				if (n>0) {
-					for (OptionData d : cmd.getOptionData()){
-						OptionMapping tmp = event.getOption(d.getName());
-						if(tmp !=null) {
-							if (tmp.getType().equals(OptionType.USER)){
-								args[i++] = ""+tmp.getAsUser().getId();
-							}
-							else if (tmp.getType().equals(OptionType.ATTACHMENT)){
-								String h = "";
-								try {
-									URL website = new URL(tmp.getAsAttachment().getUrl());
-									String path = Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp";
-									File f = new File(path);
-									ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-									FileOutputStream fos = new FileOutputStream(f);
-									fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-									if(!f.getParentFile().exists()) {
-										f.getParentFile().mkdirs();
-									}
-									BufferedReader fd = Files.newBufferedReader(f.toPath());
+		BotCommand cmd  = BotCommand.getCommandByName(event.getName());
+		if (cmd==null){
+			event.reply(String.format("Command %s could not be found.", event.getName())).queue();
+			return;
+		}
 
-									k = "";
-									do {
-										h+= k;
-										k=fd.readLine();
-									}while(k!=null);
-
-									fd.close();
-									f.delete();
-								} catch (IOException e) {
-									System.err.println(" $> An error occurred while taking an attachment.");
-									e.printStackTrace();
-								}
-								args[i++] = h;
-							} else {
-								args[i++] = tmp.getAsString();
-							}
-						}
-					}
-				}
-
-				event.reply(cmd.getDescription()).queue();
-
-				System.out.print("  $> /"+cmd.getName());System.out.print(" ; args :");for (i=0; i<args.length; i++) { System.out.print(args[i]+":");}
-				
-				Message message = null;
-				cmd.execute(sender, message, channel, List.of(args));
-				if (!Constants.isBugFree()) System.out.printf("   $> time "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
+		if(BotCore.isShutingDown()){
+			BotCommand.CommandCategory category = cmd.getCategory();
+			if(category.equals(BotCommand.CommandCategory.EDITING) || category.equals(BotCommand.CommandCategory.GAME)){
+				event.reply(Constants.UPDATEEXPLANATION).queue();
 				return;
 			}
 		}
+		for (OptionData d : cmd.getOptionData()){
+			OptionMapping tmp = event.getOption(d.getName());
+			if(tmp !=null) {
+				if (tmp.getType().equals(OptionType.USER)){
+					args.add(tmp.getAsUser().getId());
+				}
+				else if (tmp.getType().equals(OptionType.ATTACHMENT)){
+					args.addAll(BotCommand.getArgFromAttachments(userId, tmp.getAsAttachment()));
+				} else {
+					args.add(tmp.getAsString());
+				}
+			}
+		}
+		event.reply(cmd.getDescription()).queue();
+		MessageSender.sendCommandOutput(
+			cmd.execute(userId, channelId, args, false),
+			channel,
+			null 
+		);
 	}
 }

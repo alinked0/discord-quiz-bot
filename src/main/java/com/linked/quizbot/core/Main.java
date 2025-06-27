@@ -1,31 +1,11 @@
 package com.linked.quizbot.core;
 
 import java.util.Arrays;
-import java.util.Scanner;
 
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.commands.list.HelpCommand;
-import com.linked.quizbot.events.MessageListener;
-
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.requests.GatewayIntent;
-
-import com.linked.quizbot.events.ReactionListener;
-import com.linked.quizbot.events.SlashCommandListener;
-import com.linked.quizbot.events.readyEvent;
 import com.linked.quizbot.utils.Users;
 
-import net.dv8tion.jda.api.entities.Activity;
-
 public class Main {
-	public static String getStatus(){
-		String s = "";
-		s+=" isBugFree: "+Constants.isBugFree();
-		s+="\n Prefixe: "+Constants.CMDPREFIXE;
-		s+= "\n NumberOfUsers: "+Users.allUsers.size();
-		return s;
-	}
 	public static void usageMain(){
 		String s="";
 		s+= "Usage: \n\tjava -jar QuizBot.jar [BOTTOKEN] [TESTGUILDID] [TESTCHANNELID] [USERID]\n";
@@ -35,20 +15,12 @@ public class Main {
 		s+= "If you want to run the bot in production mode, you can use:\n\tjava -jar QuizBot.jar 123456789012345678abc";
 		System.out.println(s);
 	}
-	public static void usageInner(){
-		String s="";
-		s+= "Usage: \n\t$ [COMMAND]\n";
-		s+= "\t\t stop, shutdown, exit: to stop the bot\n";
-		s+= "\t\t status: to get the bot status\n";
-		s+= "Example: \n\t$ stop\n";
-		System.out.println(s);
-	}
 	public static void main (String[] args) {
 		if (args.length <1 || Arrays.asList("help", "-h", "--help").contains(args[0].toLowerCase())) {
 			usageMain();
 			return;
 		}
-    
+	
 		Constants.AREWETESTING = args.length>=3;
 
 		if (Constants.AREWETESTING && args.length < 3) {
@@ -77,55 +49,13 @@ public class Main {
 		if (args.length>=4) {
 			Constants.AUTHORID = args[3];
 		}
-		
+		BotCore.jda= null;
 		Users.loadAllUsers();
-
-		JDA jda = JDABuilder.createDefault(Constants.TOKEN,
-			GatewayIntent.GUILD_MESSAGES, 
-			GatewayIntent.MESSAGE_CONTENT,
-			GatewayIntent.GUILD_MEMBERS, 
-			GatewayIntent.DIRECT_MESSAGES, 
-			GatewayIntent.DIRECT_MESSAGE_REACTIONS, 
-			GatewayIntent.GUILD_MESSAGE_REACTIONS
-		).setActivity(Activity.playing(Constants.CMDPREFIXE+HelpCommand.CMDNAME)).build();
-
-		jda.addEventListener(
-			new SlashCommandListener(), 
-			new ReactionListener(), 
-			new MessageListener(),
-			new readyEvent()
-		);
-		try {
-			jda.awaitReady();
-		}catch (InterruptedException e){
-			e.printStackTrace();
-		}catch(IllegalStateException e){
-			e.printStackTrace();
+		if (Constants.isBugFree()){
+			BotCore.startJDA();
 		}
-		Scanner scanner = new Scanner(System.in);
-        String input="";
-        while (!BotCore.isShutingDown()) {
-            System.out.print("$ ");
-            input = scanner.nextLine().toLowerCase();
-			System.out.println(" Input: " + input);
-			switch (input) {
-				case "stop","shutdown","exit" -> {
-					BotCore.SHUTINGDOWN = true;
-					System.out.println("Bot will soon shutdown");
-					Users.exportAllUserLists();
-					Users.exportAllUserData();
-					scanner.close();
-					jda.shutdown();
-					System.out.println("It is now safe to kill this proccess");
-				}
-				case "status"-> {
-					System.out.println(getStatus());
-				}
-				default -> {
-					usageInner();
-				}
-			}
-        }
-		jda.shutdownNow();
+		CommandLineInterface.execute();
+
+		if (BotCore.jda!=null) BotCore.jda.shutdownNow();
 	}
 }

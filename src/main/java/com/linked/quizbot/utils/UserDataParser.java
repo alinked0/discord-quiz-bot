@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 public class UserDataParser {
-    public static Users fromJsonFile(String filePathToJson)throws IOException{
+    public static User fromJsonFile(String filePathToJson)throws IOException{
 		File f = new File(filePathToJson);
 		if (!f.exists()){
 			throw new FileNotFoundException(filePathToJson);
@@ -22,16 +22,16 @@ public class UserDataParser {
 		return parser(jp);
     }
 
-	public static Users fromString(String arg) throws IOException{
+	public static User fromString(String arg) throws IOException{
 		JsonParser jp =  new JsonFactory().createParser(arg);
 		return parser(jp);
 	}
 
-	public static Users parser(JsonParser jp) throws IOException{
+	public static User parser(JsonParser jp) throws IOException{
 		if (jp.nextToken() != JsonToken.START_OBJECT){
 			throw new IOException();
 		}
-		Users result = new Users();
+		User.Builder userBuilder = new User.Builder();
 		double totalPointsEverGained=0;
 		int numberOfGamesPlayed = 0;
 		String prefixe = null;
@@ -60,11 +60,11 @@ public class UserDataParser {
 				jp.nextToken();
 			}
 		}
-		result.setTotalPointsEverGained(totalPointsEverGained);
-		result.setNumberOfGamesPlayed(numberOfGamesPlayed);
-		result.setTagEmojiPerTagName(m);
-		result.setPrefix(prefixe);
-		return result;
+		userBuilder.totalPointsEverGained(totalPointsEverGained);
+		userBuilder.numberOfGamesPlayed(numberOfGamesPlayed);
+		userBuilder.tagEmojiPerTagName(m);
+		userBuilder.perferedPrefixe(prefixe);
+		return userBuilder.build();
 	}
 	public static Map<String, Emoji> parseEmojiPerTagName(JsonParser jp) throws IOException {
 		String tagName;

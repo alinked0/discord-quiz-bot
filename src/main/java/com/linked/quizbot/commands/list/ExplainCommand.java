@@ -1,20 +1,25 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.List;
-
+import java.util.Set;
+import java.nio.channels.Channel;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 
-
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.utils.TimeFormat;
 
 /**
  * The {@code ExplainCommand} class handles the explanation of the current or previous quiz question.
@@ -62,32 +67,37 @@ public class ExplainCommand extends BotCommand {
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
-	public CommandCategory getCategory(){
-        return CommandCategory.GAME;
+	public BotCommand.CommandCategory getCategory(){
+        return BotCommand.CommandCategory.GAME;
 	}
     @Override
     public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
+    @Override
+    public List<OptionData> getOptionData(){
+		List<OptionData> res = new ArrayList<>();
+        res.add (new OptionData(OptionType.STRING, "messageid", "id of the message to explain", false));
+        return res;
+    }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
-        String channelId = channel.getId();
+    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
         QuizBot q = BotCore.getCurrQuizBot(channelId);
         if (q == null){
             q = BotCore.getPrevQuizBot(channelId);
         } 
         if (q == null) {
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
-            return;
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
         }
-        List<String> expl = q.explain(sender);
-        Iterator<String> iter = expl.iterator();
-        sender.openPrivateChannel().queue((channel2)-> recursive_send(iter, null, channel2));
+        List<String> expl = q.explain(userId);
+        CommandOutput.Builder outputBuild = new CommandOutput.Builder().addAllTextMessage(expl);
         int delay = q.getDelaySec();
         if (q.isActive()) {
-            BotCommand.getCommandByName(MoreTimeCommand.CMDNAME)
-            .execute(sender, null, channel, List.of(""+Constants.READTIMEMIN*60));
+            args = List.of(""+Constants.READTIMEMIN*60);
+            outputBuild.editResponseIntoOriginalMessage(true)
+            .addTextMessage(q.getLastTimestamp().toString());
         }
         q.setDelay(delay);
+		return outputBuild.build();
     }
 }

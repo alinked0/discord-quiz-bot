@@ -14,31 +14,31 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 public class QuestionListParser {
     public static QuestionList fromJsonFile(String filePathToJson) throws IOException{
         long start = System.nanoTime();
-		QuestionList result = null;
+		QuestionList outputBuilder = null;
 		File f = new File(filePathToJson);
 		if (!f.exists()){
 			System.err.println("  $> File not found"+ f.getAbsoluteFile());
 			return null;
 		}
 		JsonParser jp =  new JsonFactory().createParser(new File(filePathToJson));
-		result = parser(jp);
+		outputBuilder = parser(jp);
         //if (!Constants.isBugFree()) System.out.printf("   $> time fromJsonFile = `%.3f ms`\n",(System.nanoTime() - start) / 1000000.00);
-		return result;
+		return outputBuilder;
     }
 
 	public static QuestionList fromString(String arg)throws IOException{
 		long start = System.nanoTime();
-		QuestionList result = null;
+		QuestionList outputBuilder = null;
 		JsonParser jp =  new JsonFactory().createParser(arg);
-		result = parser(jp);
+		outputBuilder = parser(jp);
         //if (!Constants.isBugFree()) System.out.printf("   $> time fromString = `%.3f ms`\n",(System.nanoTime() - start) / 1000000.00);
-		return result;
+		return outputBuilder;
 	}
 
 	public static QuestionList parser(JsonParser jp) throws IOException{
-		QuestionList result = new QuestionList();
+		QuestionList.Builder outputBuilder = new QuestionList.Builder();
 		String fieldName;
-		/*Check if result file is a json */
+		/*Check if outputBuilder file is a json */
 		if (jp.nextToken() != JsonToken.START_OBJECT) {
 			System.err.println("$> The file is not a json");
 		}
@@ -52,38 +52,38 @@ public class QuestionListParser {
 				jp.nextToken();
 				switch (fieldName){
 					case "authorid" -> {
-						result.setAuthorId(jp.getText());
+						outputBuilder.authorId(jp.getText());
 					}
 					case "tags" -> {
-						result.setTags(parseTags(jp));
+						outputBuilder.addTags(parseTags(jp));
 					}
 					case "name" -> {
-						result.setName(jp.getText());
+						outputBuilder.name(jp.getText());
 					}
 					case "timecreatedmillis" -> {
-						result.setTimeCreatedMillis(jp.getValueAsLong());
-						if (result.getTimeCreatedMillis()==0L){
-							result.setTimeCreatedMillis(System.currentTimeMillis());
-						}
+						outputBuilder.timeCreatedMillis(jp.getValueAsLong());
 					}
 					case "listid" -> {
-						result.setListId(jp.getText());
-						if (result.getListId().isEmpty()){
-							result.setListId(new QuestionListHash().generate(result.getAuthorId()+result.getName(), result.getTimeCreatedMillis()));
-						} else {
-							QuestionListHash.addGeneratedCode(result.getListId());
-						}
+						outputBuilder.id(jp.getText());
 					}
 					case "questions" -> {
-						result.addAll(parseQuestionList(jp));
+						outputBuilder.addAll(parseQuestionList(jp));
 					}
 				}
 			} else {
 				jp.nextToken();
 			}
 		}while (!jp.isClosed());
-
-		return result;
+		QuestionList reuslt = outputBuilder.build();
+		if (reuslt.getListId()==null || reuslt.getListId().isEmpty()|| reuslt.getListId().length()!=QuestionListHash.DEFAULT_LENGTH){
+			reuslt.setListId(QuestionListHash.generate(reuslt.getAuthorId()+reuslt.getName(), reuslt.getTimeCreatedMillis()));
+		} else {
+			QuestionListHash.addGeneratedCode(reuslt.getListId());
+		}
+		if (reuslt.getTimeCreatedMillis()==0L){
+			reuslt.setTimeCreatedMillis(System.currentTimeMillis());
+		}
+		return reuslt;
 	}
 
 	public static Map<String, Emoji> parseTags(JsonParser jp) throws IOException {
@@ -110,10 +110,10 @@ public class QuestionListParser {
 	}
 
 	public static Question parseQuestion(JsonParser jp) throws IOException {
-		Question result = null;
-		String q = "";
-		String expl = "";
-		String imgSrc= "", fieldName;
+		Question outputBuilder = null;
+		String q = null;
+		String expl = null;
+		String imgSrc= null, fieldName;
 		List <Option>opts = null;
 		if(jp.currentToken() != JsonToken.START_OBJECT) {
 			return null;
@@ -143,11 +143,14 @@ public class QuestionListParser {
 				jp.nextToken();
 			}
 		};
-		result = new Question(q, opts);
-		result.setExplication(expl);
-		result.setImageSrc(imgSrc);
-		//System.out.println("\n"+result+"\n");
-		return result;
+		if (q==null){
+			return null;
+		}
+		outputBuilder = new Question(q, opts);
+		outputBuilder.setExplication(expl);
+		outputBuilder.setImageSrc(imgSrc);
+		//System.out.println("\n"+outputBuilder+"\n");
+		return outputBuilder;
 	}
 	public static List<Option> parseOptionList(JsonParser jp) throws IOException {
 		LinkedList<Option> opts = new LinkedList<>();
@@ -173,7 +176,7 @@ public class QuestionListParser {
 		String optTxt = null;
 		String optExpl = null, fieldName;
 		Boolean isCorr = null;
-		Option res;
+		Option res=null;
 		if(jp.currentToken() != JsonToken.START_OBJECT){
 			return null;
 		}
@@ -200,12 +203,18 @@ public class QuestionListParser {
 				break;
 			}
 		};
-		res = new Option(optTxt, isCorr, optExpl);
+		if (optTxt!=null && isCorr!= null){
+			if (optExpl!=null){
+				res = new Option(optTxt, isCorr, optExpl);
+			} else {
+				res = new Option(optTxt, isCorr);
+			}
+		}
 		return res;
 	}
 
 	public static List<Question> parseQuestionList(JsonParser jp) throws IOException {
-		List<Question> result = new LinkedList<>();
+		List<Question> outputBuilder = new LinkedList<>();
 		/* iterating over every Question attributes then Options*/
 		if(jp.currentToken() != JsonToken.START_ARRAY) {
 			return null;
@@ -213,13 +222,13 @@ public class QuestionListParser {
 		while (!jp.isClosed()) {
 			//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 			if(jp.currentToken() == JsonToken.START_OBJECT) {
-				result.add(parseQuestion(jp));
+				outputBuilder.add(parseQuestion(jp));
 			} else if(jp.currentToken() == JsonToken.END_ARRAY) {
 				break;
 			}else {
 				jp.nextToken();
 			}
 		}
-		return result;
+		return outputBuilder;
 	}
 }

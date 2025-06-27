@@ -1,0 +1,478 @@
+package com.linked.quizbot.utils;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
+import java.util.function.Consumer;
+
+import com.linked.quizbot.Constants;
+import com.linked.quizbot.commands.CommandOutput;
+
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.utils.AttachedFile;
+
+public class User implements Iterable<QuestionList>{
+	private String userId;
+	private String perferedPrefix;
+	protected List<QuestionList> listsSortedByListId;
+	private int numberOfGamesPlayed;
+	private double totalPointsEverGained;
+	private Map<String, Emoji> tagEmojiPerTagName;
+	private Map<String, List<QuestionList>> questionListPerTags;
+
+	public static class Builder {
+        private String userId=null;
+        private String perferedPrefix = null;
+        protected List<QuestionList> listsSortedByListId = new ArrayList<>();
+        private int numberOfGamesPlayed=0;
+        private double totalPointsEverGained=0;
+        private Map<String, Emoji> tagEmojiPerTagName= new HashMap<>();
+        private Map<String, List<QuestionList>> questionListPerTags= new HashMap<>();
+		public Builder userId(String userId){ 
+            this.userId = userId;
+            return this;
+        }  
+		public Builder perferedPrefixe(String prefixe){ 
+            this.perferedPrefix= prefixe;
+            return this;
+        }
+		public Builder numberOfGamesPlayed(int n){ 
+            this.numberOfGamesPlayed=n;
+            return this;
+        }
+		public Builder totalPointsEverGained(double points){ 
+            this.totalPointsEverGained = points;
+            return this;
+        }
+		public Builder tagEmojiPerTagName(Map<String, Emoji> tagEmojiPerTagName){
+            this.tagEmojiPerTagName = tagEmojiPerTagName;
+            return this;
+        }
+		public  Builder addTag(String tagName, Emoji emoji){
+			this.tagEmojiPerTagName.put(tagName, emoji);
+			return this;
+		}
+		public  Builder addTags(Map<String,Emoji> tags){
+			this.tagEmojiPerTagName.putAll(tags);
+			return this;
+		}
+		public Builder questionListPerTags(Map<String, List<QuestionList>> questionListPerTags){
+            this.questionListPerTags = questionListPerTags;
+            return this;
+        }
+		public Builder listsSortedByListId(List<QuestionList> listsSortedByListId){
+            this.listsSortedByListId = new ArrayList<>(listsSortedByListId);
+            return this;
+        }
+		public Builder add(QuestionList l){
+            this.listsSortedByListId.add(l);
+            return this;
+        }
+		public Builder addAll(List<QuestionList> c){
+            this.listsSortedByListId.addAll(c);
+            return this;
+        }
+		public User build(){
+			return new User(this);
+		}
+	}
+
+	public User(User.Builder builder){
+		this.userId = builder.userId;
+        this.perferedPrefix = builder.perferedPrefix;
+		this.numberOfGamesPlayed = builder.numberOfGamesPlayed;
+		this.totalPointsEverGained = builder.totalPointsEverGained;
+		this.tagEmojiPerTagName = builder.tagEmojiPerTagName;
+		this.questionListPerTags = builder.questionListPerTags;
+		this.listsSortedByListId = builder.listsSortedByListId;
+		File folder = new File(Constants.LISTSPATH+Constants.SEPARATOR+ userId);
+		File[] listOfFiles = folder.listFiles();
+		if(listOfFiles != null) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if (List.of("user-data.json", "tmp").contains(listOfFiles[i].getName())) continue;
+				try{
+					QuestionList l = QuestionList.importListQuestionFromJson(listOfFiles[i].getAbsolutePath());
+                    if (!listsSortedByListId.contains(l)){
+                        listsSortedByListId.add(l);
+                    }
+				}catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		listsSortedByListId.sort(QuestionList.comparatorByListId());;
+	}
+	public User(String userId){
+		this(new User.Builder());
+		this.userId = userId;
+		listsSortedByListId = getUserListQuestions(userId);
+		initStats();
+		initTags();
+	}
+	private void initTags(){
+		Map<String, Emoji> tags;
+		listsSortedByListId.sort(QuestionList.comparatorByListId());
+		for(QuestionList l: listsSortedByListId){
+			QuestionListHash.addGeneratedCode(l.getListId());
+			tags = l.getTags();
+			tagEmojiPerTagName.putAll(tags);
+			for (String tagName : tags.keySet()){
+				if (questionListPerTags.getOrDefault(tagName, null)==null){
+					questionListPerTags.put(tagName, new ArrayList<QuestionList>());
+				}
+				questionListPerTags.get(tagName).add(l);
+			}
+		}
+        Users.addUser(this);
+	}
+	public void initStats(){
+		try{
+			User tmp = UserDataParser.fromJsonFile(getPathToUserData());
+			perferedPrefix = tmp.getPrefix();
+			numberOfGamesPlayed = tmp.getNumberOfGamesPlayed();
+			totalPointsEverGained = tmp.getTotalPointsEverGained();
+			tagEmojiPerTagName = tmp.getTagEmojiPerTagName();
+		} catch (IOException e) {
+			numberOfGamesPlayed = 0;
+			totalPointsEverGained = 0;
+			tagEmojiPerTagName = new HashMap<>();
+		}
+	}
+	public String getPrefix(){
+		return perferedPrefix;
+	}
+	public String getPreferredPrefix(){
+		return getPrefix();
+	}
+	public void setPrefix(String perferedPrefix){
+		this.perferedPrefix= perferedPrefix;
+		exportUserData();
+	}
+	public List<QuestionList> getLists() {
+		List<QuestionList> res = new ArrayList<>(listsSortedByListId);
+		return res;
+	}
+	public String getUserId(){ return userId;}
+
+	public String getPathToUserData(){
+		return Constants.USERDATAPATH+Constants.SEPARATOR+getUserId()+Constants.SEPARATOR+"user-data.json";
+	}
+	public QuestionList get(int index) {
+		return listsSortedByListId.get(index);
+	}
+	public static String getCodeForQuestionListId(QuestionList l){
+		String listId = l.getListId();
+		if (listId==null || listId.length()<Constants.DISCORDIDLENMIN){
+			listId = QuestionListHash.generate(l);
+		}
+		return listId;
+	}
+	public double getTotalPointsEverGained(){
+		return totalPointsEverGained;
+	}
+	public int getNumberOfGamesPlayed(){
+		return numberOfGamesPlayed;
+	}
+	public void incrTotalPointsEverGained(double numberOfPointsGained){
+		totalPointsEverGained+=numberOfPointsGained;
+		this.exportUserData();
+	}
+	public void incrNumberOfGamesPlayed(){
+		numberOfGamesPlayed+=1;
+		this.exportUserData();
+	}
+	public Map<String, Emoji> getTagEmojiPerTagName() {
+		return new HashMap<>(tagEmojiPerTagName);
+	}
+	public Map<String, List<QuestionList>> getQuestionListPerTags() {
+		return new HashMap<>(questionListPerTags);
+	}
+	public List<QuestionList> getListsByTag(String tagName) {
+		List<QuestionList> res = questionListPerTags.get(tagName);
+		if (res == null) {
+			return new ArrayList<>();
+		}
+		return new ArrayList<>(res);
+	}
+	public Set<String> getTags() {
+		return new HashSet<>(tagEmojiPerTagName.keySet());
+	}
+
+	public List<QuestionList> getQuestionListsByTag(String tagName){
+		List<QuestionList> res = questionListPerTags.get(tagName);
+		if (res == null){
+			return new ArrayList<>();
+		}
+		return new ArrayList<>(res);
+	}
+	public QuestionList getUserQuestionListByListId(String listId) {
+		QuestionList res= null;
+		if (QuestionList.getExampleQuestionList().getListId().equals(listId)){
+			res =  QuestionList.getExampleQuestionList();
+		} else {
+			QuestionList searched = new QuestionList.Builder().id(listId).build();
+			int i=-1;
+			List<QuestionList> l=getLists();
+			i = Users.myBinarySearchIndexOf(l, searched, QuestionList.comparatorByListId());
+			if (i>=0){
+				res = l.get(i);
+			}
+		}
+		return res;
+	}
+	public QuestionList getUserQuestionListByName(String listName){
+		List<QuestionList> listsSortedByName = new ArrayList<>(listsSortedByListId);
+		listsSortedByName.sort(QuestionList.comparatorByName());
+		int index = QuestionList.myBinarySearchIndexOf(listsSortedByName, listName);
+		if (index<0) return null;
+		return listsSortedByName.get(index);
+	}
+	public static QuestionList getQuestionListByName(String listName){
+		return Users.getQuestionListByName(listName);
+	}
+	public Emoji getEmojiFomTagName(String tagName){
+		return tagEmojiPerTagName.getOrDefault(tagName, null);
+	}
+	public static Emoji getEmojiFomTagName(String userId, String tagName){
+		return Users.getUser(userId).getEmojiFomTagName(tagName);
+	}
+	public void setNumberOfGamesPlayed(int number) {
+		this.numberOfGamesPlayed = number;
+	}
+	public void setTotalPointsEverGained(double points) {
+		this.totalPointsEverGained = points;
+	}
+	public void setTagEmojiPerTagName(Map<String, Emoji> m) {
+		this.tagEmojiPerTagName = m;
+	}
+	public static void addListToUser(String userId, QuestionList l) {
+		Users.addListToUser(userId, l);
+	}
+	public void addList(@NotNull QuestionList l){
+		int index;
+		QuestionList k = getQuestionListByName(l.getName());
+		if (k==null){
+			k = l;
+		} else {
+			k.addAll(l);
+		}
+		index = myBinarySearchIndexOf(listsSortedByListId, k, QuestionList.comparatorByListId());
+		if (index>=0) {
+			listsSortedByListId.set(index, k);
+		} else{
+			listsSortedByListId.add(index*-1 -1,k);
+		}
+		k.exportListQuestionAsJson();
+		Users.addUser(this);
+	}
+	public boolean createTag(@NotNull String tagName, @NotNull Emoji emoji) {
+		if (tagEmojiPerTagName.containsKey(tagName)) {
+			return false; // Tag already exists
+		}
+		tagEmojiPerTagName.put(tagName, emoji);
+		questionListPerTags.put(tagName, new ArrayList<>());
+		exportUserData();
+		return true;
+	}
+	public boolean addTagToQuestionList(String tagName, Emoji emoji, String listid) {
+		if (!tagEmojiPerTagName.containsKey(tagName)) {
+			return false; // Tag hasnt been created
+		}
+		Users.getQuestionListByListId(listid).addTag(tagName, emoji);
+		exportUserData();
+		return true;
+	}
+	public static boolean createTag(String userId, String tagName, Emoji emoji) {
+		return Users.createTag(userId, tagName, emoji);
+	}
+	public boolean deleteTag(String tagName) {
+		if (!tagEmojiPerTagName.containsKey(tagName)) {
+			return false; // Tag does not exist
+		}
+		tagEmojiPerTagName.remove(tagName);
+		questionListPerTags.remove(tagName);
+		exportUserData();
+		return true;
+	}
+	public static boolean deleteTag(String userId, String tagName) {
+		return Users.deleteTag(userId, tagName);
+	}
+	public boolean addTagToList(QuestionList l, String tagName) {
+		int index = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorByListId());
+		Emoji emoji;
+		List<QuestionList> listsTagged;
+		if (index >= 0) {
+			emoji = tagEmojiPerTagName.getOrDefault(tagName,null);
+			if (emoji != null) {
+				l = get(index);
+				l.addTag(tagName, emoji);
+				l.exportListQuestionAsJson();
+				listsTagged = questionListPerTags.get(tagName);
+				if (listsTagged==null){
+					listsTagged = new ArrayList<>();
+				}
+				listsTagged.add(l);
+				questionListPerTags.put(tagName, listsTagged);
+				listsSortedByListId.set(index, l);
+				exportUserData();
+				return true;
+			}
+		}
+		return false;
+	}
+	public static boolean addTagToList(String listId, String tagName) {
+		return Users.addTagToList(listId, tagName);
+	}
+	
+	public boolean removeTagFromList(QuestionList l, String tagName) {
+		if (!l.getTags().containsKey(tagName)) {
+			return false; // Tag does not exist in the list
+		}
+		l.removeTag(tagName);
+		l.exportListQuestionAsJson();
+		tagEmojiPerTagName.remove(tagName);
+		questionListPerTags.remove(tagName);
+		exportUserData();
+		return true;
+	}
+	public static boolean removeTagFromList(String listId, String tagName) {
+		return Users.removeTagFromList(listId, tagName);
+	}
+	public static void deleteList(QuestionList l){
+		User user = new User(l.getAuthorId());
+		user.listsSortedByListId.remove(l);
+		File f = new File(l.getPathToList());
+		f.delete();
+		Users.allUsers.remove(user);
+		Users.allUsers.add(user);
+	}
+	public static <T> int myBinarySearchIndexOf(List<T> tab, int start, int end, T q, Comparator<? super T> compare){
+		if (start > end){
+			return -1*start-1;
+		}
+		int m = (start+end)/2;
+		int comp = compare.compare(tab.get(m), q);
+		if(comp == 0){
+			return m;
+		}
+		if (comp >0){
+			return myBinarySearchIndexOf(tab, start, m-1, q, compare);
+		}
+		return myBinarySearchIndexOf(tab, m+1, end, q, compare);
+	}
+	public static <T> int myBinarySearchIndexOf(List<T> tab, T q, Comparator<? super T> compare){
+		return myBinarySearchIndexOf(tab, 0, tab.size()-1, q, compare);
+	}
+	public static int myBinarySearchUserId(List<User> tab, int start, int end, String userId){
+		if (start > end){
+			return -1*start-1;
+		}
+		int m = (start+end)/2;
+		int comp = tab.get(m).getUserId().compareTo(userId);
+		if(comp == 0){
+			return m;
+		}
+		if (comp >0){
+			return myBinarySearchUserId(tab, start, m-1, userId);
+		}
+		return myBinarySearchUserId(tab, m+1, end, userId);
+	}
+	public static int myBinarySearchUserId(List<User> tab, String userId){
+		return myBinarySearchUserId(tab, 0, tab.size()-1, userId);
+	}
+	@Override
+	public Iterator<QuestionList> iterator(){
+		return getLists().iterator();
+	}
+	public static Comparator<? super User> comparatorByUserId() {
+		return (e, f)->(e.getUserId().compareTo(f.getUserId()));
+	}
+	public static List<QuestionList> getUserListQuestions(String userId) {
+		return Users.getUserListQuestions(userId);
+	}
+	public void exportUserLists() {
+		List<QuestionList> listsSortedByListId = getLists();
+		for (QuestionList l : listsSortedByListId) {
+			l.exportListQuestionAsJson();
+		}
+	}
+	@Override
+	public int hashCode(){
+		return getUserId().hashCode();
+	}
+	@Override
+	public boolean equals(Object o){
+		if (this == o) {return true;}
+		if(o instanceof  User) {
+			User u = (User) o;
+			return getUserId().equals(u.getUserId());
+		}
+		if(o instanceof  String) {
+			String u = (String) o;
+			return getUserId().equals(u);
+		}
+		return false;
+	}
+
+	public String userDataToString(){
+		String res="", 
+			tab1 = "\t";
+		res += "{\n";
+		res +=tab1+"\"tagEmojiPerTagName\":{";
+		Iterator<Entry<String, Emoji>> iter = tagEmojiPerTagName.entrySet().iterator();
+		Entry<String, Emoji> entry2;
+		while (iter.hasNext()) {
+			entry2 = iter.next();
+			res += "\""+entry2.getKey()+"\":\""+entry2.getValue().getFormatted()+"\"";
+			if(iter.hasNext()){
+				res += ", ";
+			}
+		}
+		res += "},\n";
+		res += tab1+"\"prefixe\":\""+getPrefix()+"\",\n";
+		res += tab1+"\"totalPointsEverGained\":"+getTotalPointsEverGained()+",\n";
+		res += tab1+"\"numberOfGamesPlayed\":"+getNumberOfGamesPlayed()+"\n";
+		res +="}";
+		return res;
+	}
+	public void exportUserData(){
+		String destFilePath = getPathToUserData();
+		try {
+			File myJson = new File(destFilePath);
+			File folder = myJson.getParentFile();
+			if(folder != null && !myJson.getParentFile().exists()) {
+				folder.mkdirs();
+			}
+			BufferedWriter buff = Files.newBufferedWriter(Paths.get(destFilePath));
+			buff.write(this.toString());
+			buff.close();
+		} catch (IOException e) {
+			System.err.println("$> An error occurred while exporting UserData.");
+			e.printStackTrace();
+		}
+	}
+	@Override
+	public String toString() {
+		String res = userDataToString();
+		return res;
+	}
+}

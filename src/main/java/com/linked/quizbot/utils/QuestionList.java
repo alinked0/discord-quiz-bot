@@ -21,7 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 /**
- * The QuestionList class is a specialized extension of the LinkedList class, designed to manage a collection
+ * The QuestionList class is a specialized extension of the ArrayList class, designed to manage a collection
  * of {@link Question} objects. It includes additional metadata such as author ID, and name, and provides
  * utility methods for importing and exporting the list in JSON format.
  *
@@ -51,28 +51,77 @@ import java.util.HashMap;
  *
  * @see Question
  * @see Option
- * @see LinkedList
+ * @see ArrayList
  * @author alinked0
  * @version 1.0
  */
-public class QuestionList extends LinkedList<Question> {
+public class QuestionList extends ArrayList<Question> {
 	private String authorId;
 	private Map<String,Emoji> tags;
 	private String name;
 	private long timeCreatedMillis;
 	private String listId;
 
+	static {
+		getExampleQuestionList().exportListQuestionAsJson();
+	}
+
+	public static class Builder {
+		private final List<Question> list= new ArrayList<>();
+		private final Map<String,Emoji> tags= new HashMap<>();
+		private String authorId= null;
+		private String name= null;
+		private String listId= null;
+		private long timeCreatedMillis= 0L;
+
+		public  Builder authorId(String authorId){
+			this.authorId = authorId;
+			return this;
+		}
+		public  Builder addTag(String tagName, Emoji emoji){
+			this.tags.put(tagName, emoji);
+			return this;
+		}
+		public  Builder addTags(Map<String,Emoji> tags){
+			this.tags.putAll(tags);
+			return this;
+		}
+		public  Builder name(String listName){
+			this.name = listName;
+			return this;
+		}
+		public  Builder id(String listId){
+			this.listId = listId;
+			return this;
+		}
+		public  Builder timeCreatedMillis(long timeCreatedMillis){
+			this.timeCreatedMillis = timeCreatedMillis;
+			return this;
+		}
+		public Builder add(Question q){
+			list.add(q);
+			return this;
+		}
+		public Builder addAll(List<Question> c){
+			list.addAll(c);
+			return this;
+		}
+		public QuestionList build(){
+			return new QuestionList(this);
+		}
+	}
 	/**
 	 * Default constructor for QuestionList.
 	 * Initializes the list with default values for authorId, name, and tags.
 	 */
-	public QuestionList() {
+	public QuestionList(Builder builder) {
 		super();
-		this.authorId = null;
-		this.name = null;
-		this.tags = new HashMap<>();
-		this.listId = null;
-		this.timeCreatedMillis = 0L;
+		this.authorId = builder.authorId;
+		this.name = builder.name;
+		this.tags = builder.tags;
+		this.listId = builder.listId;
+		this.timeCreatedMillis = builder.timeCreatedMillis;
+		this.addAll(builder.list);
 	}
 
 	/**
@@ -88,7 +137,7 @@ public class QuestionList extends LinkedList<Question> {
 		this.name = name;
 		this.tags = new HashMap<>();
 		this.timeCreatedMillis = System.currentTimeMillis();
-		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);
+		this.listId = QuestionListHash.generate(authorId+name, timeCreatedMillis);
 	}
 
 	/**
@@ -102,7 +151,7 @@ public class QuestionList extends LinkedList<Question> {
 		this.name = name;
 		this.tags = new HashMap<>();
 		this.timeCreatedMillis = System.currentTimeMillis();
-		this.listId = new QuestionListHash().generate(authorId+name, timeCreatedMillis);
+		this.listId = QuestionListHash.generate(authorId+name, timeCreatedMillis);
 	}
 
 	/**
@@ -111,7 +160,6 @@ public class QuestionList extends LinkedList<Question> {
 	 * @param filePath the file path of the JSON file to import the list from
 	 */
 	public QuestionList(String filePath) throws IOException {
-		this();
 		QuestionList res = QuestionListParser.fromJsonFile(filePath);
 		if (res!=null && res.getName()!=null) {
 			this.addAll(res);
@@ -401,19 +449,17 @@ public class QuestionList extends LinkedList<Question> {
 				res += tab2+"}";
 				if (iterOpt.hasNext()){
 					res += ",";
-				}else{
-					res += "\n"+tab2+"]";
 				}
 				res += "\n";
 			}
+			res += tab2+"]\n";
 			res += tab1+"}";
 			if(iterQuestion.hasNext()) {
 				res+= ",";
-			}else{
-				res += "\n"+tab1+"]";
 			}
 			res += "\n";
 		}
+		res += tab1+"]\n";
 		res +="}";
 		res = res.replace("\\", "\\\\");
 		res = res.replace("\\", "\\\\");
@@ -441,26 +487,30 @@ public class QuestionList extends LinkedList<Question> {
 	public boolean equals(Object o) {
 		if (!(o instanceof QuestionList l)) return false;
 		if (!super.equals(l)) return false;
-		return getAuthorId().equals(l.getAuthorId())
-				&& getName().equals(l.getName());
+		
+		return areStringsEqual(getAuthorId(), l.getAuthorId()) && areStringsEqual(getName(),l.getName());
+	}
+	private boolean areStringsEqual(String s1, String s2) {
+		if (s1 == s2){ 
+			return true;
+		}
+		if (s1 == null || s2 == null){
+			return false;
+		}
+		return s1.equals(s2);
 	}
 
 	public static QuestionList getExampleQuestionList(){
-		QuestionList l = new QuestionList();
-		l.setAuthorId("ExampleAuthor");
-		l.setName("Example QuestionList");
-		l.setListId("abcdefg");
-
-		l.add(Question.getExampleQuestion());
-
-		HashMap<String, Emoji> m = new HashMap<>();
-		m.put("Science", Emoji.fromUnicode("U+1F52D"));
-		l.setTags(m);
-		return l;
+		return new QuestionList.Builder()
+		.authorId("ExamplaryAuthor")
+		.name("Example of a QuestionList")
+		.id("abcdefg")
+		.add(Question.getExampleQuestion())
+		.addTag("Science", Emoji.fromUnicode("U+1F52D"))
+		.build();
 	}
 	public static int myBinarySearchIndexOf(List<QuestionList> tab, int start, int end, String listName){
-		QuestionList searched = new QuestionList();
-		searched.name = listName;
+		QuestionList searched = new QuestionList.Builder().name(listName).build();
 		return Users.myBinarySearchIndexOf(tab, 0, end, searched, QuestionList.comparatorByName());
 	}
 	public static int myBinarySearchIndexOf(List<QuestionList> tab, String listName){

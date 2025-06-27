@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 
@@ -29,27 +30,25 @@ public class PreviousCommand extends BotCommand {
 
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
-	public CommandCategory getCategory(){
-		return CommandCategory.NAVIGATION;
+	public BotCommand.CommandCategory getCategory(){
+		return BotCommand.CommandCategory.NAVIGATION;
 	}
 	@Override
     public String getName(){ return CMDNAME;}
 	@Override
     public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
-        String channelId = channel.getId();
+    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
         QuizBot q = BotCore.getCurrQuizBot(channelId);
         if (q == null){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
-        }else {
-            Message msg = q.getQuizMessage();
-            q.prevQuestion();
-            try {
-                msg.delete().queueAfter(3, TimeUnit.SECONDS);
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, channelId, List.of(getName()), reply);
         }
+        Message msg = q.getQuizMessage();
+        try {
+            msg.delete().queueAfter(3, TimeUnit.SECONDS);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return q.prevQuestion();
     }
 }

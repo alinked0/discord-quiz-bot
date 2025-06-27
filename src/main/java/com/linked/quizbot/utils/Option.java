@@ -28,7 +28,7 @@ public class Option {
 	 * @requires text != null
 	 * @ensures getText().equals(text)
 	 */
-	public Option(@NotNull String text, @NotNull boolean isCorrect){
+	public Option(@NotNull String text, boolean isCorrect){
 		txt = text;
 		explication = null;
 		this.isCorrect = isCorrect;
@@ -42,7 +42,7 @@ public class Option {
 	 * @requires text != null && explication != null
 	 * @ensures getText().equals(text) && getExplication().equals(explication)
 	 */
-	public Option(String text, boolean isCorrect, @Nullable String explication){
+	public Option(@Nullable String text, boolean isCorrect, @Nullable String explication){
 		this(text, isCorrect);
 		this.explication = explication;
 	}
@@ -68,7 +68,11 @@ public class Option {
 		return explication;
 	}
 	public String getExplicationFriendly() {
-		return getExplication()==null?Constants.NOEXPLICATION:getExplication();
+		List<String> censored = List.of("null", "nope");
+		if (getExplication()==null || censored.contains(getExplication())){
+			return Constants.NOEXPLICATION;
+		};
+		return getExplication();
 	}
 	
 	public static Comparator<? super Option> comparator() {
@@ -111,6 +115,12 @@ public class Option {
 			return false;
 		}
 		Option p = (Option) o;
+		if (getText() == p.getText()){
+			return true;
+		}
+		if (getText()==null || null==p.getText()){
+			return false;
+		}
 		return getText().equals(p.getText());
 	}
 	public static List<Option> getExampleOption(){

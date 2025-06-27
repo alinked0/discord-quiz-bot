@@ -24,6 +24,9 @@ public class QuestionListHash {
     public static void addGeneratedCode(String code ){
         QuestionListHash.generatedCodes.add(code);
     }
+    public static void clearGeneratedCodes(){
+        generatedCodes.clear();
+    }
     public static String generate(String input, long timestamp) {
         String code;
         int attempts = 0;

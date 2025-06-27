@@ -8,17 +8,14 @@ import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListHash;
 import com.linked.quizbot.utils.QuestionListParser;
 import com.linked.quizbot.utils.Users;
 
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class AddListCommand extends BotCommand{
     public static final String CMDNAME = "addlist";
@@ -28,8 +25,8 @@ public class AddListCommand extends BotCommand{
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
-	public CommandCategory getCategory(){
-        return CommandCategory.EDITING;
+	public BotCommand.CommandCategory getCategory(){
+        return BotCommand.CommandCategory.EDITING;
 	}
     @Override
     public String getName(){ return CMDNAME;}
@@ -46,13 +43,11 @@ public class AddListCommand extends BotCommand{
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
         int n = args.size();
         List<String> res = new ArrayList<>();
-        String userId = sender.getId().replace("[a-zA-Z]", "");
         if (n<=0) {
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
-            return;
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
         }
         for (int i = 0; i<n; i++) {
             try {
@@ -67,8 +62,17 @@ public class AddListCommand extends BotCommand{
                 res.add("Failed to import ```js\n"+args.get(i)+"```\n");
             }
         }
-        BotCommand.recursive_send(res.iterator(), message, channel);
+		return new CommandOutput.Builder()
+				.addAllTextMessage(res)
+				.reply(reply)
+				.build();
     }
+    @Override
+	public List<String> parseArguments(String cmndLineArgs){
+		List<String> res = new ArrayList<>();
+        res.addAll(splitJson(cmndLineArgs));
+		return res;
+	}
     private String addListAndReturnMessage(QuestionList l) {
         String res = "";
         res = "Failed, list of name : \""+l.getName()+"\" doesn't exists.";

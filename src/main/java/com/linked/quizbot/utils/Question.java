@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.core.BotCore;
 
 /**
  * The Question class represents a question in a quiz, along with its possible answer options.
@@ -93,7 +94,11 @@ public class Question extends LinkedList<Option>{
 	 */
 	public String getExplication() { return explication;}
 	public String getExplicationFriendly() {
-		return getExplication()==null?Constants.NOEXPLICATION:getExplication();
+		List<String> censored = List.of("null", "nope");
+		if (getExplication()==null || censored.contains(getExplication())){
+			return Constants.NOEXPLICATION;
+		};
+		return getExplication();
 	}
 	public void setExplication(String explication) { this.explication = explication;}
 	
@@ -113,7 +118,7 @@ public class Question extends LinkedList<Option>{
 	 * @return a randomly sorted list of options
 	 */
 	public List<Option> getOptionsRearraged() {
-		Random r = new Random();
+		Random r = BotCore.getRandom();
 		List<Option> res = getOptions();
 		res.sort((a,b)->r.nextBoolean()?-1:1);
 		return res;

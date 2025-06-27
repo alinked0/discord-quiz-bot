@@ -1,14 +1,21 @@
 package com.linked.quizbot.events;
 
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.core.MessageSender;
 import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.commands.list.ExplainCommand;
 
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.Timestamp;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -50,45 +57,89 @@ public class ReactionListener extends ListenerAdapter {
         //channel.sen
         // log User
         BotCore.addUser(sender);
-        Emoji reaction = f.getEmoji();
+        String userId = sender.getId();
         MessageChannel channel = event.getChannel();
-        event.getChannel().retrieveMessageById(event.getMessageId()).queue(message -> {
+        String channelId = channel.getId();
+        Emoji reaction = f.getEmoji();
+        String messageId = event.getMessageId();
+        event.getChannel().retrieveMessageById(messageId).queue(message -> {
             BotCommand cmd ;
             if (reaction.equals(Constants.EMOJIMORETIME)){
                 cmd = BotCommand.getCommandByName("moretime");
-                cmd.execute(sender, message, channel, List.of());
+                MessageSender.sendCommandOutput(
+                    cmd.execute(userId, channelId, List.of(message.getId()), false),
+                    channel,
+                    message 
+                );
                 System.out.println("  $> "+cmd.getName());
                 return;
             }
             if(reaction.equals(Constants.EMOJINEXTQUESTION)){
                 cmd = BotCommand.getCommandByName("next");
-                cmd.execute(sender, message, channel, List.of());
+                MessageSender.sendCommandOutput(
+                    cmd.execute(userId, channelId, List.of(message.getId()), false),
+                    channel,
+                    message 
+                );
                 System.out.println("  $> "+cmd.getName());
                 return;
             }
             if(reaction.equals(Constants.EMOJIPREVQUESTION)){
                 cmd = BotCommand.getCommandByName("previous");
-                cmd.execute(sender, message, channel, List.of());
+                MessageSender.sendCommandOutput(
+                    cmd.execute(userId, channelId, List.of(message.getId()), false),
+                    channel,
+                    message 
+                );
                 System.out.println("  $> "+cmd.getName());
                 return;
             }
             if(reaction.equals(Constants.EMOJIEXPLICATION)){
-                BotCore.explicationRequest(sender, channel, message.getId());
+                cmd = BotCommand.getCommandByName(ExplainCommand.CMDNAME);
+                MessageSender.sendCommandOutput(
+                    cmd.execute(userId, channelId, List.of(message.getId()), false),
+                    channel,
+                    message 
+                );
+                System.out.println("  $> "+cmd.getName());
+                return;
+            }
+            QuestionList l = BotCore.toBeDeleted.get(messageId);
+            if (l!=null && reaction.equals(Constants.EMOJIDEL)) {
+                BotCore.deleteList(l, messageId);
                 return;
             }
             QuizBot currQuizBot = BotCore.getCurrQuizBot(channel);
             if (currQuizBot!=null) {
                 if (currQuizBot.isActive() && event.getMessageIdLong() == currQuizBot.getQuizMessage().getIdLong()) {
-                    BotCore.updateUserScoreAddReaction(sender, currQuizBot, reaction);
-                    return;
+                    if (currQuizBot.getButtons().contains(reaction)){
+                        BotCore.updateUserScoreAddReaction(userId, currQuizBot, reaction);
+                        if (currQuizBot.getDelaySec()>0 && currQuizBot.awnsersByUserByQuestion.get(currQuizBot.getCurrQuestion()).size()==1){
+                            CommandOutput out = currQuizBot.currQuestion();
+                            MessageSender.sendCommandOutput(
+                                new CommandOutput.Builder().addCommandOutput(out).editResponseIntoOriginalMessage(true).build(),
+                                channel,
+                                message 
+                            );
+                            Question oldQ = currQuizBot.getCurrQuestion();
+                            Timestamp oldT = currQuizBot.getLastTimestamp();
+                            try{
+                                TimeUnit.SECONDS.sleep(currQuizBot.getDelaySec());
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                            if(oldQ.equals(currQuizBot.getCurrQuestion()) && oldT.equals(oldT)){
+                                cmd = BotCommand.getCommandByName("next");
+                                MessageSender.sendCommandOutput(
+                                    cmd.execute(userId, channelId, List.of(message.getId()), false),
+                                    channel,
+                                    message 
+                                );
+                            }
+                            return;
+                        }
+                    }
                 }
-            }
-            String messageId = event.getMessageId();
-            QuestionList l = BotCore.toBeDeleted.get(messageId);
-            //System.out.println("  $> "+reaction+"?="+Constants.EMOJIDEL +" list="+ l);
-            if (l!=null && reaction.equals(Constants.EMOJIDEL)) {
-                BotCore.deleteList(l, messageId);
-                return;
             }
         });
     }

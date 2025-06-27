@@ -11,7 +11,8 @@ import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListHash;
 import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.Question;
 
 import net.dv8tion.jda.api.entities.Message;
@@ -69,8 +70,8 @@ public class StartCommand extends BotCommand{
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
-	public CommandCategory getCategory(){
-        return CommandCategory.GAME;
+	public BotCommand.CommandCategory getCategory(){
+        return BotCommand.CommandCategory.GAME;
 	}
     @Override
     public String getName(){ return CMDNAME;}
@@ -83,13 +84,13 @@ public class StartCommand extends BotCommand{
         return res;
     }
     @Override
-    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
 		QuestionList quizQuestions = args.size()>0?getSelectedQuestionList(args.get(0)): null;
         if (quizQuestions==null){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
-            return;
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, channelId, List.of(getName()), reply);
         }
-        QuizBot newQuizBot = new QuizBot(channel, quizQuestions);
+        QuizBot newQuizBot = new QuizBot(channelId, quizQuestions);
         BotCore.addQuizBot(newQuizBot);
+        return BotCore.getQuizBot(channelId).start();
     }
 }

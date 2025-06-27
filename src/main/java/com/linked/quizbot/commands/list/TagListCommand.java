@@ -6,17 +6,15 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class TagListCommand extends BotCommand{
     public static final String CMDNAME = "taglist";
@@ -26,7 +24,7 @@ public class TagListCommand extends BotCommand{
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
-	public CommandCategory getCategory(){ return CommandCategory.EDITING;}
+	public BotCommand.CommandCategory getCategory(){ return BotCommand.CommandCategory.EDITING;}
     @Override
     public String getName(){ return CMDNAME;}
 	@Override
@@ -39,13 +37,12 @@ public class TagListCommand extends BotCommand{
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
         if (args.size() < getRequiredOptionData().size()){
-            BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(sender, message, channel, List.of(getName()));
-            return;
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
         }
         String tagNameInput=args.get(0);
-        Users user = new Users(sender.getId());
+        User user = new User(userId);
         Emoji emoji = user.getEmojiFomTagName(tagNameInput);
         String res = "";
         String taggedStr = "Taged";
@@ -70,9 +67,11 @@ public class TagListCommand extends BotCommand{
         }
         if (totalNotOwned>0){res += notOwnedStr + "\n";}
         if (totalTagged>0){res += taggedStr;}
-        MessageCreateAction send = channel.sendMessage(res);
-        if (message != null){send.setMessageReference(message);}
-        send.queue();
+        
+		return new CommandOutput.Builder()
+				.addTextMessage(res)
+				.reply(reply)
+				.build();
     }
 
 }

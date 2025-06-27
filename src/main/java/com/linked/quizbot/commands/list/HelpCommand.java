@@ -9,16 +9,13 @@ import java.util.Set;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandCategory;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 /**
  * The {@code HelpCommand} class provides a help command for users to understand the available bot commands.
@@ -74,17 +71,19 @@ public class HelpCommand extends BotCommand {
         return res;
     }
 	@Override
-    public void execute(User sender, Message message, MessageChannel channel, List<String> args){
+    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
 		ArrayList<EmbedBuilder> res = new ArrayList<>();
 		boolean allAtOnce = args.size() < 1;
 		BotCommand cmd;
 		Set<BotCommand> commands = BotCommand.getCommands();
+		CommandOutput.Builder outBuilder = new CommandOutput.Builder();
+		outBuilder.sendAsPrivateMessage(allAtOnce);
 		if (allAtOnce) {
 			EmbedBuilder embed = new EmbedBuilder();
 			embed.setTitle("All Commands");
 			embed.setDescription("Type `"+Constants.CMDPREFIXE+getName()+"` followed by a command name to see more details about that particular command.")
 			.setTimestamp(java.time.Instant.now());
-			for (CommandCategory c : CommandCategory.getCategories()){
+			for (BotCommand.CommandCategory c : BotCommand.CommandCategory.getCategories()){
 				String s = "";
 				Set<BotCommand> cmds = BotCommand.getCommandsByCategory(c);
 				if(cmds!=null && !cmds.isEmpty()){
@@ -100,11 +99,7 @@ public class HelpCommand extends BotCommand {
 				embed.addField(c.toString(), s, true);
 			}
 			res.add(embed);
-			for (EmbedBuilder k : res) {
-				sender.openPrivateChannel().queue(ch -> ch.sendMessageEmbeds(k.build()).queue());
-			}
 		} else {
-			cmd = null;
 			for (int i = 0; i<args.size(); i++) {
 				cmd = null;
 				for (BotCommand c: commands){
@@ -142,12 +137,10 @@ public class HelpCommand extends BotCommand {
 					res.add(embed);
 				}
 			}
-			for (EmbedBuilder k : res) {
-				MessageCreateAction send;
-				send = channel.sendMessageEmbeds(k.build());
-				if(message!=null){send.setMessageReference(message);}
-				send.queue();
-			}
 		}
+		for (EmbedBuilder k : res) {
+			outBuilder.addEmbed(k).reply(reply);
+		}
+		return outBuilder.build();
     }
 }    

@@ -6,20 +6,31 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.ExplainCommand;
+import com.linked.quizbot.commands.list.HelpCommand;
+import com.linked.quizbot.events.CommandLineListener;
+import com.linked.quizbot.events.ReactionListener;
+import com.linked.quizbot.events.SlashCommandListener;
+import com.linked.quizbot.events.readyEvent;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
 
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.AttachedFile;
 /**
  * Te class BotCore stores bot prefrences. 
@@ -28,6 +39,8 @@ import net.dv8tion.jda.api.utils.AttachedFile;
 
 public class BotCore {
 	public static boolean SHUTINGDOWN = false;
+	public static JDA jda = null;
+	public static Random rand = new Random();
 	public static  String cmdPrefixe = Constants.CMDPREFIXE;
 	public static Map<String, QuizBot> channelByQuizBot = new HashMap<>();
 	public static Map<String, QuizBot> channelByLastQuizBot = new HashMap<>();
@@ -38,17 +51,59 @@ public class BotCore {
 	public static Map<String, Message> deletionMessages = new HashMap<>();
 	public static Map<String, Set<String>> explicationRequestByChannel = new HashMap<>();
 
+	public static Random getRandom(){ return rand;}
 	public static String getPrefixe() { return cmdPrefixe;}
 	public static List<User> getAllUsers() { return new ArrayList<>(allUsers);}
 	public static void addUser(User u) { allUsers.add(u);}
 	public static List<QuizBot> getListOfQuizBots() {
 		return listOfGames;
 	}
+	public static JDA getJDA() {
+		return jda;
+	}
+	public static JDA startJDA(){
+		if (getJDA()!=null){
+			return getJDA();
+		}
+		JDA jda = JDABuilder.createDefault(Constants.TOKEN,
+			GatewayIntent.GUILD_MESSAGES, 
+			GatewayIntent.MESSAGE_CONTENT,
+			GatewayIntent.GUILD_MEMBERS, 
+			GatewayIntent.DIRECT_MESSAGES, 
+			GatewayIntent.DIRECT_MESSAGE_REACTIONS, 
+			GatewayIntent.GUILD_MESSAGE_REACTIONS
+		).setActivity(Activity.playing(Constants.CMDPREFIXE+HelpCommand.CMDNAME)).build();
+		BotCore.jda = jda;
+		jda.addEventListener(
+			new SlashCommandListener(), 
+			new ReactionListener(), 
+			new CommandLineListener(),
+			new readyEvent()
+		);
+		try {
+			jda.awaitReady();
+		}catch (InterruptedException e){
+			e.printStackTrace();
+		}catch(IllegalStateException e){
+			e.printStackTrace();
+		}
+		return jda;
+	}
+	public static void shutDown(){
+		if (getJDA()==null){
+			return;
+		}
+		BotCore.SHUTINGDOWN = true;
+		Users.exportAllUserLists();
+		Users.exportAllUserData();
+		getJDA().shutdownNow();
+		BotCore.jda = null;
+	}
 	public static boolean isShutingDown(){
 		return BotCore.SHUTINGDOWN;
 	}
 	public static void addQuizBot(QuizBot q) {
-		String currChannel = q.getChannel().getId();
+		String currChannel = q.getChannelId();
 		QuizBot oldQuiz = channelByQuizBot.put(currChannel, q);//channelByQuizBot.getOrDefault(currChannel, null);
 		if (null != oldQuiz){
 			oldQuiz.end();
@@ -57,16 +112,14 @@ public class BotCore {
 			listOfGames.remove(oldQuiz);
 		}
 		listOfGames.add(q);
-		channelByQuizBot.get(currChannel).start();
+		channelByQuizBot.get(currChannel);
 	}
-	public static void explicationRequest(User sender, MessageChannel channel, String messageId){
-		Set<String> msgIds = BotCore.explicationRequestByChannel.get(channel.getId());
-		if (msgIds != null) {
-			if (msgIds.contains(messageId)){
-				BotCommand.getCommandByName(ExplainCommand.CMDNAME)
-				.execute(sender, null, channel, List.of());
-			}
+	public static QuizBot getQuizBot(String channelId) {
+		QuizBot q =channelByQuizBot.getOrDefault(channelId, null);
+		if (q==null){
+			q = channelByLastQuizBot.getOrDefault(channelId, null);
 		}
+		return q;
 	}
 	public static void comfirmDeletion(Message message, QuestionList l) {
 		//System.out.println("  $> list="+l);
@@ -91,7 +144,7 @@ public class BotCore {
 		addQuizBot(q);
 	}
 	public static void endQuizBot (QuizBot q) {
-		String currChannelId = q.getChannel().getId();
+		String currChannelId = q.getChannelId();
 		channelByLastQuizBot.put(currChannelId, q);
 		channelByQuizBot.remove(currChannelId);
 		listOfGames.remove(q);
@@ -102,20 +155,19 @@ public class BotCore {
 		if (q.isActive()){
 			return;
 		}
-		for (User user : q.getPlayers()){
-			Users.getUser(user.getId()).incrTotalPointsEverGained(q.userScoreExact.get(user));
+		for (String user : q.getPlayers()){
+			Users.getUser(user).incrTotalPointsEverGained(q.userScoreExact.get(user));
 		}
 	}
-	public static void updateUserScoreAddReaction(User user, QuizBot currQuizBot, Emoji reaction) {
+	public static void updateUserScoreAddReaction(String userId, QuizBot currQuizBot, Emoji reaction) {
 		Question currQuestion = currQuizBot.getCurrQuestion();
 
-		if (!currQuizBot.userAnswersForCurrQuestion.containsKey(user)) {
-			if (!currQuizBot.getPlayers().contains(user)){
-				Users u = new Users(user.getId());
-				u.incrNumberOfGamesPlayed();
-				currQuizBot.addPlayer(user);
+		if (!currQuizBot.userAnswersForCurrQuestion.containsKey(userId)) {
+			if (!currQuizBot.getPlayers().contains(userId)){
+				Users.getUser(userId).incrNumberOfGamesPlayed();
+				currQuizBot.addPlayer(userId);
 			}
-			currQuizBot.userAnswersForCurrQuestion.put(user, new HashSet<>());
+			currQuizBot.userAnswersForCurrQuestion.put(userId, new HashSet<>());
 		}
 		Option userAwnser = null;
 		// Record user's answer (reaction)
@@ -124,17 +176,17 @@ public class BotCore {
 				userAwnser = currQuestion.get(i-1);
 				if (userAwnser != null) {
 					//System.out.printf("  $> awnser %s, %s ;\n", userAwnser.isCorrect(), userAwnser.getText());
-					currQuizBot.userAnswersForCurrQuestion.get(user).add(userAwnser);
+					currQuizBot.userAnswersForCurrQuestion.get(userId).add(userAwnser);
 				}
 				break;
 			}
 		}
-		Map<User, Set<Option>> tmpUserAnswers = new HashMap<>(currQuizBot.userAnswersForCurrQuestion);
+		Map<String, Set<Option>> tmpUserAnswers = new HashMap<>(currQuizBot.userAnswersForCurrQuestion);
 		currQuizBot.awnsersByUserByQuestion.put(currQuestion, tmpUserAnswers);
 		// If it's the correct answer, increase their score
 		if (userAwnser != null) {
 			double point = (userAwnser.isCorrect()?currQuizBot.pointsForCorrect:currQuizBot.pointsForIncorrect)/currQuestion.getTrueOptions().size();
-			currQuizBot.userScoreApproxi.put(user, currQuizBot.getUserScore(user) +point);
+			currQuizBot.userScoreApproxi.put(userId, currQuizBot.getUserScore(userId) +point);
 		}
 	}
 	public static void deleteList(QuestionList l, String messageId){
@@ -150,5 +202,10 @@ public class BotCore {
 		deletionMessages.remove(messageId);
 	}
 	public void setPrefixe(String prefixe) { cmdPrefixe = prefixe;}
-	
+	public static String getEffectiveNameFromId(String userId){
+		if (getJDA()==null){
+			return userId;
+		}
+		return getJDA().getUserById(userId).getEffectiveName();
+	}
 }
