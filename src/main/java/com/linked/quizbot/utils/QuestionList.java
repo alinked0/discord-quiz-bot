@@ -506,7 +506,7 @@ public class QuestionList extends ArrayList<Question> {
 	}
 	public String header(){
 		String res = String.format("**Name:**%s\n**Author:**<@%s>\n**nb of questions:**`%d`\n**Date created:**%s\n", 
-			getName(), getAuthorId(),size(), TimeFormat.DATE_TIME_LONG.after(getTimeCreatedMillis()));
+			getName(), getAuthorId(),size(), TimeFormat.DATE_TIME_LONG.atTimestamp(getTimeCreatedMillis()));
 		return res;
 	}
 	public String getFormated (int index) {
@@ -521,15 +521,14 @@ public class QuestionList extends ArrayList<Question> {
 	public String getFormatedWithAwnsers (int index) {
 		Question q = get(index);
 		q.sort((e,f)->e.isCorrect()?-1:1);
-		String explication, optsString = "";
+		String optsString = "";
 		Option opt;
 		for (int i = 0; i < q.size(); i++) {
 			opt = q.get(i);
-			explication = opt.getExplicationFriendly();
 			optsString += String.format("> %d. %s\n", i + 1, opt.getText());
 			optsString += String.format("> %s%s\n",
 				(opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT).getFormatted(),
-				explication);
+				opt.getExplicationFriendly());
 		}
 		String text = String.format("`%s` %s\n",getListId(), getName());
 		text += String.format("### %d/%d. %s\n%s", index+1, size(), q.getQuestion(), optsString);
