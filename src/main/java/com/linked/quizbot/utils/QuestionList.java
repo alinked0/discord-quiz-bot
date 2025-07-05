@@ -1,24 +1,25 @@
 package com.linked.quizbot.utils;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.linked.quizbot.Constants;
-
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
+
+import com.linked.quizbot.Constants;
+import com.linked.quizbot.core.BotCore;
+
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.utils.TimeFormat;
 
 /**
  * The QuestionList class is a specialized extension of the ArrayList class, designed to manage a collection
@@ -499,16 +500,52 @@ public class QuestionList extends ArrayList<Question> {
 		}
 		return s1.equals(s2);
 	}
-
+	public void rearrageQuestions(){
+		Random r = BotCore.getRandom();
+		sort((a,b)->r.nextBoolean()?-1:1);
+	}
+	public String header(){
+		String res = String.format("**Name:**%s\n**Author:**<@%s>\n**nb of questions:**`%d`\n**Date created:**%s\n", 
+			getName(), getAuthorId(),size(), TimeFormat.DATE_TIME_LONG.after(getTimeCreatedMillis()));
+		return res;
+	}
+	public String getFormated (int index) {
+		Question q = get(index);
+		String questionText = "### "+(index+1)+"/"+size()+" "+q.getQuestion()+"\n";
+		String options = "";
+		for (int i = 0; i < q.size(); i++) {
+			options += (i + 1)+". "+q.get(i).getText()+"\n";
+		}
+		return questionText + options;
+	}
+	public String getFormatedWithAwnsers (int index) {
+		Question q = get(index);
+		q.sort((e,f)->e.isCorrect()?-1:1);
+		String explication, optsString = "";
+		Option opt;
+		for (int i = 0; i < q.size(); i++) {
+			opt = q.get(i);
+			explication = opt.getExplicationFriendly();
+			optsString += String.format("> %d. %s\n", i + 1, opt.getText());
+			optsString += String.format("> %s%s\n",
+				(opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT).getFormatted(),
+				explication);
+		}
+		String text = String.format("`%s` %s\n",getListId(), getName());
+		text += String.format("### %d/%d. %s\n%s", index+1, size(), q.getQuestion(), optsString);
+		text += String.format("> \n> **%s**\n", q.getExplicationFriendly());
+		return text;
+	}
 	public static QuestionList getExampleQuestionList(){
 		return new QuestionList.Builder()
-		.authorId("ExamplaryAuthor")
+		.authorId("Examplary Author")
 		.name("Example of a QuestionList")
 		.id("abcdefg")
 		.add(Question.getExampleQuestion())
 		.addTag("Science", Emoji.fromUnicode("U+1F52D"))
 		.build();
 	}
+
 	public static int myBinarySearchIndexOf(List<QuestionList> tab, int start, int end, String listName){
 		QuestionList searched = new QuestionList.Builder().name(listName).build();
 		return Users.myBinarySearchIndexOf(tab, 0, end, searched, QuestionList.comparatorByName());

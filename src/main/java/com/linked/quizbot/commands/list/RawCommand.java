@@ -2,16 +2,22 @@ package com.linked.quizbot.commands.list;
 
 import java.util.List;
 
+import java.io.File;
+import java.util.List;
+
+import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
-import com.linked.quizbot.core.Viewer;
 import com.linked.quizbot.utils.QuestionList;
+
+import net.dv8tion.jda.api.utils. AttachedFile;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
-public class ViewCommand extends BotCommand{
-    public static final String CMDNAME = "view";
-    private String cmdDesrciption = "showing the contents of a question list in a readable manner";
-	private List<String> abbrevs = List.of("v");
+public class RawCommand extends BotCommand{
+    public static final String CMDNAME = "raw";
+    private String cmdDesrciption = "sending the raw list of questions in a json format";
+	private List<String> abbrevs = List.of();
     
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
@@ -34,8 +40,9 @@ public class ViewCommand extends BotCommand{
         if (l==null){
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
         }
-        Viewer viewer = new Viewer(l);
-		return new CommandOutput.Builder().reply(reply).addCommandOutput(viewer.start()).build();
+        CommandOutput.Builder outputBuilder = new CommandOutput.Builder().reply(reply);
+        outputBuilder.addFile(new File(l.getPathToList()));
+		return outputBuilder.build();
     }
 
 }

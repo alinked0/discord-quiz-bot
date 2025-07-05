@@ -20,9 +20,20 @@ public class InviteCommand extends BotCommand {
     @Override
     public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
         List<Permission> permissions = new LinkedList<>(
-            List.of(Permission.CREATE_INSTANT_INVITE, Permission.CREATE_PUBLIC_THREADS, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_EXT_EMOJI, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_MANAGE, Permission.MESSAGE_SEND, Permission.MESSAGE_SEND_IN_THREADS, Permission.USE_APPLICATION_COMMANDS, Permission.VIEW_CHANNEL)
+            List.of(
+                Permission.CREATE_PUBLIC_THREADS, 
+                Permission.MESSAGE_ADD_REACTION,
+                Permission.MESSAGE_ATTACH_FILES, 
+                Permission.MESSAGE_EXT_EMOJI, 
+                Permission.MESSAGE_EMBED_LINKS, 
+                Permission.MESSAGE_MANAGE, 
+                Permission.MESSAGE_SEND, 
+                Permission.MESSAGE_SEND_IN_THREADS, 
+                Permission.USE_APPLICATION_COMMANDS, 
+                Permission.VIEW_CHANNEL
+            )
         );
-        String res = "```\n"+BotCore.getJDA().getInviteUrl(permissions)+"\n```\n";
+        String res = String.format("`%s`", BotCore.getJDA().getInviteUrl(permissions));
 		return new CommandOutput.Builder()
 				.addTextMessage(res)
 				.reply(reply)

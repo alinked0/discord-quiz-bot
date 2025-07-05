@@ -46,7 +46,7 @@ public class CommandLineListener extends ListenerAdapter {
 				return;
 			}
 		}
-		
+
 		// log User
 		BotCore.addUser(sender);
 		String userId = sender.getId();
@@ -56,7 +56,6 @@ public class CommandLineListener extends ListenerAdapter {
 		//vefifier si le message contient notre prefixe
 		Message message = event.getMessage();
 		String content = message.getContentRaw();
-
 		
 		List<String> tmp = CommandLineInterface.parsePrefixe(userId, content);
 		String cmndLineArgs = "";
@@ -97,9 +96,9 @@ public class CommandLineListener extends ListenerAdapter {
 			}
 		}
 		MessageSender.sendCommandOutput(
-			cmd.execute(userId, channelId, arguments, true),
+			cmd.execute(userId, channelId, arguments, false),
 			channel,
-			null 
+			message 
 		);
 		if (!Constants.isBugFree()) System.out.printf("   $> time of "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
 	}

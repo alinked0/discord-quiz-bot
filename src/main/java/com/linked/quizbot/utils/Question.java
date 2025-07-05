@@ -123,6 +123,10 @@ public class Question extends LinkedList<Option>{
 		res.sort((a,b)->r.nextBoolean()?-1:1);
 		return res;
 	}
+	public void rearrageOptions(){
+		Random r = BotCore.getRandom();
+		sort((a,b)->r.nextBoolean()?-1:1);
+	}
 	public void rearrageOptions(Random random){
 		sort((a,b)->random.nextBoolean()?-1:1);
 	}

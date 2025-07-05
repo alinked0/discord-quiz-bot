@@ -44,6 +44,7 @@ public class BotCore {
 	public static  String cmdPrefixe = Constants.CMDPREFIXE;
 	public static Map<String, QuizBot> channelByQuizBot = new HashMap<>();
 	public static Map<String, QuizBot> channelByLastQuizBot = new HashMap<>();
+	public static Map<String, Viewer> messageIdByViewer = new HashMap<>();
 	public static Set<BotCommand> commands = new HashSet<>();
 	public static List<QuizBot> listOfGames = new ArrayList<>();
 	public static Set<User> allUsers = new HashSet<>();
@@ -70,7 +71,7 @@ public class BotCore {
 			GatewayIntent.MESSAGE_CONTENT,
 			GatewayIntent.GUILD_MEMBERS, 
 			GatewayIntent.DIRECT_MESSAGES, 
-			GatewayIntent.DIRECT_MESSAGE_REACTIONS, 
+			GatewayIntent.DIRECT_MESSAGE_REACTIONS,
 			GatewayIntent.GUILD_MESSAGE_REACTIONS
 		).setActivity(Activity.playing(Constants.CMDPREFIXE+HelpCommand.CMDNAME)).build();
 		BotCore.jda = jda;
@@ -138,10 +139,6 @@ public class BotCore {
 	}
 	public static QuizBot getCurrQuizBot(String channelId) {
 		return channelByQuizBot.getOrDefault(channelId, null);
-	}
-
-	public static void addQuiz(QuizBot q) {
-		addQuizBot(q);
 	}
 	public static void endQuizBot (QuizBot q) {
 		String currChannelId = q.getChannelId();

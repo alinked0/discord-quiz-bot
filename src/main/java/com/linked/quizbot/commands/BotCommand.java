@@ -34,6 +34,7 @@ import com.linked.quizbot.commands.list.MoreTimeCommand;
 import com.linked.quizbot.commands.list.NextCommand;
 import com.linked.quizbot.commands.list.PingCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
+import com.linked.quizbot.commands.list.RawCommand;
 import com.linked.quizbot.commands.list.SetPrefixeCommand;
 import com.linked.quizbot.commands.list.StartCommand;
 import com.linked.quizbot.commands.list.TagListCommand;
@@ -83,6 +84,7 @@ public abstract class BotCommand {
             new NextCommand(),
             new PingCommand(),
             new PreviousCommand(),
+			new RawCommand(),
             new SetPrefixeCommand(),
             new StartCommand(),
             new TagListCommand(),

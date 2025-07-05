@@ -33,6 +33,7 @@ public class CommandOutput {
 	private boolean ephemeral;
 	private final long delayMillis;
 	private String userId;
+	private Message message;
 	
 	public static class Builder {
 		private final List<String> textMessages = new ArrayList<>();
@@ -45,13 +46,14 @@ public class CommandOutput {
 		private String userId = null;
 		private boolean ephemeral = false;
 		private long delayMillis = 0;
-
+		private Message message=null;
 		public Builder addTextMessage(String message){
 			if (message !=null && !message.isEmpty()){
 				textMessages.add(message);
 			}
 			return this;
 		}
+		public Builder setMessage(Message msg){ message = msg; return this;}
 		public Builder addAllTextMessage(List<String> c){
 			for (String s : c){
 				this.addTextMessage(s);
@@ -158,9 +160,13 @@ public class CommandOutput {
 		this.sendInOriginalMessage = builder.sendInOriginalMessage;
 		this.sendInThread = builder.sendInThread;
 		this.userId = builder.userId;
+		this.message = builder.message;
 	}
 	public List<File> getFiles(){
 		return attachedFiles;
+	}
+	public Message getMessage(){
+		return message;
 	}
 	public boolean sendInThread(){
 		return sendInThread;

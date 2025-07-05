@@ -8,6 +8,7 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
 import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.core.Viewer;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.commands.BotCommand;
@@ -70,7 +71,7 @@ public class ReactionListener extends ListenerAdapter {
             if (reaction.equals(Constants.EMOJIMORETIME)){
                 cmd = BotCommand.getCommandByName(MoreTimeCommand.CMDNAME);
                 MessageSender.sendCommandOutput(
-                    cmd.execute(userId, channelId, List.of(message.getId()), false),
+                    cmd.execute(userId, channelId, List.of(), false),
                     channel,
                     message 
                 );
@@ -114,11 +115,11 @@ public class ReactionListener extends ListenerAdapter {
             }
             QuizBot currQuizBot = BotCore.getCurrQuizBot(channel);
             if (currQuizBot!=null) {
-                if (currQuizBot.isActive() && event.getMessageIdLong() == currQuizBot.getQuizMessage().getIdLong()) {
+                if (currQuizBot.isActive() && event.getMessageIdLong() == currQuizBot.getMessage().getIdLong()) {
                     if (currQuizBot.getButtonsForOptions().contains(reaction)){
                         BotCore.updateUserScoreAddReaction(userId, currQuizBot, reaction);
                         if (currQuizBot.getDelaySec()>0 && currQuizBot.awnsersByUserByQuestion.get(currQuizBot.getCurrQuestion()).size()==1){
-                            CommandOutput out = currQuizBot.currQuestion();
+                            CommandOutput out = currQuizBot.current();
                             MessageSender.sendCommandOutput(
                                 new CommandOutput.Builder().addCommandOutput(out).sendInOriginalMessage(true).build(),
                                 channel,

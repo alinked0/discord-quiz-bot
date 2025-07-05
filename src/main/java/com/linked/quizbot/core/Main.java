@@ -20,9 +20,7 @@ public class Main {
 			usageMain();
 			return;
 		}
-	
 		Constants.AREWETESTING = args.length>=3;
-
 		if (Constants.AREWETESTING && args.length < 3) {
 			System.out.println("You must provide the bot token, guild id, channel id and user id in testing mode.");
 			usageMain();

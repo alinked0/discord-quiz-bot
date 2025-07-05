@@ -1,4 +1,3 @@
-
 package com.linked.quizbot.core;
 
 import java.util.ArrayList;
@@ -9,12 +8,9 @@ import java.util.Iterator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -29,7 +25,6 @@ import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -59,7 +54,7 @@ import net.dv8tion.jda.api.utils.Timestamp;
  * <h2>Example:</h2>
  * <pre>
  * MessageChannel channel = event.getChannel();
- * List<Question> questions = getQuizQuestions();
+ * List<Question> questions = getQuestions();
  * QuizBot quiz = new QuizBot(channel, questions);
  * quiz.start();
  * </pre>
@@ -92,13 +87,12 @@ public class QuizBot extends ListenerAdapter {
     public final Map<Question, Map<String, Set<Option>>> awnsersByUserByQuestion = new HashMap<>();
     public final Set<String> players = new HashSet<>();
 	public Map<String, Double> userScoreExact = null;
-    public QuestionList quizQuestions;
-    public boolean quizActive;
+    public QuestionList questions;
+    public boolean active;
     public boolean explainWasTrigerred = false;
-    public int currentQuestionIndex;
-    public int previousQuestionIndex;
-    public Message quizMessage = null;
-    public String quizMessageId = null;
+    public int currIndex;
+    public int lastIndex;
+    public Message message = null;
 	public double pointsForCorrect = 1.00;
 	public double pointsForIncorrect = -0.25;
     public int delaySec = 0;
@@ -108,36 +102,35 @@ public class QuizBot extends ListenerAdapter {
 
     public QuizBot(String channelId){
         this.channelId = channelId;
-        quizActive = false;
-        this.quizQuestions = new QuestionList.Builder().build();
+        active = false;
+        this.questions = new QuestionList.Builder().build();
     }
     public QuizBot(String channelId, QuestionList c) {
         this(channelId);
-        this.quizQuestions = c;
+        this.questions = c;
     }
     public void setQuestionList(QuestionList c) {
-        quizQuestions = c;
+        questions = c;
     }
-    public void setQuizMessage(Message m) {
-        quizMessage = m;
-		quizMessageId = quizMessage.getId();
+    public void setMessage(Message m) {
+        message = m;
     }
-    public Message getQuizMessage() { return quizMessage;}
-    public String getQuizMessageId() { return quizMessageId;}
+    public Message getMessage() { return message;}
+    public String getMessageId() { return message!=null?message.getId():null;}
     public void setChannel(String channelId) { this.channelId = channelId;}
     public String getChannelId(){ return channelId;}
 	public Timestamp getLastTimestamp(){
 		return timeLimit;
 	}
-    public Boolean isActive() { return quizActive;}
+    public Boolean isActive() { return active;}
     public Boolean explainWasTrigerred() { return explainWasTrigerred;}
     public void setExplainTriger(boolean b) { explainWasTrigerred=b;}
 
 	public CommandOutput start() {
 		BotCore.explicationRequestByChannel.put(getChannelId(), new HashSet<>());
-		quizActive = true;
-		previousQuestionIndex = -1;
-		currentQuestionIndex = 0;
+		active = true;
+		lastIndex = -1;
+		currIndex = 0;
 		userScoreApproxi.clear();
 		userAnswersForCurrQuestion.clear();
         awnsersByUserByQuestion.clear();
@@ -149,17 +142,12 @@ public class QuizBot extends ListenerAdapter {
 	public void setDelay(int sec) { this.delaySec = sec;}
 
     public Question getCurrQuestion() {
-        if (!isActive() || getCurrentQuestionIndex()>=quizQuestions.size()) { return null;}
-        return quizQuestions.get(getCurrentQuestionIndex());
+        if (!isActive() || getCurrentIndex()>=questions.size()) { return null;}
+        return questions.get(getCurrentIndex());
     }
 
-    public Question getPrevQuestion() {
-        if (!isActive()) { return null;}
-        return quizQuestions.get(getCurrentQuestionIndex()-1);
-    }
-
-	public QuestionList getQuizQuestionList(){
-        return quizQuestions;
+	public QuestionList getQuestionList(){
+        return questions;
     }
 	public Set<String> getPlayers(){
 		return players;
@@ -168,30 +156,34 @@ public class QuizBot extends ListenerAdapter {
 		players.add(player);
 	}
 	
-    public int getCurrentQuestionIndex() { return currentQuestionIndex;}
+    public int getCurrentIndex() { return currIndex;}
 
     private CommandOutput sendNextQuestion() {
 		CommandOutput.Builder outputBuilder = new CommandOutput.Builder();
         if (!isActive()) { return outputBuilder.build();}
-        if (getCurrentQuestionIndex() >= quizQuestions.size()) {
-			BotCore.explicationRequestByChannel.get(getChannelId()).remove(quizMessage.getId());
+        if (getCurrentIndex() >= questions.size()) {
+			if (message != null) {
+				BotCore.explicationRequestByChannel.get(getChannelId()).remove(message.getId());
+			}
 			List<String> args = List.of();
             return BotCommand.getCommandByName(EndCommand.CMDNAME).execute(null, channelId, args, false);
         }
 		
         Question currentQuestion = getCurrQuestion();
         currentQuestion.rearrageOptions(random);
-        quizQuestions.set(getCurrentQuestionIndex(), currentQuestion);
+        questions.set(getCurrentIndex(), currentQuestion);
 		
         if (!awnsersByUserByQuestion.containsKey(currentQuestion)) {
 			awnsersByUserByQuestion.put(currentQuestion, new HashMap<>());
         }
 		return outputBuilder
-			.addTextMessage(formatQuestion(currentQuestion))
-			.addPostSendAction(message -> {
-				BotCore.getQuizBot(channelId).setQuizMessage(message);
-				addReactions(quizMessage, getButtons().iterator());
-				BotCore.explicationRequestByChannel.get(getChannelId()).add(quizMessage.getId());
+			.addTextMessage(formatQuestion(currIndex))
+			.addPostSendAction(message2 -> {
+				BotCore.getQuizBot(channelId).setMessage(message2);
+				addReactions(message, getButtons().iterator());
+				if (message != null) {
+					BotCore.explicationRequestByChannel.get(getChannelId()).add(message.getId());
+				}
 			}).build();
     }
 	public List<Emoji> getButtonsForOptions(){
@@ -209,7 +201,6 @@ public class QuizBot extends ListenerAdapter {
 				Constants.EMOJIWHITESQUARE,
 				Constants.EMOJIPREVQUESTION,
 				Constants.EMOJINEXTQUESTION,
-				Constants.EMOJIWHITESQUARE,
 				Constants.EMOJIEXPLICATION
 			));
 		}
@@ -220,7 +211,6 @@ public class QuizBot extends ListenerAdapter {
 				Constants.EMOJIPREVQUESTION,
 				Constants.EMOJIMORETIME,
 				Constants.EMOJINEXTQUESTION,
-				Constants.EMOJIWHITESQUARE,
 				Constants.EMOJIEXPLICATION
 			));
 		}
@@ -231,36 +221,41 @@ public class QuizBot extends ListenerAdapter {
 			message.addReaction(iter.next()).queue( msg -> addReactions(message, iter));
         }
     }
-    public CommandOutput nextQuestion() {
-		previousQuestionIndex =currentQuestionIndex;
-		currentQuestionIndex++;
-		BotCore.explicationRequestByChannel.get(getChannelId()).remove(quizMessage.getId());
+    public CommandOutput next() {
+		lastIndex =currIndex;
+		currIndex++;
+		if (message != null) {
+			BotCore.explicationRequestByChannel.get(getChannelId()).remove(message.getId());
+		}
 		userAnswersForCurrQuestion.clear();
         return sendNextQuestion();
     }
 	
-    public CommandOutput prevQuestion(){
-		if (getCurrentQuestionIndex() < 1) {
+    public CommandOutput previous(){
+		if (getCurrentIndex() < 1) {
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(null, channelId, List.of(PreviousCommand.CMDNAME), false);
         }
-		BotCore.explicationRequestByChannel.get(getChannelId()).remove(quizMessage.getId());
-		previousQuestionIndex =currentQuestionIndex;
-        currentQuestionIndex -=1;
+		if (message != null) {
+			BotCore.explicationRequestByChannel.get(getChannelId()).remove(message.getId());
+		}
+		lastIndex =currIndex;
+        currIndex -=1;
 		userAnswersForCurrQuestion.clear();
         return sendNextQuestion();
     }
 	
-    public CommandOutput currQuestion(){
-		if (getCurrentQuestionIndex() < 0) {
-            return new CommandOutput.Builder().build();
+    public CommandOutput current(){
+		if (getCurrentIndex() < 0 || getCurrentIndex() >= questions.size()) {
+            throw new NoSuchElementException();
         }
-		previousQuestionIndex =currentQuestionIndex;
-		BotCore.explicationRequestByChannel.get(getChannelId()).remove(quizMessage.getId());
+		lastIndex =currIndex;
+		if (message != null) {
+			BotCore.explicationRequestByChannel.get(getChannelId()).remove(message.getId());
+		}
 
 		CommandOutput.Builder outputBuilder = new CommandOutput.Builder();
         if (!isActive()) { return outputBuilder.build();}
-        if (getCurrentQuestionIndex() >= quizQuestions.size()) {
-			BotCore.explicationRequestByChannel.get(getChannelId()).remove(quizMessage.getId());
+        if (getCurrentIndex() >= questions.size()) {
 			List<String> args = List.of();
             return BotCommand.getCommandByName(EndCommand.CMDNAME).execute(null, channelId, args, false);
         }
@@ -271,30 +266,23 @@ public class QuizBot extends ListenerAdapter {
 			awnsersByUserByQuestion.put(currentQuestion, new HashMap<>());
         }
 		return outputBuilder
-			.addTextMessage(formatQuestion(currentQuestion))
-			.addPostSendAction(message -> {
-				BotCore.getQuizBot(channelId).setQuizMessage(message);
-				addReactions(quizMessage, getButtons().iterator());
-				BotCore.explicationRequestByChannel.get(getChannelId()).add(quizMessage.getId());
+			.addTextMessage(formatQuestion(currIndex))
+			.addPostSendAction(message2 -> {
+				BotCore.getQuizBot(channelId).setMessage(message2);
+				addReactions(message, getButtons().iterator());
+				BotCore.explicationRequestByChannel.get(getChannelId()).remove(message.getId());
 			}).build();
     }
-    private String formatQuestion (Question q) {
-        String quiz = "", options = "";
+    private String formatQuestion (int index) {
 		if (delaySec>0&& awnsersByUserByQuestion.get(getCurrQuestion()).size()>=1){
 			this.timeLimit = TimeFormat.RELATIVE.after(delaySec*1000);
 		} else if (delaySec==0){
 			this.timeLimit = TimeFormat.RELATIVE.after(delaySec*1000);
 		}
-		int index = quizQuestions.indexOf(q);
-        String questionText = "### "+(index+1)+"/"+quizQuestions.size()+" "+q.getQuestion()+"\n";
-        for (int i = 0; i < q.size(); i++) {
-			options += (i + 1)+". "+q.get(i).getText()+"\n";
-        }
-        quiz = questionText + options+getLastTimestamp()+"\n";
-        return quiz;
+        return questions.getFormated(index)+getLastTimestamp()+"\n";
     }
     public void end() {
-		quizActive = false;
+		active = false;
 		getExactUserScore();
     }
 	private Map<String, Double> getExactUserScore(){
@@ -331,7 +319,7 @@ public class QuizBot extends ListenerAdapter {
 	}
 	public List<String> leaderBoard() {
 		List<String> res = new ArrayList<>();
-		double totalPoints = quizQuestions.size() * pointsForCorrect;
+		double totalPoints = questions.size() * pointsForCorrect;
 		String leaderboard = "Leaderboard:\n";
 
 		Iterator<Map.Entry<String, Double>> SortedScoreByUser = userScoreExact.entrySet().stream()
@@ -361,7 +349,7 @@ public class QuizBot extends ListenerAdapter {
 		if (isActive()) {
 			main.add(getCurrQuestion());
 		} else {
-			main.addAll(quizQuestions);
+			main.addAll(questions);
 		}
 
 		Option opt;
@@ -369,7 +357,7 @@ public class QuizBot extends ListenerAdapter {
 		String optsString;
 		Double points;
 
-		text += String.format("## %s `%s/%d`\n", quizQuestions.getName(), getUserScore(userId), quizQuestions.size());
+		text += String.format("## %s `%s/%d`\n", questions.getName(), getUserScore(userId), questions.size());
 		text += String.format("For %s\n", BotCore.getEffectiveNameFromId(userId));
 		Question q;
 		Iterator<Question> iterQuestion = main.iterator();
@@ -379,7 +367,7 @@ public class QuizBot extends ListenerAdapter {
 			optsUser = getUserSelOptions(userId, q);
 			int numberOfTrueOptions = q.getTrueOptions().size();
 			optsString = "";
-			index = quizQuestions.indexOf(q) + 1;
+			index = questions.indexOf(q) + 1;
 
 			for (int i = 0; i < q.size(); i++) {
 				opt = q.get(i);
@@ -419,9 +407,9 @@ public class QuizBot extends ListenerAdapter {
 		double point, score = 0.00;
 		List<Question> main;
 		if(isActive()){
-			main = getQuizQuestionList().subList(0, getCurrentQuestionIndex()+1);
+			main = getQuestionList().subList(0, getCurrentIndex()+1);
 		} else {
-			main = new ArrayList<>(getQuizQuestionList());
+			main = new ArrayList<>(getQuestionList());
 		}
         for (Question q : main){
 			int numberOfTrueOptions = q.getTrueOptions().size();

@@ -85,11 +85,11 @@ public class StartCommand extends BotCommand{
     }
     @Override
     public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
-		QuestionList quizQuestions = args.size()>0?getSelectedQuestionList(args.get(0)): null;
-        if (quizQuestions==null){
+		QuestionList questions = args.size()>0?getSelectedQuestionList(args.get(0)): null;
+        if (questions==null){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, channelId, List.of(getName()), reply);
         }
-        QuizBot newQuizBot = new QuizBot(channelId, quizQuestions);
+        QuizBot newQuizBot = new QuizBot(channelId, questions);
         BotCore.addQuizBot(newQuizBot);
         return BotCore.getQuizBot(channelId).start();
     }

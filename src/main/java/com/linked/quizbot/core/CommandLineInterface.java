@@ -62,7 +62,7 @@ public class CommandLineInterface {
 					if (BotCore.jda == null){
                         BotCore.startJDA();
 					} else {
-                        System.out.println("Bot is already online. Use the command stop, to end it.");
+                        System.out.println("Bot is already online. Use the command stop, to put an end it.");
                     }
 				}
 				case "status"-> {
@@ -122,7 +122,7 @@ public class CommandLineInterface {
 		String prefixe;
 		String userPrefixe = Users.get(userId).getPrefix();
 		// Do not preccess if no known cmd prefixe can fit in message
-		if (message.length() < userPrefixe.length() && message.length() < Constants.CMDPREFIXE.length()){
+		if ((userPrefixe!=null && message.length() < userPrefixe.length()) && message.length() < Constants.CMDPREFIXE.length()){
 			return List.of();
 		}
 		int cmdPrefixeLen;

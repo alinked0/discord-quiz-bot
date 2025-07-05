@@ -110,7 +110,6 @@ public class CreateListCommand extends BotCommand {
     }
     @Override
 	public List<String> parseArguments(String cmndLineArgs){
-		int k = 0;
 		List<String> res = new ArrayList<>();
         res.addAll(splitJson(cmndLineArgs));
 		return res;

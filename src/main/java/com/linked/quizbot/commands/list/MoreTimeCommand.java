@@ -54,12 +54,12 @@ public class MoreTimeCommand extends BotCommand {
 			int sec = Integer.parseInt(args.get(0));
 			q.setDelay(sec);
 		}
-		Message msg = q.getQuizMessage();
+		Message msg = q.getMessage();
 		try {
 			msg.delete().queueAfter(3, TimeUnit.SECONDS);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
-		return q.currQuestion();
+		return q.current();
 	}
 }

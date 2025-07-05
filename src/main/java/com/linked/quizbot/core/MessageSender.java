@@ -29,6 +29,9 @@ public class MessageSender {
 			System.out.println("Warning: Command output was null, nothing to send.");
 			return;
 		}
+		if (output.getMessage()!=null){
+			originalMessage = output.getMessage();
+		}
 		// Schedule the message sending if a delay is specified.
 		treeatDelay(output, channel, originalMessage);
 	}
@@ -54,7 +57,14 @@ public class MessageSender {
 				.setContent(content)
 				.setAttachments(output.getFiles().stream().map(f->AttachedFile.fromData(f)).toList())
 				.setEmbeds(output.getEmbeds())
-				.build()).queue();
+				.build()).queue(
+					sentMessage -> { // Execute post-send actions for embeds too
+						for (Consumer<Message> action : output.getPostSendActions()) {
+							action.accept(sentMessage);
+						}
+					},
+					failure -> System.err.println("Failed to send embed: " + failure.getMessage()) // Log failure
+				);
 			return;
 		} 
 		if (output.sendInThread()  && channel.getType().isGuild() && !channel.getType().isThread()){
@@ -165,7 +175,6 @@ public class MessageSender {
 		if (s == null || s.isEmpty()) {
 			return resultParts;
 		}
-
 		if (s.length() <= Constants.CHARSENDLIM){
 			resultParts.add(s);
 		} else {
