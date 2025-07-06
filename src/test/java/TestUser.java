@@ -447,7 +447,7 @@ public class TestUser {
 		Users.reset();
 		User user = new User(userId); // Constructor will load list1
 
-		QuestionList foundList = user.getUserQuestionListByListId(listId);
+		QuestionList foundList = user.getByListId(listId);
 		assertNotNull(foundList);
 		assertEquals(list1, foundList);
 	}
@@ -457,7 +457,7 @@ public class TestUser {
 	void testGetUserQuestionListByListId_NotFound() throws IOException {
 		String userId = "searchUser2";
 		User user = new User(userId); // No lists for this user
-		QuestionList foundList = user.getUserQuestionListByListId("nonExistentId");
+		QuestionList foundList = user.getByListId("nonExistentId");
 		assertNull(foundList);
 	}
 
@@ -475,7 +475,7 @@ public class TestUser {
 
 		User user = new User.Builder().userId(userId).add(list1).build();
 
-		QuestionList foundList = user.getUserQuestionListByName("Unique Name Quiz");
+		QuestionList foundList = user.getByName("Unique Name Quiz");
 		assertNotNull(foundList);
 		assertEquals(list1, foundList);
 	}
@@ -485,7 +485,7 @@ public class TestUser {
 	void testGetUserQuestionListByName_NotFound() throws IOException {
 		String userId = "searchUser4";
 		User user = new User(userId);
-		QuestionList foundList = user.getUserQuestionListByName("Non Existent Name");
+		QuestionList foundList = user.getByName("Non Existent Name");
 		assertNull(foundList);
 	}
 

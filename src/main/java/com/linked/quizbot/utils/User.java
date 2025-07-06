@@ -224,7 +224,7 @@ public class User implements Iterable<QuestionList>{
 		}
 		return new ArrayList<>(res);
 	}
-	public QuestionList getUserQuestionListByListId(String listId) {
+	public QuestionList getByListId(String listId) {
 		QuestionList res= null;
 		if (QuestionList.getExampleQuestionList().getListId().equals(listId)){
 			res =  QuestionList.getExampleQuestionList();
@@ -239,7 +239,7 @@ public class User implements Iterable<QuestionList>{
 		}
 		return res;
 	}
-	public QuestionList getUserQuestionListByName(String listName){
+	public QuestionList getByName(String listName){
 		List<QuestionList> listsSortedByName = new ArrayList<>(listsSortedByListId);
 		listsSortedByName.sort(QuestionList.comparatorByName());
 		int index = QuestionList.myBinarySearchIndexOf(listsSortedByName, listName);
@@ -267,9 +267,9 @@ public class User implements Iterable<QuestionList>{
 	public static void addListToUser(String userId, QuestionList l) {
 		Users.addListToUser(userId, l);
 	}
-	public void addList(@NotNull QuestionList l){
+	public boolean addList(@NotNull QuestionList l){
 		int index;
-		QuestionList k = getQuestionListByName(l.getName());
+		QuestionList k = getByName(l.getName());
 		if (k==null){
 			k = l;
 		} else {
@@ -282,7 +282,8 @@ public class User implements Iterable<QuestionList>{
 			listsSortedByListId.add(index*-1 -1,k);
 		}
 		k.exportListQuestionAsJson();
-		Users.addUser(this);
+		Users.update(this);
+		return true;
 	}
 	public boolean createTag(@NotNull String tagName, @NotNull Emoji emoji) {
 		if (tagEmojiPerTagName.containsKey(tagName)) {
@@ -297,8 +298,9 @@ public class User implements Iterable<QuestionList>{
 		if (!tagEmojiPerTagName.containsKey(tagName)) {
 			return false; // Tag hasnt been created
 		}
-		Users.getQuestionListByListId(listid).addTag(tagName, emoji);
+		getByListId(listid).addTag(tagName, emoji);
 		exportUserData();
+		Users.update(this);
 		return true;
 	}
 	public static boolean createTag(String userId, String tagName, Emoji emoji) {
@@ -315,6 +317,16 @@ public class User implements Iterable<QuestionList>{
 	}
 	public static boolean deleteTag(String userId, String tagName) {
 		return Users.deleteTag(userId, tagName);
+	}
+	public boolean renameList(QuestionList l, String newName){
+		QuestionList k = this.getByName(newName);
+		if (k!=null){
+			return false;
+		}
+		int oldIndex = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorByListId());
+		listsSortedByListId.remove(oldIndex);
+		l.setName(newName);
+		return addList(l);
 	}
 	public boolean addTagToList(QuestionList l, String tagName) {
 		int index = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorByListId());

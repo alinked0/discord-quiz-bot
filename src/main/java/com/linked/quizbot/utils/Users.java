@@ -43,6 +43,9 @@ public class Users {
 			Users.allUsers.set(index, user);
 		}
 	}
+	public static void update(User user){
+		addUser(user);
+	}
 	public static String getCodeForQuestionListId(QuestionList l){
 		String listId = l.getListId();
 		if (listId==null || listId.length()<Constants.DISCORDIDLENMIN){
@@ -65,7 +68,7 @@ public class Users {
 	public static QuestionList getQuestionListByListId(String listId) {
 		QuestionList l=null;
 		for (User u : Users.allUsers){
-			l = u.getUserQuestionListByListId(listId);
+			l = u.getByListId(listId);
 			if (l!=null){
 				return l;
 			}
@@ -75,7 +78,7 @@ public class Users {
 	public static QuestionList getQuestionListByName(String listName){
 		QuestionList res = null;
 		for (User u : Users.allUsers){
-			res = u.getUserQuestionListByName(listName);
+			res = u.getByName(listName);
 			if (res != null){
 				return res;
 			}

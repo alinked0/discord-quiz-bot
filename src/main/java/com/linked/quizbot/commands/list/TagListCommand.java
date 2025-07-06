@@ -52,7 +52,7 @@ public class TagListCommand extends BotCommand{
         QuestionList k;
         if (emoji!=null){
             for(int i=1; i<args.size(); i++){
-                k= user.getUserQuestionListByListId(args.get(i));
+                k= user.getByListId(args.get(i));
                 if (k==null){
                     notOwnedStr += " `"+args.get(i)+"`";
                     totalNotOwned +=1;
