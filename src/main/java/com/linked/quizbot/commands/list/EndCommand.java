@@ -10,9 +10,11 @@ import net.dv8tion.jda.api.entities.Message;
 
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.core.Viewer;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class EndCommand extends BotCommand {
     public static final String CMDNAME = "end";
@@ -26,13 +28,23 @@ public class EndCommand extends BotCommand {
     public String getName(){ return CMDNAME;}
     @Override
     public String getDescription(){ return cmdDesrciption;}
+	@Override
+    public List<OptionData> getOptionData(){
+        return BotCommand.getCommandByName(PreviousCommand.CMDNAME).getOptionData();
+    }
     @Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
-        QuizBot q = BotCore.getCurrQuizBot(channelId);
+    public CommandOutput execute(String userId,  List<String> args){
+		if (args.size() < getRequiredOptionData().size()){
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+		}
+        String messageId = args.get(0);
+        Viewer q = BotCore.getCurrViewer(messageId);
         if (q == null) {
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        BotCore.endQuizBot(q);
-        return BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME).execute(userId, channelId, List.of(), reply);
+        q.end();
+        CommandOutput output = BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME).execute(userId, args);
+        BotCore.endViewer(q);
+        return output;
     }
 }

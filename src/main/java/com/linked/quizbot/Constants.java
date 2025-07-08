@@ -38,8 +38,9 @@ public class Constants {
 		EMOJIMORETIME = Emoji.fromUnicode("U+23F0"),
 		EMOJINEXTQUESTION = Emoji.fromUnicode("U+23ED U+FE0F"),
 		EMOJIPREVQUESTION = Emoji.fromUnicode("U+23EE U+FE0F"),
+		EMOJISTOP = Emoji.fromFormatted("⏹️"),
 		EMOJIWHITESQUARE = Emoji.fromUnicode("U+2B1C"),
-		EMOJIEXPLICATION = Emoji.fromUnicode("U+2754");
+		EMOJIEXPLICATION = Emoji.fromFormatted("❓");
 	public static boolean isBugFree(){
 		return !AREWETESTING;
 	}

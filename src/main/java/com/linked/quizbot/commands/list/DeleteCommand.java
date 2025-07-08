@@ -76,14 +76,14 @@ public class DeleteCommand extends BotCommand{
         return res;
     }
 	@Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+    public CommandOutput execute(String userId,  List<String> args){
         
         String res,ownerId; 
         MessageCreateAction send;
         QuestionList l;
         Consumer<Message> success;
         if (args.size()<getOptionData().size()){
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
         
         l = getSelectedQuestionList(args.get(0));
@@ -100,7 +100,7 @@ public class DeleteCommand extends BotCommand{
         }
 		return new CommandOutput.Builder()
 				.addTextMessage(res)
-				.reply(reply)
+				
                 .addPostSendAction(success)
 				.build();
     }

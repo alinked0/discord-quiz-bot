@@ -5,6 +5,10 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.MessageEmbed.Footer;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.utils.AttachedFile;
 import okio.Buffer;
 
@@ -14,6 +18,7 @@ import java.util.Scanner;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.events.ReactionListener;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,10 +32,12 @@ public class CommandOutput {
 	private final List<MessageEmbed> embeds;
 	private final List<Consumer<Message>> postSendActions;
 	private final List<File> attachedFiles;
+	private final List<Emoji> reactions;
 	private final boolean sendInOriginalMessage;
 	private final boolean replyToSender;
 	private final boolean sendInThread;
-	private boolean ephemeral;
+	private final boolean ephemeral;
+	private final boolean clearReactions;
 	private final long delayMillis;
 	private String userId;
 	private Message message;
@@ -40,9 +47,11 @@ public class CommandOutput {
 		private final List<MessageEmbed> embeds = new ArrayList<>();
         private final List<Consumer<Message>> postSendActions = new ArrayList<>();
 		private final List<File> attachedFiles= new ArrayList<>();
+		private final List<Emoji> reactions= new ArrayList<>();
 		private boolean sendInOriginalMessage = false;
 		private boolean replyToSender = true;
 		private boolean sendInThread= false;
+		private boolean clearReactions= false;
 		private String userId = null;
 		private boolean ephemeral = false;
 		private long delayMillis = 0;
@@ -111,6 +120,18 @@ public class CommandOutput {
 			this.ephemeral = ephemeral;
 			return this;
 		}
+		public Builder clearReactions(boolean b){
+			this.clearReactions = b;
+			return this;
+		}
+		public Builder addReaction(Emoji e){
+			this.reactions.add(e);
+			return this;
+		}
+		public Builder addReactions(List<Emoji> e){
+			this.reactions.addAll(e);
+			return this;
+		}
 		public Builder sendInThread(boolean b){
 			this.sendInThread = b;
 			return this;
@@ -138,11 +159,17 @@ public class CommandOutput {
 		public Builder addCommandOutput(CommandOutput t) {
 			addAllTextMessage(t.textMessages);
 			addAllEmbed(t.embeds);
-			ephemeral(t.ephemeral);
-			addAllPostSendAction(t.postSendActions);
-			addAllFile(t.attachedFiles);
+			this.replyToSender = t.replyToSender;
+			this.ephemeral = t.ephemeral;
 			this.delayMillis = t.delayMillis;
+			this.postSendActions.addAll(t.postSendActions);
+			this.attachedFiles.addAll(t.attachedFiles);
 			this.sendInOriginalMessage = t.sendInOriginalMessage;
+			this.sendInThread = t.sendInThread;
+			this.userId = t.userId;
+			this.message = t.message;
+			this.clearReactions = t.clearReactions;
+			this.reactions.addAll(t.reactions);
 			return this;
 		}
 		public CommandOutput build(){
@@ -161,12 +188,58 @@ public class CommandOutput {
 		this.sendInThread = builder.sendInThread;
 		this.userId = builder.userId;
 		this.message = builder.message;
+		this.clearReactions = builder.clearReactions;
+		this.reactions = builder.reactions;
 	}
 	public List<File> getFiles(){
 		return attachedFiles;
 	}
+	public List<Emoji> getReactions(){
+		return reactions;
+	}
+	public List<ActionRow> getActionRows(){
+		int nbOptions = 0;
+		List<Emoji> l = getReactions();
+		List<Button> row= new ArrayList<>();
+		List<ActionRow> newActionRows = new ArrayList<>();
+		int i=0;
+		Emoji e;
+		System.out.println("   $> Reactions : "+l);
+		for (; nbOptions<l.size(); ++nbOptions){
+			e = Emoji.fromUnicode("U+3"+(nbOptions+1)+"U+fe0fU+20e3");
+			if (l.get(nbOptions).equals(e)){
+				row.add(Button.of(ButtonStyle.PRIMARY, String.format("%s", (nbOptions+1)), e.getFormatted())); //ReactionListener.getCommandFromEmoji(e).getName()
+				if(nbOptions+1==5){
+					newActionRows.add(ActionRow.of(row));
+					row = new ArrayList<>();
+				}
+			} else {
+				break;
+			}
+		}
+		if (!row.isEmpty())newActionRows.add(ActionRow.of(row));
+		row = new ArrayList<>();
+		for (i=nbOptions; i<l.size(); ++i){
+			e = l.get(i);
+			BotCommand cmd = ReactionListener.getCommandFromEmoji(e);
+			if (cmd!=null){
+				String id = cmd.getName();
+				row.add(Button.of(ButtonStyle.PRIMARY, id, e.getFormatted()));
+				if(row.size()==5){
+					newActionRows.add(ActionRow.of(row));
+					row = new ArrayList<>();
+				}
+			}
+		}
+		if (!row.isEmpty())newActionRows.add(ActionRow.of(row));
+		System.out.println("   $> actionRows : "+newActionRows);
+		return newActionRows;
+	}
 	public Message getMessage(){
 		return message;
+	}
+	public boolean clearReactions(){
+		return clearReactions;
 	}
 	public boolean sendInThread(){
 		return sendInThread;

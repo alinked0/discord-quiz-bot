@@ -81,23 +81,23 @@ public class ExplainCommand extends BotCommand {
         return res;
     }
 	@Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
-        QuizBot q = BotCore.getCurrQuizBot(channelId);
-        if (q == null){
-            q = BotCore.getPrevQuizBot(channelId);
-        } 
+    public CommandOutput execute(String userId,  List<String> args){
+		if (args.size() < getRequiredOptionData().size()){
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+		}
+        String messageId = args.get(0);
+        QuizBot q =(QuizBot) BotCore.getCurrViewer(messageId);
         if (q == null) {
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        List<String> expl = q.explain(userId);
         q.setExplainTriger(true);
-        CommandOutput.Builder outputBuild = new CommandOutput.Builder().addAllTextMessage(expl);
+        CommandOutput.Builder outputBuild = new CommandOutput.Builder().addCommandOutput(q.explain(userId));
         int delay = q.getDelaySec();
         if (q.isActive()) {
             outputBuild.sendInOriginalMessage(true)
             .addTextMessage(q.getLastTimestamp().toString());
         } else {
-            outputBuild.sendInThread(true);
+            outputBuild.sendAsPrivateMessage(userId);
         }
         q.setDelay(delay);
 		return outputBuild.build();

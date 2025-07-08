@@ -47,11 +47,11 @@ public class Users {
 		addUser(user);
 	}
 	public static String getCodeForQuestionListId(QuestionList l){
-		String listId = l.getListId();
-		if (listId==null || listId.length()<Constants.DISCORDIDLENMIN){
-			listId = QuestionListHash.generate(l);
+		String id = l.getId();
+		if (id==null || id.length()<Constants.DISCORDIDLENMIN){
+			id = QuestionListHash.generate(l);
 		}
-		return listId;
+		return id;
 	}
 	public static User getUser(String userId){
 		int index = User.myBinarySearchUserId(Users.allUsers, userId);
@@ -65,10 +65,10 @@ public class Users {
 		}
 		return null;
 	}
-	public static QuestionList getQuestionListByListId(String listId) {
+	public static QuestionList getQuestionListById(String id) {
 		QuestionList l=null;
 		for (User u : Users.allUsers){
-			l = u.getByListId(listId);
+			l = u.getById(id);
 			if (l!=null){
 				return l;
 			}
@@ -96,8 +96,8 @@ public class Users {
 		User user = new User(userId);
 		return user.deleteTag(tagName);
 	}
-	public static boolean addTagToList(String listId, String tagName) {
-		QuestionList tmp = new QuestionList.Builder().id(listId).build();
+	public static boolean addTagToList(String id, String tagName) {
+		QuestionList tmp = new QuestionList.Builder().id(id).build();
 		for (User u : Users.allUsers) {
 			if (u.addTagToList(tmp, tagName)) {
 				return true;
@@ -105,14 +105,14 @@ public class Users {
 		}
 		return false;
 	}
-	public static boolean removeTagFromList(String listId, String tagName) {
-		QuestionList l = Users.getQuestionListByListId(listId);
+	public static boolean removeTagFromList(String id, String tagName) {
+		QuestionList l = Users.getQuestionListById(id);
 		User u = new User(l.getAuthorId());
 		return u.removeTagFromList(l, tagName);
 	}
 	public static void deleteList(QuestionList l){
 		User user = new User(l.getAuthorId());
-		user.listsSortedByListId.remove(l);
+		user.listsSortedById.remove(l);
 		File f = new File(l.getPathToList());
 		f.delete();
 		Users.allUsers.remove(user);

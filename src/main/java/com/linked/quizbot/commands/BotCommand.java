@@ -115,7 +115,7 @@ public abstract class BotCommand {
 		}
 	}
 	
-	public abstract CommandOutput execute(String userId, String channelId, List<String> args, boolean reply);
+	public abstract CommandOutput execute(String userId,  List<String> args);
 
 	public abstract String getName();
 
@@ -303,8 +303,8 @@ public abstract class BotCommand {
 		return approxiUserId;
 	}
 
-	public static QuestionList getSelectedQuestionList(String listId) {
-		return Users.getQuestionListByListId(listId);
+	public static QuestionList getSelectedQuestionList(String id) {
+		return Users.getQuestionListById(id);
 	}
 	public SlashCommandData getSlashCommandData(){
 		return Commands.slash(getName(), getDescription()).addOptions(getOptionData());

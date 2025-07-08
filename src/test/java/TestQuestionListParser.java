@@ -37,7 +37,7 @@ public class TestQuestionListParser{
     private static final String SAMPLE_JSON = "{" +
             "\"authorId\":\"468026374557270017\", " +
             "\"name\":\"Agent Welcome aéroportuaire-Aéroportuaire\", " +
-            "\"listId\":\"a4we1i5\", " +
+            "\"id\":\"a4we1i5\", " +
             "\"timeCreatedMillis\":1748459681435, " +
             "\"tags\":{\"trivia\" : \"📎\"}, " +
             "\"questions\": [" +
@@ -103,7 +103,7 @@ public class TestQuestionListParser{
         assertNotNull(questionList);
         assertEquals("468026374557270017", questionList.getAuthorId());
         assertEquals("Agent Welcome aéroportuaire-Aéroportuaire", questionList.getName());
-        assertEquals("a4we1i5", questionList.getListId());
+        assertEquals("a4we1i5", questionList.getId());
         assertEquals(1748459681435L, questionList.getTimeCreatedMillis());
 
         // Test tags
@@ -149,7 +149,7 @@ public class TestQuestionListParser{
         assertNotNull(questionList);
         assertEquals("468026374557270017", questionList.getAuthorId());
         assertEquals("Agent Welcome aéroportuaire-Aéroportuaire", questionList.getName());
-        assertEquals("a4we1i5", questionList.getListId());
+        assertEquals("a4we1i5", questionList.getId());
         assertEquals(1748459681435L, questionList.getTimeCreatedMillis());
 
         // Test tags
@@ -171,7 +171,7 @@ public class TestQuestionListParser{
         assertNotNull(questionList);
         assertEquals("468026374557270017", questionList.getAuthorId());
         assertEquals("Agent Welcome aéroportuaire-Aéroportuaire", questionList.getName());
-        assertEquals("a4we1i5", questionList.getListId());
+        assertEquals("a4we1i5", questionList.getId());
         assertEquals(1748459681435L, questionList.getTimeCreatedMillis());
         assertEquals(2, questionList.size());
         jp.close();
@@ -385,7 +385,7 @@ public class TestQuestionListParser{
         String jsonContent = "{" +
                              "\"authorId\":\"user123\", " +
                              "\"name\":\"Empty Quiz\"," +
-                             "\"listId\":\"empty123\"," +
+                             "\"id\":\"empty123\"," +
                              "\"timeCreatedMillis\":123456789," +
                              "\"tags\":{}," +
                              "\"questions\": []" +
@@ -399,12 +399,12 @@ public class TestQuestionListParser{
     }
 
     @Test
-    @DisplayName("Test parsing QuestionList with missing 'listId' (should generate one)")
+    @DisplayName("Test parsing QuestionList with missing 'id' (should generate one)")
     void testParseMissingListId() throws IOException {
-        // Remove listId from the sample JSON
+        // Remove id from the sample JSON
         String jsonContent = "{" +
                              "\"authorId\":\"authorMissingId\", " +
-                             "\"name\":\"Quiz with no listId\", " +
+                             "\"name\":\"Quiz with no id\", " +
                              "\"timeCreatedMillis\":1000000000000," +
                              "\"tags\":{}," +
                              "\"questions\": []" +
@@ -412,8 +412,8 @@ public class TestQuestionListParser{
         QuestionList questionList = QuestionListParser.fromString(jsonContent);
 
         assertNotNull(questionList);
-        assertNotNull(questionList.getListId());
-        assertTrue(questionList.getListId().length()== QuestionListHash.DEFAULT_LENGTH);
+        assertNotNull(questionList.getId());
+        assertTrue(questionList.getId().length()== QuestionListHash.DEFAULT_LENGTH);
     }
 
     @Test
@@ -423,7 +423,7 @@ public class TestQuestionListParser{
         String jsonContent = "{" +
                              "\"authorId\":\"authorMissingTime\", " +
                              "\"name\":\"Quiz with no time\"," +
-                             "\"listId\":\"fixedid\"," +
+                             "\"id\":\"fixedid\"," +
                              "\"tags\":{}," +
                              "\"questions\": []" +
                              "}";

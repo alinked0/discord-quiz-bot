@@ -18,6 +18,7 @@ import java.util.Random;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 
+import kotlin.Pair;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.utils.TimeFormat;
 
@@ -60,8 +61,10 @@ public class QuestionList extends ArrayList<Question> {
 	private String authorId;
 	private Map<String,Emoji> tags;
 	private String name;
+	public static double pointsForCorrect = 1.00;
+	public static double pointsForIncorrect = -0.25;
 	private long timeCreatedMillis;
-	private String listId;
+	private String id;
 
 	static {
 		getExampleQuestionList().exportListQuestionAsJson();
@@ -72,7 +75,7 @@ public class QuestionList extends ArrayList<Question> {
 		private final Map<String,Emoji> tags= new HashMap<>();
 		private String authorId= null;
 		private String name= null;
-		private String listId= null;
+		private String id= null;
 		private long timeCreatedMillis= 0L;
 
 		public  Builder authorId(String authorId){
@@ -91,8 +94,8 @@ public class QuestionList extends ArrayList<Question> {
 			this.name = listName;
 			return this;
 		}
-		public  Builder id(String listId){
-			this.listId = listId;
+		public  Builder id(String id){
+			this.id = id;
 			return this;
 		}
 		public  Builder timeCreatedMillis(long timeCreatedMillis){
@@ -120,7 +123,7 @@ public class QuestionList extends ArrayList<Question> {
 		this.authorId = builder.authorId;
 		this.name = builder.name;
 		this.tags = builder.tags;
-		this.listId = builder.listId;
+		this.id = builder.id;
 		this.timeCreatedMillis = builder.timeCreatedMillis;
 		this.addAll(builder.list);
 	}
@@ -138,7 +141,7 @@ public class QuestionList extends ArrayList<Question> {
 		this.name = name;
 		this.tags = new HashMap<>();
 		this.timeCreatedMillis = System.currentTimeMillis();
-		this.listId = QuestionListHash.generate(authorId+name, timeCreatedMillis);
+		this.id = QuestionListHash.generate(authorId+name, timeCreatedMillis);
 	}
 
 	/**
@@ -152,7 +155,7 @@ public class QuestionList extends ArrayList<Question> {
 		this.name = name;
 		this.tags = new HashMap<>();
 		this.timeCreatedMillis = System.currentTimeMillis();
-		this.listId = QuestionListHash.generate(authorId+name, timeCreatedMillis);
+		this.id = QuestionListHash.generate(authorId+name, timeCreatedMillis);
 	}
 
 	/**
@@ -168,7 +171,7 @@ public class QuestionList extends ArrayList<Question> {
 			this.authorId = res.getAuthorId();
 			this.tags = res.getTags();
 			this.timeCreatedMillis = res.getTimeCreatedMillis();
-			this.listId = res.getListId();
+			this.id = res.getId();
 		}
 	}
 
@@ -211,11 +214,11 @@ public class QuestionList extends ArrayList<Question> {
 	}
 
 	/**
-	 * Sets the listId for this QuestionList.
-	 * @param listId the new listId
+	 * Sets the id for this QuestionList.
+	 * @param id the new id
 	 */
-	public void setListId(String listId){
-		this.listId = listId;
+	public void setId(String id){
+		this.id = id;
 	}
 
 	/**
@@ -232,8 +235,8 @@ public class QuestionList extends ArrayList<Question> {
 	 *
 	 * @return the list ID
 	 */
-	public String getListId() {
-		return listId;
+	public String getId() {
+		return id;
 	}
 
 	/**
@@ -292,7 +295,7 @@ public class QuestionList extends ArrayList<Question> {
 	 */
 	public String getPathToList(){
 		String p = Constants.LISTSPATH+Constants.SEPARATOR+getAuthorId()+Constants.SEPARATOR;
-		p+=getListId()+".json";
+		p+=getId()+".json";
 		return p;
 	}
 
@@ -378,8 +381,8 @@ public class QuestionList extends ArrayList<Question> {
         return (e, f)->(e.getName().compareTo(f.getName()));
     }
 
-	public static Comparator<? super QuestionList> comparatorByListId() {
-        return (e, f)->(e.getListId().compareTo(f.getListId()));
+	public static Comparator<? super QuestionList> comparatorById() {
+        return (e, f)->(e.getId().compareTo(f.getId()));
     }
 	
 	/**
@@ -403,7 +406,7 @@ public class QuestionList extends ArrayList<Question> {
 		tab = "\t";
 		res += tab+"\"authorId\":\""+getAuthorId()+"\",\n";
 		res += tab + "\"name\":\""+getName()+"\",\n";
-		res += tab + "\"listId\":\""+getListId()+"\",\n";
+		res += tab + "\"id\":\""+getId()+"\",\n";
 		res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
 
 		res += tab + "\"tags\":{";
@@ -475,7 +478,7 @@ public class QuestionList extends ArrayList<Question> {
 	public int hashCode() {
 		return getAuthorId().hashCode()*7 + getName().hashCode()
 				+ super.hashCode() + (int) (getTimeCreatedMillis() % Integer.MAX_VALUE)
-				+ getListId().hashCode();
+				+ getId().hashCode();
 	}
 	
 	/**
@@ -505,7 +508,7 @@ public class QuestionList extends ArrayList<Question> {
 		sort((a,b)->r.nextBoolean()?-1:1);
 	}
 	public String header(){
-		String res = String.format("**Name:**%s\n**Author:**<@%s>\n**nb of questions:**`%d`\n**Date created:**%s\n", 
+		String res = String.format("**Name:** **%s**\n**Author:** <@%s>\n**nb of questions:** `%d`\n**Date created:** %s\n", 
 			getName(), getAuthorId(),size(), TimeFormat.DATE_TIME_LONG.atTimestamp(getTimeCreatedMillis()));
 		return res;
 	}
@@ -518,22 +521,37 @@ public class QuestionList extends ArrayList<Question> {
 		}
 		return questionText + options;
 	}
-	public String getFormatedWithAwnsers (int index) {
+	public Pair<Double, String> getFormatedCorrection (int index, Collection<Option> opts, double pointsForCorrect, double pointsForIncorrect) {
+		double points = 0.00;
 		Question q = get(index);
-		q.sort((e,f)->e.isCorrect()?-1:1);
+		int numberOfTrueOptions = q.getTrueOptions().size();
 		String optsString = "";
 		Option opt;
-		for (int i = 0; i < q.size(); i++) {
+		Emoji emoji;
+		for (int i = 0; i < q.size(); i++){
 			opt = q.get(i);
 			optsString += String.format("> %d. %s\n", i + 1, opt.getText());
-			optsString += String.format("> %s%s\n",
-				(opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT).getFormatted(),
-				opt.getExplicationFriendly());
+			if (opts != null && opts.contains(opt)) {
+				points += opt.isCorrect() ? pointsForCorrect / numberOfTrueOptions : pointsForIncorrect;
+				emoji = (opt.isCorrect() ? Constants.EMOJITRUE : Constants.EMOJIFALSE);
+			} else {
+				emoji = (opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT);
+			}
+			optsString += String.format("> %s*%s*\n",emoji.getFormatted(),opt.getExplicationFriendly());
 		}
-		String text = String.format("`%s` %s\n",getListId(), getName());
-		text += String.format("### %d/%d. %s\n%s", index+1, size(), q.getQuestion(), optsString);
-		text += String.format("> \n> **%s**\n", q.getExplicationFriendly());
-		return text;
+		String text = String.format("`%s` `%d` **%s**\n",getId(), size(), getName());
+		text += String.format("### %d. %s", index+1, q.getQuestion());
+		if (opts!=null && pointsForCorrect != 0.0){
+			text += String.format(" `%s/%s`", points,pointsForCorrect);
+		}
+		text += String.format("\n%s> \n> **%s**\n", optsString, q.getExplicationFriendly());
+		return new Pair<Double, String>(points, text);
+	}
+	public Pair<Double, String> getFormatedCorrection (int index, Collection<Option> opts) {
+		return getFormatedCorrection (index, opts, pointsForCorrect, pointsForIncorrect);
+	}
+	public String getFormatedCorrection (int index) {
+		return getFormatedCorrection (index, null, 0.0, 0.0).getSecond();
 	}
 	public static QuestionList getExampleQuestionList(){
 		return new QuestionList.Builder()
@@ -552,8 +570,8 @@ public class QuestionList extends ArrayList<Question> {
 	public static int myBinarySearchIndexOf(List<QuestionList> tab, String listName){
 		return myBinarySearchIndexOf(tab, 0, tab.size()-1, listName);
 	}
-	public static QuestionList getQuestionListByListId(String listId) {
-		return Users.getQuestionListByListId(listId);
+	public static QuestionList getQuestionListById(String id) {
+		return Users.getQuestionListById(id);
 	}
 	public static QuestionList getQuestionListByName(String listName) {
 		return Users.getQuestionListByName(listName);

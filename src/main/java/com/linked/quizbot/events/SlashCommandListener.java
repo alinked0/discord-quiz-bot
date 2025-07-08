@@ -73,7 +73,7 @@ public class SlashCommandListener extends ListenerAdapter {
 		}
 		event.reply(cmd.getDescription()).queue();
 		MessageSender.sendCommandOutput(
-			cmd.execute(userId, channelId, args, false),
+			cmd.execute(userId, args),
 			channel,
 			null 
 		);

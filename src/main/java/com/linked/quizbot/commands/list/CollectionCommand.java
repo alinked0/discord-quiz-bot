@@ -81,7 +81,7 @@ public class CollectionCommand extends BotCommand {
         return tmp;
     }
 	@Override
-	public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+	public CommandOutput execute(String userId,  List<String> args){
 		List<String> res = new ArrayList<>();
 		String tmp = "Collection of ";
 		tmp += String.format("<@%s>\n",userId);
@@ -106,7 +106,7 @@ public class CollectionCommand extends BotCommand {
 			for (Emoji e: emojis){
 				emojiStr +=e.getAsReactionCode();
 			}
-			tmp += String.format("`%s`%s`%s`\n", l.getListId(),emojiStr,l.getName());
+			tmp += String.format("`%s`%s%s\n", l.getId(),emojiStr,l.getName());
 			if (tmp.length()>Constants.CHARSENDLIM - 400) {
 				res.add(tmp);
 				tmp = "";
@@ -115,7 +115,6 @@ public class CollectionCommand extends BotCommand {
 		if (tmp.length()>0) res.add(tmp);
 		return new CommandOutput.Builder()
 				.addAllTextMessage(res)
-				.reply(reply)
 				.build();
     }
 }

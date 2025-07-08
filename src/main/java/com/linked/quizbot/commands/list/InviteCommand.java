@@ -18,7 +18,7 @@ public class InviteCommand extends BotCommand {
 	@Override
     public String getDescription(){ return cmdDesrciption;}
     @Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+    public CommandOutput execute(String userId,  List<String> args){
         List<Permission> permissions = new LinkedList<>(
             List.of(
                 Permission.CREATE_PUBLIC_THREADS, 
@@ -36,7 +36,7 @@ public class InviteCommand extends BotCommand {
         String res = String.format("`%s`", BotCore.getJDA().getInviteUrl(permissions));
 		return new CommandOutput.Builder()
 				.addTextMessage(res)
-				.reply(reply)
+				
 				.build();
     }
 }

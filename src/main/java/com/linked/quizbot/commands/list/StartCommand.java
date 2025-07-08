@@ -3,21 +3,15 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListHash;
 import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.Question;
 
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -80,17 +74,17 @@ public class StartCommand extends BotCommand{
 	@Override
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<OptionData>();
-        res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME, true).setRequiredLength(QuestionListHash.DEFAULT_LENGTH, QuestionListHash.DEFAULT_LENGTH));
+        res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME, true)
+        .setRequiredLength(QuestionListHash.DEFAULT_LENGTH, QuestionListHash.DEFAULT_LENGTH));
         return res;
     }
     @Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+    public CommandOutput execute(String userId,  List<String> args){
 		QuestionList questions = args.size()>0?getSelectedQuestionList(args.get(0)): null;
         if (questions==null){
-			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, channelId, List.of(getName()), reply);
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        QuizBot newQuizBot = new QuizBot(channelId, questions);
-        BotCore.addQuizBot(newQuizBot);
-        return BotCore.getQuizBot(channelId).start();
+        QuizBot newQuizBot = new QuizBot(questions);
+        return newQuizBot.start();
     }
 }

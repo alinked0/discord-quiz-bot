@@ -35,12 +35,12 @@ public class RawCommand extends BotCommand{
         return res;
     }
 	@Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+    public CommandOutput execute(String userId,  List<String> args){
 		QuestionList l = args.size()>0?getSelectedQuestionList(args.get(0)): null;
         if (l==null){
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        CommandOutput.Builder outputBuilder = new CommandOutput.Builder().reply(reply);
+        CommandOutput.Builder outputBuilder = new CommandOutput.Builder();
         outputBuilder.addFile(new File(l.getPathToList()));
 		return outputBuilder.build();
     }

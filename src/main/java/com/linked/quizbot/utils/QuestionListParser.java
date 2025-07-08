@@ -51,7 +51,7 @@ public class QuestionListParser {
 				fieldName = jp.currentName().toLowerCase();
 				jp.nextToken();
 				switch (fieldName){
-					case "authorid" -> {
+					case "authorid","userid","user" -> {
 						outputBuilder.authorId(jp.getText());
 					}
 					case "tags" -> {
@@ -63,7 +63,7 @@ public class QuestionListParser {
 					case "timecreatedmillis" -> {
 						outputBuilder.timeCreatedMillis(jp.getValueAsLong());
 					}
-					case "listid" -> {
+					case "id","listid" -> {
 						outputBuilder.id(jp.getText());
 					}
 					case "questions" -> {
@@ -75,10 +75,10 @@ public class QuestionListParser {
 			}
 		}while (!jp.isClosed());
 		QuestionList reuslt = outputBuilder.build();
-		if (reuslt.getListId()==null || reuslt.getListId().isEmpty()|| reuslt.getListId().length()!=QuestionListHash.DEFAULT_LENGTH){
-			reuslt.setListId(QuestionListHash.generate(reuslt.getAuthorId()+reuslt.getName(), reuslt.getTimeCreatedMillis()));
+		if (reuslt.getId()==null || reuslt.getId().isEmpty()|| reuslt.getId().length()!=QuestionListHash.DEFAULT_LENGTH){
+			reuslt.setId(QuestionListHash.generate(reuslt.getAuthorId()+reuslt.getName(), reuslt.getTimeCreatedMillis()));
 		} else {
-			QuestionListHash.addGeneratedCode(reuslt.getListId());
+			QuestionListHash.addGeneratedCode(reuslt.getId());
 		}
 		if (reuslt.getTimeCreatedMillis()==0L){
 			reuslt.setTimeCreatedMillis(System.currentTimeMillis());

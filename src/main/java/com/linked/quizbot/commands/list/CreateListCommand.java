@@ -74,11 +74,11 @@ public class CreateListCommand extends BotCommand {
         res.add(new OptionData(OptionType.ATTACHMENT, "jsonfile", "question list written as a json"));
         return res;
     }
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+    public CommandOutput execute(String userId,  List<String> args){
         int n = args.size();
         List<String> res = new ArrayList<>();
         if (n<=0) {
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
         String s;
         for (int i = 0; i<n; i++) {
@@ -90,10 +90,10 @@ public class CreateListCommand extends BotCommand {
                         if(Users.getUserListQuestions(userId).contains(l)) {
                             res.add("Failed, list of name : \""+l.getName()+"\" already exists.\n");
                         } else {
-                            String listId = QuestionListHash.generate(l);
-                            l.setListId(listId);
+                            String id = QuestionListHash.generate(l);
+                            l.setId(id);
                             Users.addListToUser(l.getAuthorId(), l);
-                            res.add("Success, list of name : \""+l.getName()+"\", has been created, \nuse `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+listId+"` command to verife.\n");
+                            res.add("Success, list of name : \""+l.getName()+"\", has been created, \nuse `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+id+"` command to verife.\n");
                         }
                     }else {
                         res.add("Failed to import ```"+args.get(i)+"```, no \"name\" found\n");
@@ -105,7 +105,7 @@ public class CreateListCommand extends BotCommand {
         }
 		return new CommandOutput.Builder()
 				.addAllTextMessage(res)
-				.reply(reply)
+				
 				.build();
     }
     @Override

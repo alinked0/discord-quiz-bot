@@ -38,7 +38,7 @@ public class UserInfoCommand extends BotCommand{
         return res;
     }
 	@Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+    public CommandOutput execute(String userId,  List<String> args){
         String res = "```js\n";
 		User user = args.size()>0?new User(args.get(0)): null;
         if (user==null){
@@ -48,7 +48,7 @@ public class UserInfoCommand extends BotCommand{
         
 		return new CommandOutput.Builder()
 				.addTextMessage(res)
-				.reply(reply)
+				
 				.build();
     }
 

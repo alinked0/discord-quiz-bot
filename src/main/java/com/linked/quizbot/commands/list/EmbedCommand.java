@@ -73,7 +73,7 @@ public class EmbedCommand extends BotCommand {
 	@Override
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
-	public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+	public CommandOutput execute(String userId,  List<String> args){
 		//Liste de l'utilisateur
 		User user = new User(userId);
 		QuestionList list = user.get(0);
@@ -99,7 +99,7 @@ public class EmbedCommand extends BotCommand {
 
 		return new CommandOutput.Builder()
 				.addEmbed(embed.build())
-				.reply(reply)
+				
 				.addPostSendAction(msg -> {
 					for (int j=1; j<=question.size(); j++) {
 						msg.addReaction(Emoji.fromUnicode("U+3"+j+"U+fe0fU+20e3")).queue();

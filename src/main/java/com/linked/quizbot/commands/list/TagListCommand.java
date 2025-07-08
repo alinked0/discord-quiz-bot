@@ -37,9 +37,9 @@ public class TagListCommand extends BotCommand{
         return res;
     }
 	@Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+    public CommandOutput execute(String userId,  List<String> args){
         if (args.size() < getRequiredOptionData().size()){
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
         String tagNameInput=args.get(0);
         User user = new User(userId);
@@ -52,13 +52,13 @@ public class TagListCommand extends BotCommand{
         QuestionList k;
         if (emoji!=null){
             for(int i=1; i<args.size(); i++){
-                k= user.getByListId(args.get(i));
+                k= user.getById(args.get(i));
                 if (k==null){
                     notOwnedStr += " `"+args.get(i)+"`";
                     totalNotOwned +=1;
                 } else {
-                    Users.addTagToList( k.getListId(), tagNameInput);
-                    taggedStr += " `"+k.getListId()+"`";
+                    Users.addTagToList( k.getId(), tagNameInput);
+                    taggedStr += " `"+k.getId()+"`";
                     totalTagged += 1;
                 }
             }
@@ -70,7 +70,7 @@ public class TagListCommand extends BotCommand{
         
 		return new CommandOutput.Builder()
 				.addTextMessage(res)
-				.reply(reply)
+				
 				.build();
     }
 

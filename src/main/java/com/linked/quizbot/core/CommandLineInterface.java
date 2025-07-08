@@ -116,7 +116,7 @@ public class CommandLineInterface {
 			}
 			System.out.print("\n");
 		}
-		return cmd.execute(userId, null, arguments, false).getAsText();
+		return cmd.execute(userId, arguments).getAsText();
 	}
 	public static List<String> parsePrefixe(String userId, String message){
 		String prefixe;

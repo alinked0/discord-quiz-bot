@@ -14,6 +14,7 @@ import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.ExplainCommand;
 import com.linked.quizbot.commands.list.HelpCommand;
+import com.linked.quizbot.events.ButtonListener;
 import com.linked.quizbot.events.CommandLineListener;
 import com.linked.quizbot.events.ReactionListener;
 import com.linked.quizbot.events.SlashCommandListener;
@@ -42,21 +43,19 @@ public class BotCore {
 	public static JDA jda = null;
 	public static Random rand = new Random();
 	public static  String cmdPrefixe = Constants.CMDPREFIXE;
-	public static Map<String, QuizBot> channelByQuizBot = new HashMap<>();
-	public static Map<String, QuizBot> channelByLastQuizBot = new HashMap<>();
-	public static Map<String, Viewer> messageIdByViewer = new HashMap<>();
+	public static Map<String, Viewer> viewerByMessageId = new HashMap<>();
 	public static Set<BotCommand> commands = new HashSet<>();
-	public static List<QuizBot> listOfGames = new ArrayList<>();
+	public static List<Viewer> listOfGames = new ArrayList<>();
 	public static Set<User> allUsers = new HashSet<>();
 	public static Map<String, QuestionList> toBeDeleted = new HashMap<>();
 	public static Map<String, Message> deletionMessages = new HashMap<>();
-	public static Map<String, Set<String>> explicationRequestByChannel = new HashMap<>();
+	public static Set<String> explicationRequest = new HashSet<>();
 
 	public static Random getRandom(){ return rand;}
 	public static String getPrefixe() { return cmdPrefixe;}
 	public static List<User> getAllUsers() { return new ArrayList<>(allUsers);}
 	public static void addUser(User u) { allUsers.add(u);}
-	public static List<QuizBot> getListOfQuizBots() {
+	public static List<Viewer> getListOfViewers() {
 		return listOfGames;
 	}
 	public static JDA getJDA() {
@@ -78,6 +77,7 @@ public class BotCore {
 		jda.addEventListener(
 			new SlashCommandListener(), 
 			new ReactionListener(), 
+			new ButtonListener(),
 			new CommandLineListener(),
 			new readyEvent()
 		);
@@ -103,23 +103,8 @@ public class BotCore {
 	public static boolean isShutingDown(){
 		return BotCore.SHUTINGDOWN;
 	}
-	public static void addQuizBot(QuizBot q) {
-		String currChannel = q.getChannelId();
-		QuizBot oldQuiz = channelByQuizBot.put(currChannel, q);//channelByQuizBot.getOrDefault(currChannel, null);
-		if (null != oldQuiz){
-			oldQuiz.end();
-			channelByLastQuizBot.put(currChannel, oldQuiz);
-			channelByQuizBot.remove(currChannel);
-			listOfGames.remove(oldQuiz);
-		}
-		listOfGames.add(q);
-		channelByQuizBot.get(currChannel);
-	}
-	public static QuizBot getQuizBot(String channelId) {
-		QuizBot q =channelByQuizBot.getOrDefault(channelId, null);
-		if (q==null){
-			q = channelByLastQuizBot.getOrDefault(channelId, null);
-		}
+	public static Viewer getViewer(String messageId) {
+		Viewer q =viewerByMessageId.getOrDefault(messageId, null);
 		return q;
 	}
 	public static void comfirmDeletion(Message message, QuestionList l) {
@@ -128,36 +113,13 @@ public class BotCore {
 		toBeDeleted.put(messageId, l);
 		deletionMessages.put(messageId, message);
 	}
-	public static QuizBot getPrevQuizBot(String channelId){ 
-		return channelByLastQuizBot.get(channelId);
+	public static Viewer getCurrViewer(String messageId) {
+		return viewerByMessageId.getOrDefault(messageId, null);
 	}
-	public static QuizBot getPrevQuizBot(MessageChannel channel){ 
-		return BotCore.getPrevQuizBot(channel.getId());
-	}
-	public static QuizBot getCurrQuizBot(MessageChannel channel) {
-		return BotCore.getCurrQuizBot(channel.getId());
-	}
-	public static QuizBot getCurrQuizBot(String channelId) {
-		return channelByQuizBot.getOrDefault(channelId, null);
-	}
-	public static void endQuizBot (QuizBot q) {
-		String currChannelId = q.getChannelId();
-		channelByLastQuizBot.put(currChannelId, q);
-		channelByQuizBot.remove(currChannelId);
-		listOfGames.remove(q);
+	public static void endViewer (Viewer q) {
+		String messageId = q.getMessageId();
+		viewerByMessageId.remove(messageId);
 		q.end();
-		updateTotalPointsEverGained(q);
-	}
-	public static void updateTotalPointsEverGained(QuizBot q){
-		if (q.isActive()){
-			return;
-		}
-		for (String user : q.getPlayers()){
-			Users.getUser(user).incrTotalPointsEverGained(q.userScoreExact.get(user));
-		}
-	}
-	public static void updateUserScoreAddReaction(String userId, QuizBot currQuizBot, Emoji reaction) {
-		currQuizBot.updateUserScoreAddReaction( userId, reaction);
 	}
 	public static void deleteList(QuestionList l, String messageId){
 		Users.deleteList(l);
@@ -168,8 +130,8 @@ public class BotCore {
 		} else{
 			message.editMessage("```js\n"+l.toString()+"\n``` is deleted form your collection\n").queue();
 		}
-		toBeDeleted.remove(messageId);
-		deletionMessages.remove(messageId);
+		BotCore.toBeDeleted.remove(messageId);
+		BotCore.deletionMessages.remove(messageId);
 	}
 	public void setPrefixe(String prefixe) { cmdPrefixe = prefixe;}
 	public static String getEffectiveNameFromId(String userId){

@@ -108,7 +108,7 @@ public class QuestionListHash {
         }
         return sb.toString();
     }
-    public static boolean isAlreadyInUse(String listId){
-        return QuestionListHash.generatedCodes.contains(listId);
+    public static boolean isAlreadyInUse(String id){
+        return QuestionListHash.generatedCodes.contains(id);
     }
 }

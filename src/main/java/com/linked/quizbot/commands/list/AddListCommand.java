@@ -4,11 +4,9 @@ import java.util.List;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListHash;
@@ -43,12 +41,13 @@ public class AddListCommand extends BotCommand{
         return res;
     }
 	@Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+    public CommandOutput execute(String userId,  List<String> args){
         int n = args.size();
         List<String> res = new ArrayList<>();
         if (n<=0) {
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
+        CommandOutput.Builder output = new CommandOutput.Builder();
         for (int i = 0; i<n; i++) {
             try {
                 QuestionList l = QuestionListParser.fromString(args.get(i));
@@ -56,16 +55,13 @@ public class AddListCommand extends BotCommand{
                     if (l.getAuthorId()==null) {
                         l.setAuthorId(userId);
                     }
-                    res.add(addListAndReturnMessage(l));
+                    output.addTextMessage(addListAndReturnMessage(l));
                 }
             }catch (IOException e){
-                res.add("Failed to import ```js\n"+args.get(i)+"```\n");
+                output.addTextMessage("Failed to import ```js\n"+args.get(i)+"```\n");
             }
         }
-		return new CommandOutput.Builder()
-				.addAllTextMessage(res)
-				.reply(reply)
-				.build();
+		return output.build();
     }
     @Override
 	public List<String> parseArguments(String cmndLineArgs){
@@ -74,28 +70,28 @@ public class AddListCommand extends BotCommand{
 		return res;
 	}
     private String addListAndReturnMessage(QuestionList l) {
-        String res = "";
+        String res;
         res = "Failed, list of name : \""+l.getName()+"\" doesn't exists.";
         if (QuestionList.getExampleQuestionList().getName().equals(l.getName())) {
             res = "The example list cannot be modified.\n";
             return res;
         }
         QuestionList k;
-        if (l.getListId()!=null && l.getListId().length()==QuestionListHash.DEFAULT_LENGTH) {
-            k = Users.getQuestionListByListId(l.getListId());
+        if (l.getId()!=null && l.getId().length()==QuestionListHash.DEFAULT_LENGTH) {
+            k = Users.getQuestionListById(l.getId());
             if(k != null) {
                 Users.addListToUser(l.getAuthorId(), l);
-                String index = l.getListId();
+                String index = l.getId();
                 res = "Success, list has been added, use `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+index+"` command to verife.\n";
                 return res;
             }
         }
-        if (l.getName()!=null /*&& l.getTheme()!=null*/) {
+        if (l.getName()!=null) {
             k = Users.getQuestionListByName(l.getName());
             if(k != null) {
                 Users.addListToUser(l.getAuthorId(), l);
-                String index = k.getListId();
-                res = "Success, list has been added, use `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+index+"` command to verife.\n";
+                String index = k.getId();
+                res = "Success, list has been added, check with `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+index+"` .\n";
                 return res;
             }
         }

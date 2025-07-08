@@ -10,10 +10,12 @@ import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.core.Viewer;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
  * The {@code MoreTimeCommand} class adds a few more secs on the awnser time.
@@ -44,21 +46,23 @@ public class MoreTimeCommand extends BotCommand {
 		return "`"+Constants.CMDPREFIXE+getName()+" 30` sending the current question with a time of 30s.\n`"+Constants.CMDPREFIXE+getName()+" ` re-sending the current question with the previous time.";
 	}
 	@Override
-	public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
-		QuizBot q = BotCore.getCurrQuizBot(channelId);
+    public List<OptionData> getOptionData(){
+        return BotCommand.getCommandByName(PreviousCommand.CMDNAME).getOptionData();
+    }
+	@Override
+	public CommandOutput execute(String userId,  List<String> args){
+		if (args.size() < getRequiredOptionData().size()){
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+		}
+        String messageId = args.get(0);
+		QuizBot q = (QuizBot) BotCore.getCurrViewer(messageId);
 		int n = args.size();
 		if (q == null){
-			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, channelId, List.of(getName()), reply);
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		if(n>0) {
-			int sec = Integer.parseInt(args.get(0));
+		if(n>1) {
+			int sec = Integer.parseInt(args.get(1));
 			q.setDelay(sec);
-		}
-		Message msg = q.getMessage();
-		try {
-			msg.delete().queueAfter(3, TimeUnit.SECONDS);
-		} catch(Exception e) {
-			e.printStackTrace();
 		}
 		return q.current();
 	}

@@ -19,7 +19,7 @@ public class PingCommand extends BotCommand {
 	public List<String> getAbbreviations(){ return abbrevs;}
 	public String getName(){ return CMDNAME;}
 	public String getDescription(){ return cmdDesrciption;}
-	public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+	public CommandOutput execute(String userId,  List<String> args){
 		long start = System.nanoTime();
 
 		// Get the JDA instance from the channel to access gateway ping
@@ -34,7 +34,7 @@ public class PingCommand extends BotCommand {
 									internalProcessingTimeMs, gatewayPing);
 		return new CommandOutput.Builder()
 				.addTextMessage(res)
-				.reply(reply)
+				
 				.build();
 	}
 }

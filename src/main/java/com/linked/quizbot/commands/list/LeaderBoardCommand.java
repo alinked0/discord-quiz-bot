@@ -11,10 +11,12 @@ import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.core.Viewer;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class LeaderBoardCommand extends BotCommand {
@@ -33,44 +35,38 @@ public class LeaderBoardCommand extends BotCommand {
 	@Override
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
-	public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
-		QuizBot q = BotCore.getCurrQuizBot(channelId);
-		if (q == null){
-			q = BotCore.getPrevQuizBot(channelId);
+    public List<OptionData> getOptionData(){
+        return BotCommand.getCommandByName(PreviousCommand.CMDNAME).getOptionData();
+    }
+	@Override
+	public CommandOutput execute(String userId,  List<String> args){
+		if (args.size() < getRequiredOptionData().size()){
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
+        String messageId = args.get(0);
+		QuizBot q =(QuizBot) BotCore.viewerByMessageId.get(messageId);
 		if(q == null) {
-			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, channelId, List.of(getName()), reply);
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		CommandOutput.Builder outputBuilder = new CommandOutput.Builder().reply(reply);
-
+		CommandOutput.Builder outputBuilder = new CommandOutput.Builder();
 		List<String> lb = q.leaderBoard();
 		outputBuilder.addAllTextMessage(lb);
 		Consumer<Message> leaderboardPostSendAction = sentMessage -> {
-			BotCore.explicationRequestByChannel.putIfAbsent(channelId, new HashSet<>());
-			BotCore.explicationRequestByChannel.get(channelId).add(sentMessage.getId());
-
-			// Add the reaction
-			sentMessage.addReaction(Constants.EMOJIEXPLICATION).queue(
-				reactionSuccess -> {
-					// Schedule clearing of reactions after a delay
-					sentMessage.clearReactions().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES,
-						clearSuccess -> {
-							// Remove message ID from the tracking set after reactions are cleared
-							BotCore.explicationRequestByChannel.get(channelId).remove(sentMessage.getId());
-						},
-						clearFailure -> {
-							System.err.println("Failed to clear reactions for message " + sentMessage.getId() + ": " + clearFailure.getMessage());
-							BotCore.explicationRequestByChannel.get(channelId).remove(sentMessage.getId()); // Still try to remove from tracking
-						}
-					);
+			BotCore.explicationRequest.add(sentMessage.getId());
+			// Schedule clearing of reactions after a delay
+			if (sentMessage.isFromGuild())
+			sentMessage.clearReactions().queueAfter(Constants.READTIMEMIN, TimeUnit.MINUTES,
+				clearSuccess -> {
+					// Remove message ID from the tracking set after reactions are cleared
+					BotCore.explicationRequest.remove(sentMessage.getId());
 				},
-				reactionFailure -> {
-					System.err.println("Failed to add reaction to message " + sentMessage.getId() + ": " + reactionFailure.getMessage());
-					BotCore.explicationRequestByChannel.get(channelId).remove(sentMessage.getId()); // Clean up if reaction fails to add
+				clearFailure -> {
+					System.err.println("Failed to clear reactions for message " + sentMessage.getId() + ": " + clearFailure.getMessage());
+					BotCore.explicationRequest.remove(sentMessage.getId()); // Still try to remove from tracking
 				}
 			);
 		};
-		outputBuilder.addPostSendAction(leaderboardPostSendAction);
+		outputBuilder.addReaction(Constants.EMOJIEXPLICATION).addPostSendAction(leaderboardPostSendAction);
 		
 		// Build and return the CommandOutput
 		return outputBuilder.build();

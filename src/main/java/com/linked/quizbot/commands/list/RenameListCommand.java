@@ -48,27 +48,27 @@ public class RenameListCommand extends BotCommand{
 		return res;
 	}
 	@Override
-	public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+	public CommandOutput execute(String userId,  List<String> args){
 		if (args.size() < getRequiredOptionData().size()){
-			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId,  channelId, List.of(getName()), reply);
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		String listId=args.get(0);
+		String id=args.get(0);
 		String newName=args.get(1);
 		User u = Users.get(userId);
-		QuestionList l = u.getByListId(listId);
+		QuestionList l = u.getById(id);
 		CommandOutput.Builder output = new CommandOutput.Builder();
 		if (l==null){
-			output.addTextMessage(String.format("Could not find `%s` in your collection.", listId));
+			output.addTextMessage(String.format("Could not find `%s` in your collection.", id));
 		}else {
 			String oldName= l.getName();
 			if(u.renameList(l, newName)){
-				output.addTextMessage(String.format("`%s` **%s** was renamed to `%s` **%s** .", listId, oldName, listId, newName));
+				output.addTextMessage(String.format("`%s` **%s** was renamed to `%s` **%s** .", id, oldName, id, newName));
 			}else {
 				QuestionList k = u.getByName(newName);
-				output.addTextMessage(String.format("There is already a list of this name, `%s` **%s** .", k.getListId(), k.getName()));
+				output.addTextMessage(String.format("There is already a list of this name, `%s` **%s** .", k.getId(), k.getName()));
 			}
 		}
-		return output.reply(reply).build();
+		return output.build();
 	}
 
 }

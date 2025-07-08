@@ -33,7 +33,7 @@ import net.dv8tion.jda.api.utils.AttachedFile;
 public class User implements Iterable<QuestionList>{
 	private String userId;
 	private String perferedPrefix;
-	protected List<QuestionList> listsSortedByListId;
+	protected List<QuestionList> listsSortedById;
 	private int numberOfGamesPlayed;
 	private double totalPointsEverGained;
 	private Map<String, Emoji> tagEmojiPerTagName;
@@ -42,7 +42,7 @@ public class User implements Iterable<QuestionList>{
 	public static class Builder {
         private String userId=null;
         private String perferedPrefix = null;
-        protected List<QuestionList> listsSortedByListId = new ArrayList<>();
+        protected List<QuestionList> listsSortedById = new ArrayList<>();
         private int numberOfGamesPlayed=0;
         private double totalPointsEverGained=0;
         private Map<String, Emoji> tagEmojiPerTagName= new HashMap<>();
@@ -79,16 +79,16 @@ public class User implements Iterable<QuestionList>{
             this.questionListPerTags = questionListPerTags;
             return this;
         }
-		public Builder listsSortedByListId(List<QuestionList> listsSortedByListId){
-            this.listsSortedByListId = new ArrayList<>(listsSortedByListId);
+		public Builder listsSortedById(List<QuestionList> listsSortedById){
+            this.listsSortedById = new ArrayList<>(listsSortedById);
             return this;
         }
 		public Builder add(QuestionList l){
-            this.listsSortedByListId.add(l);
+            this.listsSortedById.add(l);
             return this;
         }
 		public Builder addAll(List<QuestionList> c){
-            this.listsSortedByListId.addAll(c);
+            this.listsSortedById.addAll(c);
             return this;
         }
 		public User build(){
@@ -103,7 +103,7 @@ public class User implements Iterable<QuestionList>{
 		this.totalPointsEverGained = builder.totalPointsEverGained;
 		this.tagEmojiPerTagName = builder.tagEmojiPerTagName;
 		this.questionListPerTags = builder.questionListPerTags;
-		this.listsSortedByListId = builder.listsSortedByListId;
+		this.listsSortedById = builder.listsSortedById;
 		File folder = new File(Constants.LISTSPATH+Constants.SEPARATOR+ userId);
 		File[] listOfFiles = folder.listFiles();
 		if(listOfFiles != null) {
@@ -111,28 +111,28 @@ public class User implements Iterable<QuestionList>{
 				if (List.of("user-data.json", "tmp").contains(listOfFiles[i].getName())) continue;
 				try{
 					QuestionList l = QuestionList.importListQuestionFromJson(listOfFiles[i].getAbsolutePath());
-                    if (!listsSortedByListId.contains(l)){
-                        listsSortedByListId.add(l);
+                    if (!listsSortedById.contains(l)){
+                        listsSortedById.add(l);
                     }
 				}catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
 		}
-		listsSortedByListId.sort(QuestionList.comparatorByListId());;
+		listsSortedById.sort(QuestionList.comparatorById());;
 	}
 	public User(String userId){
 		this(new User.Builder());
 		this.userId = userId;
-		listsSortedByListId = getUserListQuestions(userId);
+		listsSortedById = getUserListQuestions(userId);
 		initStats();
 		initTags();
 	}
 	private void initTags(){
 		Map<String, Emoji> tags;
-		listsSortedByListId.sort(QuestionList.comparatorByListId());
-		for(QuestionList l: listsSortedByListId){
-			QuestionListHash.addGeneratedCode(l.getListId());
+		listsSortedById.sort(QuestionList.comparatorById());
+		for(QuestionList l: listsSortedById){
+			QuestionListHash.addGeneratedCode(l.getId());
 			tags = l.getTags();
 			tagEmojiPerTagName.putAll(tags);
 			for (String tagName : tags.keySet()){
@@ -168,7 +168,7 @@ public class User implements Iterable<QuestionList>{
 		exportUserData();
 	}
 	public List<QuestionList> getLists() {
-		List<QuestionList> res = new ArrayList<>(listsSortedByListId);
+		List<QuestionList> res = new ArrayList<>(listsSortedById);
 		return res;
 	}
 	public String getUserId(){ return userId;}
@@ -177,14 +177,14 @@ public class User implements Iterable<QuestionList>{
 		return Constants.USERDATAPATH+Constants.SEPARATOR+getUserId()+Constants.SEPARATOR+"user-data.json";
 	}
 	public QuestionList get(int index) {
-		return listsSortedByListId.get(index);
+		return listsSortedById.get(index);
 	}
 	public static String getCodeForQuestionListId(QuestionList l){
-		String listId = l.getListId();
-		if (listId==null || listId.length()<Constants.DISCORDIDLENMIN){
-			listId = QuestionListHash.generate(l);
+		String id = l.getId();
+		if (id==null || id.length()<Constants.DISCORDIDLENMIN){
+			id = QuestionListHash.generate(l);
 		}
-		return listId;
+		return id;
 	}
 	public double getTotalPointsEverGained(){
 		return totalPointsEverGained;
@@ -224,15 +224,15 @@ public class User implements Iterable<QuestionList>{
 		}
 		return new ArrayList<>(res);
 	}
-	public QuestionList getByListId(String listId) {
+	public QuestionList getById(String id) {
 		QuestionList res= null;
-		if (QuestionList.getExampleQuestionList().getListId().equals(listId)){
+		if (QuestionList.getExampleQuestionList().getId().equals(id)){
 			res =  QuestionList.getExampleQuestionList();
 		} else {
-			QuestionList searched = new QuestionList.Builder().id(listId).build();
+			QuestionList searched = new QuestionList.Builder().id(id).build();
 			int i=-1;
 			List<QuestionList> l=getLists();
-			i = Users.myBinarySearchIndexOf(l, searched, QuestionList.comparatorByListId());
+			i = Users.myBinarySearchIndexOf(l, searched, QuestionList.comparatorById());
 			if (i>=0){
 				res = l.get(i);
 			}
@@ -240,7 +240,7 @@ public class User implements Iterable<QuestionList>{
 		return res;
 	}
 	public QuestionList getByName(String listName){
-		List<QuestionList> listsSortedByName = new ArrayList<>(listsSortedByListId);
+		List<QuestionList> listsSortedByName = new ArrayList<>(listsSortedById);
 		listsSortedByName.sort(QuestionList.comparatorByName());
 		int index = QuestionList.myBinarySearchIndexOf(listsSortedByName, listName);
 		if (index<0) return null;
@@ -275,11 +275,11 @@ public class User implements Iterable<QuestionList>{
 		} else {
 			k.addAll(l);
 		}
-		index = myBinarySearchIndexOf(listsSortedByListId, k, QuestionList.comparatorByListId());
+		index = myBinarySearchIndexOf(listsSortedById, k, QuestionList.comparatorById());
 		if (index>=0) {
-			listsSortedByListId.set(index, k);
+			listsSortedById.set(index, k);
 		} else{
-			listsSortedByListId.add(index*-1 -1,k);
+			listsSortedById.add(index*-1 -1,k);
 		}
 		k.exportListQuestionAsJson();
 		Users.update(this);
@@ -294,11 +294,11 @@ public class User implements Iterable<QuestionList>{
 		exportUserData();
 		return true;
 	}
-	public boolean addTagToQuestionList(String tagName, Emoji emoji, String listid) {
+	public boolean addTagToQuestionList(String tagName, Emoji emoji, String id) {
 		if (!tagEmojiPerTagName.containsKey(tagName)) {
 			return false; // Tag hasnt been created
 		}
-		getByListId(listid).addTag(tagName, emoji);
+		getById(id).addTag(tagName, emoji);
 		exportUserData();
 		Users.update(this);
 		return true;
@@ -323,13 +323,13 @@ public class User implements Iterable<QuestionList>{
 		if (k!=null){
 			return false;
 		}
-		int oldIndex = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorByListId());
-		listsSortedByListId.remove(oldIndex);
+		int oldIndex = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorById());
+		listsSortedById.remove(oldIndex);
 		l.setName(newName);
 		return addList(l);
 	}
 	public boolean addTagToList(QuestionList l, String tagName) {
-		int index = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorByListId());
+		int index = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorById());
 		Emoji emoji;
 		List<QuestionList> listsTagged;
 		if (index >= 0) {
@@ -344,15 +344,15 @@ public class User implements Iterable<QuestionList>{
 				}
 				listsTagged.add(l);
 				questionListPerTags.put(tagName, listsTagged);
-				listsSortedByListId.set(index, l);
+				listsSortedById.set(index, l);
 				exportUserData();
 				return true;
 			}
 		}
 		return false;
 	}
-	public static boolean addTagToList(String listId, String tagName) {
-		return Users.addTagToList(listId, tagName);
+	public static boolean addTagToList(String id, String tagName) {
+		return Users.addTagToList(id, tagName);
 	}
 	
 	public boolean removeTagFromList(QuestionList l, String tagName) {
@@ -366,12 +366,12 @@ public class User implements Iterable<QuestionList>{
 		exportUserData();
 		return true;
 	}
-	public static boolean removeTagFromList(String listId, String tagName) {
-		return Users.removeTagFromList(listId, tagName);
+	public static boolean removeTagFromList(String id, String tagName) {
+		return Users.removeTagFromList(id, tagName);
 	}
 	public static void deleteList(QuestionList l){
 		User user = new User(l.getAuthorId());
-		user.listsSortedByListId.remove(l);
+		user.listsSortedById.remove(l);
 		File f = new File(l.getPathToList());
 		f.delete();
 		Users.allUsers.remove(user);
@@ -422,8 +422,8 @@ public class User implements Iterable<QuestionList>{
 		return Users.getUserListQuestions(userId);
 	}
 	public void exportUserLists() {
-		List<QuestionList> listsSortedByListId = getLists();
-		for (QuestionList l : listsSortedByListId) {
+		List<QuestionList> listsSortedById = getLists();
+		for (QuestionList l : listsSortedById) {
 			l.exportListQuestionAsJson();
 		}
 	}

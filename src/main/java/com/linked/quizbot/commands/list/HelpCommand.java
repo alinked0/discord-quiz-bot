@@ -71,7 +71,7 @@ public class HelpCommand extends BotCommand {
         return res;
     }
 	@Override
-    public CommandOutput execute(String userId, String channelId, List<String> args, boolean reply){
+    public CommandOutput execute(String userId,  List<String> args){
 		boolean newbie = args.size() < 1;
 		BotCommand cmd;
 		CommandOutput.Builder outBuilder = new CommandOutput.Builder();

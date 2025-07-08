@@ -112,7 +112,7 @@ public class TestUser {
 		tags.put("fun", Emoji.fromFormatted("😊"));
 		List<QuestionList> preloadedLists = new ArrayList<>();
 		QuestionList l = new QuestionList("builderUser", "ListA");
-		l.setListId("idA");
+		l.setId("idA");
 		l.setTimeCreatedMillis(1L);
 		preloadedLists.add(l);
 
@@ -122,7 +122,7 @@ public class TestUser {
 				.numberOfGamesPlayed(10)
 				.totalPointsEverGained(100.5)
 				.tagEmojiPerTagName(tags)
-				.listsSortedByListId(preloadedLists)
+				.listsSortedById(preloadedLists)
 				.build();
 
 		assertNotNull(user);
@@ -132,7 +132,7 @@ public class TestUser {
 		assertEquals(100.5, user.getTotalPointsEverGained());
 		assertEquals(tags, user.getTagEmojiPerTagName());
 		assertEquals(1, user.getLists().size());
-		assertEquals("idA", user.getLists().get(0).getListId());
+		assertEquals("idA", user.getLists().get(0).getId());
 	}
 
 	@Test
@@ -201,7 +201,7 @@ public class TestUser {
 		List<String> ids = new ArrayList<>(List.of(id1, id2));
 		ids.sort((e, f)-> e.compareTo(f));
 		for (i=0; i<ids.size(); ++i){
-			assertEquals(ids.get(i), userLists.get(i).getListId());
+			assertEquals(ids.get(i), userLists.get(i).getId());
 		}
 		
 		// Verify questionListPerTags map is correctly populated
@@ -209,7 +209,7 @@ public class TestUser {
 		assertTrue(user.getQuestionListPerTags().containsKey("science"));
 		assertTrue(user.getQuestionListPerTags().containsKey("history"));
 		assertEquals(1, user.getQuestionListPerTags().get("science").size());
-		assertEquals(id1, user.getQuestionListPerTags().get("science").get(0).getListId());
+		assertEquals(id1, user.getQuestionListPerTags().get("science").get(0).getId());
 	}
 
 	@Test
@@ -278,7 +278,7 @@ public class TestUser {
 		QuestionList list2 = new QuestionList.Builder().authorId(userId).name("L2").id("id2").timeCreatedMillis(2L).build();
 		User user = new User.Builder()
 				.userId(userId)
-				.listsSortedByListId(new ArrayList<>(Arrays.asList(list1, list2)))
+				.listsSortedById(new ArrayList<>(Arrays.asList(list1, list2)))
 				.build();
 		Users.addUser(user);
 
@@ -383,7 +383,7 @@ public class TestUser {
 		assertEquals(newList, user.getLists().get(0));
 		
 		// Verify list was exported
-		Path listFile = tempListsPath.resolve(userId).resolve(newList.getListId() + ".json");
+		Path listFile = tempListsPath.resolve(userId).resolve(newList.getId() + ".json");
 		assertTrue(Files.exists(listFile));
 		String fileContent = readFileContent(listFile);
 		assertTrue(fileContent.contains("\"name\":\"New List\""));
@@ -403,7 +403,7 @@ public class TestUser {
 
 		User user = new User.Builder()
 			.userId(userId)
-			.listsSortedByListId(new ArrayList<>(Collections.singletonList(existingList)))
+			.listsSortedById(new ArrayList<>(Collections.singletonList(existingList)))
 			.build();
 		Users.addUser(user);
 
@@ -425,21 +425,21 @@ public class TestUser {
 		assertTrue(retrieved.stream().anyMatch(q -> q.getQuestion().equals("New Q")));
 
 		// Verify the file was updated
-		Path listFile = tempListsPath.resolve(userId).resolve(existingList.getListId() + ".json");
+		Path listFile = tempListsPath.resolve(userId).resolve(existingList.getId() + ".json");
 		String fileContent = readFileContent(listFile);
 		assertTrue(fileContent.contains("\"question\":\"New Q\""));
 		assertTrue(fileContent.contains("\"question\":\"Old Q\""));
 	}
 	
 	@Test
-	@DisplayName("Test getUserQuestionListByListId - found")
-	void testGetUserQuestionListByListId_Found() throws IOException {
+	@DisplayName("Test getUserQuestionListById - found")
+	void testGetUserQuestionListById_Found() throws IOException {
 		String userId = "110110110110110110";
-		String listId = QuestionListHash.generate(userId+"Test Quiz", 1L);
+		String id = QuestionListHash.generate(userId+"Test Quiz", 1L);
 		QuestionList list1 = new QuestionList.Builder()
 			.authorId(userId)
 			.name("Test Quiz")
-			.id(listId)
+			.id(id)
 			.timeCreatedMillis(1L)
 			.build();
 		list1.exportListQuestionAsJson(); // Make sure file exists for Users.getUserListQuestions
@@ -447,17 +447,17 @@ public class TestUser {
 		Users.reset();
 		User user = new User(userId); // Constructor will load list1
 
-		QuestionList foundList = user.getByListId(listId);
+		QuestionList foundList = user.getById(id);
 		assertNotNull(foundList);
 		assertEquals(list1, foundList);
 	}
 
 	@Test
-	@DisplayName("Test getUserQuestionListByListId - not found")
-	void testGetUserQuestionListByListId_NotFound() throws IOException {
+	@DisplayName("Test getUserQuestionListById - not found")
+	void testGetUserQuestionListById_NotFound() throws IOException {
 		String userId = "searchUser2";
 		User user = new User(userId); // No lists for this user
-		QuestionList foundList = user.getByListId("nonExistentId");
+		QuestionList foundList = user.getById("nonExistentId");
 		assertNull(foundList);
 	}
 
@@ -525,14 +525,14 @@ public class TestUser {
 
 		// Test found
 		QuestionList searchB = new QuestionList.Builder().id("idB").build();
-		assertEquals(1, User.myBinarySearchIndexOf(lists, searchB, QuestionList.comparatorByListId()));
+		assertEquals(1, User.myBinarySearchIndexOf(lists, searchB, QuestionList.comparatorById()));
 
 		// Test not found (insertion point)
 		QuestionList searchX = new QuestionList.Builder().id("idx").build();
-		assertEquals(-4, User.myBinarySearchIndexOf(lists, searchX, QuestionList.comparatorByListId()));
+		assertEquals(-4, User.myBinarySearchIndexOf(lists, searchX, QuestionList.comparatorById()));
 
 		QuestionList searchBeforeA = new QuestionList.Builder().id("id0").build();
-		assertEquals(-1, User.myBinarySearchIndexOf(lists, searchBeforeA, QuestionList.comparatorByListId()));
+		assertEquals(-1, User.myBinarySearchIndexOf(lists, searchBeforeA, QuestionList.comparatorById()));
 	}
 
 	@Test

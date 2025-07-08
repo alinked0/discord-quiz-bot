@@ -96,11 +96,11 @@ public class CommandLineListener extends ListenerAdapter {
 			}
 		}
 		MessageSender.sendCommandOutput(
-			cmd.execute(userId, channelId, arguments, false),
+			cmd.execute(userId, arguments),
 			channel,
-			message 
+			message
 		);
-		if (!Constants.isBugFree()) System.out.printf("   $> time of "+cmd.getName()+" = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
+		if (!Constants.isBugFree()) System.out.printf("   $> time = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
 	}
 }
 
