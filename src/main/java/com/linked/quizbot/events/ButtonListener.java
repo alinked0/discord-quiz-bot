@@ -44,13 +44,11 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 public class ButtonListener extends ListenerAdapter {
     private void handleExplain(String userId, Message message, Emoji reaction, ButtonInteractionEvent event)
     {
-        System.out.println("   $> Button Reaction :"+ reaction.getFormatted());
         String messageId = message.getId();
         MessageChannel channel = message.getChannel();
-        QuizBot currQuizBot = (QuizBot)BotCore.getCurrViewer(messageId);
+        QuizBot currQuizBot = (QuizBot)BotCore.getViewer(messageId);
         if (currQuizBot!=null) {
             if (currQuizBot.isActive() && message.getIdLong() == currQuizBot.getMessage().getIdLong()) {
-                System.out.println("   $> is Button found :"+ currQuizBot.getButtons().contains(reaction));
                 if (currQuizBot.getButtons().contains(reaction)){
                     currQuizBot.addReaction(userId, reaction);
                     if (currQuizBot.getDelaySec()>0 && currQuizBot.awnsersByUserIdByQuestionIndex.get(currQuizBot.getCurrentIndex()).size()==1){

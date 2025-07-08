@@ -146,6 +146,11 @@ public class CommandOutput {
 			}
 			return this;
 		}
+		public Builder setPostSendAction(List<Consumer<Message>> action) {
+			this.postSendActions.clear();
+			addAllPostSendAction(action);
+			return this;
+		}
 		public Builder addAllPostSendAction(List<Consumer<Message>> action) {
 			if (action != null) {
 				this.postSendActions.addAll(action);
@@ -204,7 +209,6 @@ public class CommandOutput {
 		List<ActionRow> newActionRows = new ArrayList<>();
 		int i=0;
 		Emoji e;
-		System.out.println("   $> Reactions : "+l);
 		for (; nbOptions<l.size(); ++nbOptions){
 			e = Emoji.fromUnicode("U+3"+(nbOptions+1)+"U+fe0fU+20e3");
 			if (l.get(nbOptions).equals(e)){
@@ -232,7 +236,6 @@ public class CommandOutput {
 			}
 		}
 		if (!row.isEmpty())newActionRows.add(ActionRow.of(row));
-		System.out.println("   $> actionRows : "+newActionRows);
 		return newActionRows;
 	}
 	public Message getMessage(){
@@ -301,4 +304,20 @@ public class CommandOutput {
 	public List<Consumer<Message>> getPostSendActions() {
         return postSendActions;
     }
+	public String toString(){
+		return 
+		this.textMessages.toString() +
+		this.embeds.toString() +
+		this.replyToSender +
+		this.ephemeral+
+		this.delayMillis+
+		this.postSendActions.toString() +
+		this.attachedFiles.toString() +
+		this.sendInOriginalMessage +
+		this.sendInThread +
+		(this.userId!=null?this.userId.toString():null) +
+		(this.message!=null?this.message.toString():null) +
+		this.clearReactions+
+		this.reactions.toString();
+	}
 }

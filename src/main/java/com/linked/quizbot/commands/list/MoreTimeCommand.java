@@ -55,7 +55,7 @@ public class MoreTimeCommand extends BotCommand {
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
         String messageId = args.get(0);
-		QuizBot q = (QuizBot) BotCore.getCurrViewer(messageId);
+		QuizBot q = (QuizBot) BotCore.getViewer(messageId);
 		int n = args.size();
 		if (q == null){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));

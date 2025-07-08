@@ -39,17 +39,9 @@ public class Viewer {
     }
     public Consumer<Message> postSendActionCurrent(){
         return msg ->{
-            if (msg.getChannel().getType().isGuild()){
-                msg.clearReactions().queue(none -> {
-                    BotCore.viewerByMessageId.remove(getMessageId());
-                    BotCore.viewerByMessageId.put(msg.getId(), this);
-                    BotCore.viewerByMessageId.get(msg.getId()).setMessage(msg);
-                });
-            }else {
-                BotCore.viewerByMessageId.remove(getMessageId());
-                BotCore.viewerByMessageId.put(msg.getId(), this);
-                BotCore.viewerByMessageId.get(msg.getId()).setMessage(msg);
-            }
+            BotCore.viewerByMessageId.remove(getMessageId());
+            BotCore.viewerByMessageId.put(msg.getId(), this);
+            BotCore.viewerByMessageId.get(msg.getId()).setMessage(msg);
         };
     }
     public void inBetweenProccessorStart(){}
@@ -71,7 +63,7 @@ public class Viewer {
     public int getCurrentIndex() { return currIndex;}
 	public List<Emoji> getButtons(){
 		List<Emoji> emojis = new ArrayList<>();
-        emojis.add(hasPrevious()?Constants.EMOJIPREVQUESTION:Constants.EMOJISTOP);
+        if (hasPrevious())emojis.add(Constants.EMOJIPREVQUESTION);
         emojis.add(hasNext()?Constants.EMOJINEXTQUESTION:Constants.EMOJISTOP);
 		return emojis;
 	}
@@ -109,8 +101,8 @@ public class Viewer {
             outputBuilder.addTextMessage(getFormatedQuestion());
         }
         inBetweenProccessorCurrent();
-        System.out.println("   $> Buttons : "+getButtons());
 		return outputBuilder.sendInOriginalMessage(sendInOriginalMessage)
+            .clearReactions(true)
             .setMessage(message)
             .addReactions(getButtons())
 			.addPostSendAction(postSendActionCurrent()).build();

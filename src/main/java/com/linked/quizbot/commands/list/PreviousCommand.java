@@ -54,7 +54,7 @@ public class PreviousCommand extends BotCommand {
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-        Viewer q = BotCore.getCurrViewer(args.get(0));
+        Viewer q = BotCore.getViewer(args.get(0));
         if (q != null && q.isActive()){
             return q.previous();
         }

@@ -13,6 +13,7 @@ import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.core.Explain;
 import com.linked.quizbot.core.QuizBot;
 
 import net.dv8tion.jda.api.entities.Message;
@@ -86,19 +87,22 @@ public class ExplainCommand extends BotCommand {
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
         String messageId = args.get(0);
-        QuizBot q =(QuizBot) BotCore.getCurrViewer(messageId);
+        QuizBot q =(QuizBot) BotCore.getViewer(messageId);
         if (q == null) {
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
         q.setExplainTriger(true);
-        CommandOutput.Builder outputBuild = new CommandOutput.Builder().addCommandOutput(q.explain(userId));
-        int delay = q.getDelaySec();
+        CommandOutput.Builder outputBuild = new CommandOutput.Builder();
+        CommandOutput expl;
         if (q.isActive()) {
-            outputBuild.sendInOriginalMessage(true)
-            .addTextMessage(q.getLastTimestamp().toString());
-        } else {
-            outputBuild.sendAsPrivateMessage(userId);
+            expl = new Explain(q, userId, q.getCurrentIndex()).current();
+            outputBuild.addCommandOutput(expl);
+            outputBuild.sendInOriginalMessage(true).addTextMessage(q.getLastTimestamp().toString()).setPostSendAction(List.of());
+        }else {
+            expl = new Explain(q, userId).start();
+            outputBuild.addCommandOutput(expl);
         }
+        int delay = q.getDelaySec();
         q.setDelay(delay);
 		return outputBuild.build();
     }

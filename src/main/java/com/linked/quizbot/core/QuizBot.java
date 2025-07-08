@@ -158,16 +158,9 @@ public class QuizBot extends Viewer {
     @Override
     public Consumer<Message> postSendActionCurrent(){
         return msg ->{
-            if (msg.getChannel().getType().isGuild()){
-				msg.clearReactions().queue(none -> {
-					BotCore.viewerByMessageId.put(msg.getId(), this);
-					BotCore.explicationRequest.add(getMessageId());
-                });
-            }else {
                 BotCore.viewerByMessageId.put(msg.getId(), this);
                 BotCore.explicationRequest.add(getMessageId());
-            }
-        };
+            };
     }
     @Override
 	public List<Emoji> getButtons(){
@@ -240,7 +233,7 @@ public class QuizBot extends Viewer {
 		double totalPoints = getQuestionList().size() * QuestionList.pointsForCorrect;
 		String leaderboard = "Leaderboard:\n";
 
-		Iterator<Map.Entry<String, Double>> SortedScoreByUser = userScoreExact.entrySet().stream()
+		Iterator<Map.Entry<String, Double>> SortedScoreByUser = this.userScoreExact.entrySet().stream()
 			.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).iterator();
 		int i = 1;
 		while (SortedScoreByUser.hasNext()) {
@@ -256,34 +249,16 @@ public class QuizBot extends Viewer {
 		res.add(leaderboard);
 		return res;
 	}
-	public CommandOutput explain(String userId) {
-		String questionText = "";
-		if (isActive()) {
-			questionText=getQuestionList().getFormatedCorrection(getCurrentIndex(), getUserSelOptions(userId, getCurrentIndex())).getSecond();
-			return new CommandOutput.Builder().addTextMessage(questionText).build();
-		}
+    public static Emoji getReactionForAnswer(int index) {
+        return Emoji.fromUnicode("U+3"+index+"U+fe0fU+20e3");
+    }
+	public List<Set<Option>> getAwsersByQuestion(String userId){
 		List<Set<Option>> awsers= new ArrayList<>();
 		for (int i=0; i<=getCurrentIndex(); ++i){
 			awsers.add(getUserSelOptions(userId, i));
 		}
-		return new Explain(getQuestionList(), awsers, userId, getExactUserScore().get(userId)).start();
-		/*
-		List<String> res = new ArrayList<>();
-		if (isActive()) {
-			questionText=getQuestionList().getFormatedCorrection(getCurrentIndex(), getUserSelOptions(userId, getCurrentIndex())).getSecond();
-			res.add(questionText);
-		} else {
-				questionText += String.format("For %s **`%s/%d`**\n", BotCore.getEffectiveNameFromId(userId), getUserScore(userId), getQuestionList().size());
-				for (int i =0; i<=getCurrentIndex(); ++i){
-					res.add(questionText+getQuestionList().getFormatedCorrection(i, getUserSelOptions(userId, i)).getSecond());
-					questionText = "";
-				}
-		}
-		return res;*/
+		return awsers;
 	}
-    public static Emoji getReactionForAnswer(int index) {
-        return Emoji.fromUnicode("U+3"+index+"U+fe0fU+20e3");
-    }
     public Double getUserScore(String userId) {
 		double point, score = 0.00;
         for (int i = 0; i<=getCurrentIndex(); ++i){

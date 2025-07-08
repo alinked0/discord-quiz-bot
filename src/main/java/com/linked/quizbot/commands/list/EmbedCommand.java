@@ -1,5 +1,6 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.linked.quizbot.utils.Option;
@@ -96,15 +97,14 @@ public class EmbedCommand extends BotCommand {
 		embed.addField("time: ","" + TimeFormat.RELATIVE.after(30*1000) , false);
 	
 		embed.setColor(Color.RED);
+		List<Emoji> emojis = new ArrayList<>(); 
+					for (int j=1; j<=question.size(); j++) {
+						emojis.add(Emoji.fromUnicode("U+3"+j+"U+fe0fU+20e3"));
+					}
 
 		return new CommandOutput.Builder()
 				.addEmbed(embed.build())
-				
-				.addPostSendAction(msg -> {
-					for (int j=1; j<=question.size(); j++) {
-						msg.addReaction(Emoji.fromUnicode("U+3"+j+"U+fe0fU+20e3")).queue();
-					}
-				})
+				.addReactions(emojis)
 				.build();
 	}
 }

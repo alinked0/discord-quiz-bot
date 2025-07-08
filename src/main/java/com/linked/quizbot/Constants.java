@@ -1,6 +1,7 @@
 package com.linked.quizbot;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.utils.data.DataObject;
 
 /**
  * The Constants class is the class that contains all static variables
@@ -31,16 +32,16 @@ public class Constants {
 		DISCORDIDLENMAX= 18;
 	public static final Emoji
 		EMOJIDEL = Emoji.fromUnicode("U+1F525"),
-		EMOJITRUE = Emoji.fromFormatted("✅"),
-		EMOJIFALSE = Emoji.fromFormatted("❌"),
-		EMOJICORRECT = Emoji.fromFormatted("✔️"),
-		EMOJIINCORRECT = Emoji.fromFormatted("✖️"),
-		EMOJIMORETIME = Emoji.fromUnicode("U+23F0"),
+		EMOJITRUE = Emoji.fromUnicode("✅"), //✅
+		EMOJIFALSE = Emoji.fromUnicode("❌"), //❌
+		EMOJICORRECT = Emoji.fromUnicode("✔️"),//✔️
+		EMOJIINCORRECT = Emoji.fromUnicode("✖️"),//✖️
+		EMOJIMORETIME = Emoji.fromUnicode("⏰"), //	⏰
 		EMOJINEXTQUESTION = Emoji.fromUnicode("U+23ED U+FE0F"),
 		EMOJIPREVQUESTION = Emoji.fromUnicode("U+23EE U+FE0F"),
-		EMOJISTOP = Emoji.fromFormatted("⏹️"),
+		EMOJISTOP = Emoji.fromUnicode("⏹️"),//⏹️
 		EMOJIWHITESQUARE = Emoji.fromUnicode("U+2B1C"),
-		EMOJIEXPLICATION = Emoji.fromFormatted("❓");
+		EMOJIEXPLICATION = Emoji.fromUnicode("❓");//❓
 	public static boolean isBugFree(){
 		return !AREWETESTING;
 	}

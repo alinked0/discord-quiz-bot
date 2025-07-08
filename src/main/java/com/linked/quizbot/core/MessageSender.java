@@ -19,11 +19,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.ActionComponent;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.LayoutComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.utils.AttachedFile;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -38,6 +33,9 @@ public class MessageSender {
 			System.out.println("   $> Warning: Command output was null, nothing to send.");
 			return;
 		}
+
+        MessageChannel channel = event.getChannel();
+        Message message = event.getMessage();
 		String content = "";
 		for (String s : output.getTextMessages()){
 			if (!s.isEmpty()){
@@ -48,17 +46,15 @@ public class MessageSender {
 			.setContent(content)
 			.setAttachments(output.getFiles().stream().map(f->AttachedFile.fromData(f)).toList())
 		.setEmbeds(output.getEmbeds());
-		System.out.println("   $> New message will be edited into: "+newMessage);
-		if (!event.getChannel().getType().isGuild() && !event.getChannel().getType().isThread()){
+		if (BotCore.useButtons || !channel.getType().isGuild() && !channel.getType().isThread()){
 			newMessage.setComponents(output.getActionRows());
-			System.out.println("   $> New message componets were added: "+newMessage);
 		}
 		event.editMessage(newMessage.build()).queue(
 			sentMessage -> { // Execute post-send actions for embeds too
 				for (Consumer<Message> action : output.getPostSendActions()) {
-					action.accept(event.getMessage());
+					action.accept(message);
 				}
-				if (event.getChannel().getType().isGuild()) addReactions(event.getMessage(), output.getReactions().iterator());
+				if (!BotCore.useButtons && channel.getType().isGuild()) addReactions(message, output.getReactions().iterator());
 			},
 			failure -> System.err.println("   $> Failed to edit Message : " + failure.getMessage()) // Log failure
 		);
@@ -72,8 +68,13 @@ public class MessageSender {
 		if (output.getMessage()!=null){
 			originalMessage = output.getMessage();
 		}
-		// Schedule the message sending if a delay is specified.
-		treatDelay(output, channel, originalMessage);
+		if (originalMessage!=null && output.clearReactions()){
+			final Message msg = originalMessage;
+			originalMessage.clearReactions().queue(none -> treatDelay(output, channel, msg));
+		} else {
+			// Schedule the message sending if a delay is specified.
+			treatDelay(output, channel, originalMessage);
+		}
 	}
 	private static void treatDelay(CommandOutput output, MessageChannel channel, Message originalMessage){
 		 if (output.getDelayMillis() > 0) {
@@ -96,17 +97,15 @@ public class MessageSender {
 				.setContent(content)
 				.setAttachments(output.getFiles().stream().map(f->AttachedFile.fromData(f)).toList())
 			.setEmbeds(output.getEmbeds());
-			System.out.println("   $> New message will be edited into: "+newMessage);
-			if (!channel.getType().isGuild() && !channel.getType().isThread()){
+			if (BotCore.useButtons || !channel.getType().isGuild() && !channel.getType().isThread()){
 				newMessage.setComponents(output.getActionRows());
-				System.out.println("   $> New message coponets were added: "+newMessage);
 			}
 			originalMessage.editMessage(newMessage.build()).queue(
 				sentMessage -> { // Execute post-send actions for embeds too
 					for (Consumer<Message> action : output.getPostSendActions()) {
 						action.accept(sentMessage);
 					}
-					if (channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
+					if (!BotCore.useButtons && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
 				},
 				failure -> System.err.println("   $> Failed to edit Message : " + failure.getMessage()) // Log failure
 			);
@@ -174,7 +173,7 @@ public class MessageSender {
 			}
 			sendActions.add(sendAction);
 		}
-		if (!channel.getType().isGuild()){
+		if (BotCore.useButtons || !channel.getType().isGuild()){
 			for (MessageCreateAction sendAction : sendActions){
 				sendAction.setComponents(output.getActionRows());
 			}
@@ -186,7 +185,7 @@ public class MessageSender {
 					for (Consumer<Message> action : output.getPostSendActions()) {
 						action.accept(sentMessage);
 					}
-					if (channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
+					if (!BotCore.useButtons && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
 				},
 				failure -> System.err.println("Failed to send embed: " + failure.getMessage()) // Log failure
 			);

@@ -1,12 +1,12 @@
 package com.linked.quizbot.events;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.core.MessageSender;
 
-import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -49,10 +49,20 @@ public class readyEvent extends ListenerAdapter {
 			if (event.getGuild().getId().equals(Constants.DEBUGGUILDID)){
 				event.getGuild().getTextChannelById(Constants.DEBUGCHANNELID).sendMessage("Bot is ready for testing.").queue(msg -> 
 				{
-					msg.addReaction(Constants.EMOJIWHITESQUARE).queueAfter(5, TimeUnit.SECONDS, message -> 
-					{
-						msg.clearReactions().queue();
-					});
+					List<Emoji> emojis = List.of(
+						Constants.EMOJIDEL,
+						Constants.EMOJITRUE,
+						Constants.EMOJIFALSE,
+						Constants.EMOJICORRECT,
+						Constants.EMOJIINCORRECT,
+						Constants.EMOJIMORETIME,
+						Constants.EMOJINEXTQUESTION,
+						Constants.EMOJIPREVQUESTION,
+						Constants.EMOJISTOP,
+						Constants.EMOJIEXPLICATION,
+						Constants.EMOJIWHITESQUARE
+					);
+					MessageSender.addReactions(msg, emojis.iterator());
 				});
 			}
 		}

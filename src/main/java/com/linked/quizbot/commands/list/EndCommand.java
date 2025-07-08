@@ -38,13 +38,12 @@ public class EndCommand extends BotCommand {
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
         String messageId = args.get(0);
-        Viewer q = BotCore.getCurrViewer(messageId);
+        Viewer q = BotCore.getViewer(messageId);
         if (q == null) {
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
         q.end();
         CommandOutput output = BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME).execute(userId, args);
-        BotCore.endViewer(q);
         return output;
     }
 }

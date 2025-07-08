@@ -60,13 +60,7 @@ public class ReactionListener extends ListenerAdapter {
                 return;
             }
         }
-        //System.out.println(" $> + "+event.getEmoji().getName()+" "+event.getEmoji().getAsReactionCode()+" "+event.getEmoji().asUnicode());
-        //System.out.println("  $> Emoji added = :"+event.getEmoji().asUnicode()+":");
-        //event.getChannel().sendMessage(":"+event.getEmoji().getAsReactionCode()+":");
-        //System.out.println(" $> "+event.getEmoji());
-        //event.getChannel().sendMessage("Test");
-        //channel.sen
-        // log User
+        
         BotCore.addUser(sender);
         String userId = sender.getId();
         MessageChannel channel = event.getChannel();
@@ -96,7 +90,7 @@ public class ReactionListener extends ListenerAdapter {
     private void handleExplain(String userId, Message message, Emoji reaction){
         String messageId = message.getId();
         MessageChannel channel = message.getChannel();
-        QuizBot currQuizBot = (QuizBot)BotCore.getCurrViewer(messageId);
+        QuizBot currQuizBot = (QuizBot)BotCore.getViewer(messageId);
         if (currQuizBot!=null) {
             if (currQuizBot.isActive() && message.getIdLong() == currQuizBot.getMessage().getIdLong()) {
                 if (currQuizBot.getButtons().contains(reaction)){

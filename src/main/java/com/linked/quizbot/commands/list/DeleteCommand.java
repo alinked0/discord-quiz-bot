@@ -91,7 +91,6 @@ public class DeleteCommand extends BotCommand{
         if (ownerId.equals(userId)){
             res = "Are you sure you want to delete :\n\""+l.getName()+"\"?";
             success = msg ->{
-                msg.addReaction(Constants.EMOJIDEL).queue();
                 BotCore.comfirmDeletion(msg, l);
             };
         }else {
@@ -100,7 +99,7 @@ public class DeleteCommand extends BotCommand{
         }
 		return new CommandOutput.Builder()
 				.addTextMessage(res)
-				
+				.addReaction(Constants.EMOJIDEL)
                 .addPostSendAction(success)
 				.build();
     }

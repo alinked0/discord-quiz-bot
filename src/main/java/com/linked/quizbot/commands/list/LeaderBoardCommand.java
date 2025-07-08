@@ -66,9 +66,13 @@ public class LeaderBoardCommand extends BotCommand {
 				}
 			);
 		};
-		outputBuilder.addReaction(Constants.EMOJIEXPLICATION).addPostSendAction(leaderboardPostSendAction);
 		
 		// Build and return the CommandOutput
-		return outputBuilder.build();
+		return outputBuilder
+			.clearReactions(true)
+			.addReaction(Constants.EMOJIEXPLICATION)
+			.addPostSendAction(leaderboardPostSendAction)
+			.sendInOriginalMessage(true)
+		.build();
 	}
 }
