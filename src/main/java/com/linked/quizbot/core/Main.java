@@ -1,6 +1,7 @@
 package com.linked.quizbot.core;
 
 import java.util.Arrays;
+import java.util.Scanner;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.Users;
@@ -20,40 +21,45 @@ public class Main {
 			usageMain();
 			return;
 		}
-		Constants.AREWETESTING = args.length>=3;
-		if (Constants.AREWETESTING && args.length < 3) {
-			System.out.println("You must provide the bot token, guild id, channel id and user id in testing mode.");
-			usageMain();
-			return;
-		} 
-		if (!Constants.AREWETESTING && args.length < 1) {
-			System.out.println("You must provide the bot token in production mode.");
-			usageMain();
-			return;
-		}
-		if(args[0].isEmpty()){
-			System.out.println("You must provide a bot token that is not empty.");
-			usageMain();
-			return;
-		}
 		
-		Constants.TOKEN = args[0];
-		if (args.length>=2){
+		Constants.AREWETESTING = false;
+		Scanner scanner = new Scanner(System.in);
+		if (args.length ==0 || args[0].isEmpty()) {
+					System.out.println("case 1");
+			System.out.print("Input bot token: ");
+			Constants.TOKEN =scanner.nextLine().trim();
+		} else if (args.length ==1 && !args[0].isEmpty()){
+			Constants.TOKEN = args[0];
+		} else if(args.length ==4){
+			for (int i=1; i<4; ++i){
+				if (args[i].isEmpty() || args[i].length()<Constants.DISCORDIDLENMIN){
+					usageMain();
+					scanner.close();
+					return;
+				}
+			}
+			Constants.AREWETESTING = true;
+			Constants.TOKEN = args[0];
 			Constants.DEBUGGUILDID = args[1];
-		}
-		if (args.length>=3){
 			Constants.DEBUGCHANNELID = args[2];
-		}
-		if (args.length>=4) {
 			Constants.AUTHORID = args[3];
+			
+		} else {
+			usageMain();
+			scanner.close();
+			return;
 		}
 		BotCore.jda= null;
 		Users.loadAllUsers();
 		if (Constants.isBugFree()){
 			BotCore.startJDA();
 		}
-		CommandLineInterface.execute();
+		if(Constants.AUTHORID.isEmpty()){
+			BotCore.startJDA();
+		}else {
+			CommandLineInterface.execute(scanner);
+			if (BotCore.jda!=null) BotCore.jda.shutdownNow();
+		}
 
-		if (BotCore.jda!=null) BotCore.jda.shutdownNow();
 	}
 }

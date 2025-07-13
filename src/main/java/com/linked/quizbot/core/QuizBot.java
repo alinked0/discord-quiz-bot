@@ -1,25 +1,16 @@
 package com.linked.quizbot.core;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandOutput;
-import com.linked.quizbot.commands.list.EndCommand;
-import com.linked.quizbot.commands.list.HelpCommand;
-import com.linked.quizbot.commands.list.NextCommand;
-import com.linked.quizbot.commands.list.PreviousCommand;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
@@ -28,7 +19,6 @@ import com.linked.quizbot.utils.Users;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.Timestamp;
 
@@ -89,12 +79,11 @@ public class QuizBot extends Viewer {
     public final Set<String> players = new HashSet<>();
 	public Map<String, Double> userScoreExact = null;
     public boolean explainWasTrigerred = false;
-    public int delaySec = 0;
+    public int delaySec = 5;
 	public Timestamp timeLimit;
-	public static Random random = BotCore.getRandom();
 
     public QuizBot(QuestionList c) {
-		super(c);
+		super(c.rearrageOptions());
     }
 	public Timestamp getLastTimestamp(){return timeLimit;}
     public Boolean explainWasTrigerred() { return explainWasTrigerred;}
@@ -145,7 +134,8 @@ public class QuizBot extends Viewer {
 		userScoreApproxi.clear();
 		userAnswersForCurrQuestion.clear();
         awnsersByUserIdByQuestionIndex.clear();
-		for (Question q: getQuestionList()) 
+		int n = getQuestionList().size();
+		for (int i=0; i<n; ++i) 
 			awnsersByUserIdByQuestionIndex.add(new HashMap<>());
 	}
 	@Override
@@ -165,18 +155,9 @@ public class QuizBot extends Viewer {
     @Override
 	public List<Emoji> getButtons(){
 		List<Emoji> emojis = new ArrayList<>();
-
 		if (-1<getCurrentIndex()) emojis.addAll(getButtonsForOptions());
-
-		if (delaySec == 0|| awnsersByUserIdByQuestionIndex.get(getCurrentIndex()).isEmpty()){
-			emojis.addAll(super.getButtons());
-			if (-1<getCurrentIndex()) emojis.add(Constants.EMOJIEXPLICATION);
-		}
-		// TODO : find a use of the moreTime button, its currently inaccessible
-		else{
-			emojis.addAll(super.getButtons());
-			if (-1<getCurrentIndex()) emojis.add(Constants.EMOJIEXPLICATION);
-		}
+		emojis.addAll(super.getButtons());
+		if (-1<getCurrentIndex()) emojis.add(Constants.EMOJIEXPLICATION);
 		return emojis;
 	}
     @Override

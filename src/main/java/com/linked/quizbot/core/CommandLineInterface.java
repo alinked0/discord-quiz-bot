@@ -3,20 +3,13 @@ package com.linked.quizbot.core;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.list.HelpCommand;
-import com.linked.quizbot.events.CommandLineListener;
-import com.linked.quizbot.events.ReactionListener;
-import com.linked.quizbot.events.SlashCommandListener;
-import com.linked.quizbot.events.readyEvent;
 import com.linked.quizbot.utils.Users;
-
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class CommandLineInterface {
 	public static String getStatus(){
@@ -33,7 +26,7 @@ public class CommandLineInterface {
 		s+= String.format("\t%s\t%s\n", "status","gets the bot status");
 		s+= String.format("\t%s\t%s\n", "stop, shutdown","stops the bots");
 		s+= String.format("\t%s\t%s\n", "exit","stops the bot, kills this process");
-		s+= String.format("\t%s\t%s\n", "startjda"," starts the bot and connects it to discord");
+		s+= String.format("\t%s\t%s\n", "start"," starts the bot and connects it to discord");
 		s+= String.format("\t%s\t%s\n", "q![BotCommand] [Argumments]","executes a command and returns a text output");
 		s+= "Example: \n";
         s+= "\t$ status\n";
@@ -41,13 +34,12 @@ public class CommandLineInterface {
         s+= "\t$ q!help\n";
 		return s;
 	}
-	public static void execute () {
-		Scanner scanner = new Scanner(System.in);
-		String input="";
+	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+	public static void execute (Scanner scanner) {
 		boolean exiting = false;
 		while (!exiting) {
 			System.out.print("$ ");
-			input = scanner.nextLine().toLowerCase();
+			String input = scanner.nextLine().toLowerCase();
 			switch (input) {
 				case "exit" -> {
 					BotCore.shutDown();
@@ -58,24 +50,38 @@ public class CommandLineInterface {
 					BotCore.shutDown();
 					BotCore.SHUTINGDOWN = false;
 				}
-				case "startjda" -> {
+				case "startjda", "start" -> {
 					if (BotCore.jda == null){
                         BotCore.startJDA();
 					} else {
                         System.out.println("Bot is already online. Use the command stop, to put an end it.");
                     }
 				}
-				case "status"-> {
+				case "status", "stat"-> {
 					System.out.print(getStatus());
 				}
 				case "help" -> {
 					System.out.println(usage());
 				}
 				default -> {
-					List<String> out = execute(input, Constants.AUTHORID);
-					for (String s: out){
-						System.out.println(s);
+					try {
+						Future<?> future = scheduler.submit(() -> {
+							List<String> out = execute(input, Constants.AUTHORID);
+							for (String s: out){
+								System.out.println(s);
+							}
+						});
+						while(!future.isDone()){
+							if (BotCore.isShutingDown()){
+								future.resultNow();
+								future.cancel(true);
+								break;
+							}
+						}
+					}catch(Exception e){
+						e.printStackTrace();
 					}
+					
 				}
 			}
 		}

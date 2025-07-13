@@ -503,9 +503,17 @@ public class QuestionList extends ArrayList<Question> {
 		}
 		return s1.equals(s2);
 	}
-	public void rearrageQuestions(){
+	public QuestionList rearrageQuestions(){
 		Random r = BotCore.getRandom();
 		sort((a,b)->r.nextBoolean()?-1:1);
+		return this;
+	}
+	public QuestionList rearrageOptions(){
+		Random r = BotCore.getRandom();
+		for (Question q : this){
+			q.sort((a,b)->r.nextBoolean()?-1:1);
+		}
+		return this;
 	}
 	public String header(){
 		String res = String.format("**Name:** **%s**\n**Author:** <@%s>\n**nb of questions:** `%d`\n**Date created:** %s\n", 

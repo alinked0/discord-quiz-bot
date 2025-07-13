@@ -9,9 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
-import com.linked.quizbot.events.ReactionListener;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
