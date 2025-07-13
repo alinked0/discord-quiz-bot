@@ -400,7 +400,7 @@ public class QuestionList extends ArrayList<Question> {
 			tab1 = "\t",
 			tab2 = "\t\t",
 			tab3 = "\t\t\t",
-			seperatorParamOpt = "\n";
+		seperatorParamOpt = "\n";
 
 		res += "{\n";
 		tab = "\t";

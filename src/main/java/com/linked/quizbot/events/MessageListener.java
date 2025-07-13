@@ -28,7 +28,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
  * The class MessageReceivedListener will serve as the first layer to any text command
  * that means message commands like !help
  */
-public class CommandLineListener extends ListenerAdapter {
+public class MessageListener extends ListenerAdapter {
 	
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event) {

@@ -21,26 +21,23 @@ public class QuestionListParser {
 			return null;
 		}
 		JsonParser jp =  new JsonFactory().createParser(new File(filePathToJson));
-		outputBuilder = parser(jp);
-        //if (!Constants.isBugFree()) System.out.printf("   $> time fromJsonFile = `%.3f ms`\n",(System.nanoTime() - start) / 1000000.00);
+		outputBuilder = parser(jp, filePathToJson);
 		return outputBuilder;
     }
 
 	public static QuestionList fromString(String arg)throws IOException{
-		long start = System.nanoTime();
 		QuestionList outputBuilder = null;
 		JsonParser jp =  new JsonFactory().createParser(arg);
-		outputBuilder = parser(jp);
-        //if (!Constants.isBugFree()) System.out.printf("   $> time fromString = `%.3f ms`\n",(System.nanoTime() - start) / 1000000.00);
+		outputBuilder = parser(jp, arg);
 		return outputBuilder;
 	}
 
-	public static QuestionList parser(JsonParser jp) throws IOException{
+	public static QuestionList parser(JsonParser jp, String arg) throws IOException{
 		QuestionList.Builder outputBuilder = new QuestionList.Builder();
 		String fieldName;
 		/*Check if outputBuilder file is a json */
 		if (jp.nextToken() != JsonToken.START_OBJECT) {
-			System.err.println("$> The file is not a json");
+			throw new IOException(String.format("Error QuestionListParser.parser, input is not a json: \n\t%s\n", arg));
 		}
 		/* first layer the ListQuestion 
 		 * iterating over ListQuestion attributes
@@ -55,7 +52,7 @@ public class QuestionListParser {
 						outputBuilder.authorId(jp.getText());
 					}
 					case "tags" -> {
-						outputBuilder.addTags(parseTags(jp));
+						outputBuilder.addTags(parseTags(jp, arg));
 					}
 					case "name" -> {
 						outputBuilder.name(jp.getText());
@@ -67,7 +64,7 @@ public class QuestionListParser {
 						outputBuilder.id(jp.getText());
 					}
 					case "questions" -> {
-						outputBuilder.addAll(parseQuestionList(jp));
+						outputBuilder.addAll(parseQuestionList(jp, arg));
 					}
 				}
 			} else {
@@ -86,11 +83,11 @@ public class QuestionListParser {
 		return reuslt;
 	}
 
-	public static Map<String, Emoji> parseTags(JsonParser jp) throws IOException {
+	public static Map<String, Emoji> parseTags(JsonParser jp, String arg) throws IOException {
 		Map<String, Emoji> m = new HashMap<>();
 		String tagName, emojiCode;
 		if(jp.currentToken() != JsonToken.START_OBJECT){
-			return null;
+			throw new IOException(String.format("Error QuestionListParser.parseTags, input is not a json: \n\t%s\n", arg));
 		}
 		while (!jp.isClosed()) {
 			jp.nextToken();
@@ -109,14 +106,14 @@ public class QuestionListParser {
 		return m;
 	}
 
-	public static Question parseQuestion(JsonParser jp) throws IOException {
+	public static Question parseQuestion(JsonParser jp, String arg) throws IOException {
 		Question outputBuilder = null;
 		String q = null;
 		String expl = null;
 		String imgSrc= null, fieldName;
 		List <Option>opts = null;
 		if(jp.currentToken() != JsonToken.START_OBJECT) {
-			return null;
+			throw new IOException(String.format("Error QuestionListParser.parseTags, input is not a json: \n\t%s\n", arg));
 		}
 		 while(!jp.isClosed()){
 			//System.out.println("("+jp.currentName() +":"+jp.getText()+") ");
@@ -134,7 +131,7 @@ public class QuestionListParser {
 					case "img_src","imagesrc" -> {
 						imgSrc = jp.getText().equals("null")?null:jp.getText();
 					}
-					case "options" -> opts = parseOptionList(jp);
+					case "options" -> opts = parseOptionList(jp, arg);
 				}
 			} else if (jp.currentToken() == JsonToken.END_OBJECT) {
 				jp.nextToken();
@@ -149,19 +146,18 @@ public class QuestionListParser {
 		outputBuilder = new Question(q, opts);
 		outputBuilder.setExplication(expl);
 		outputBuilder.setImageSrc(imgSrc);
-		//System.out.println("\n"+outputBuilder+"\n");
 		return outputBuilder;
 	}
-	public static List<Option> parseOptionList(JsonParser jp) throws IOException {
+	public static List<Option> parseOptionList(JsonParser jp, String arg) throws IOException {
 		LinkedList<Option> opts = new LinkedList<>();
 		if(jp.currentToken() != JsonToken.START_ARRAY){
-			return null;
+			throw new IOException(String.format("Error QuestionListParser.parseOptionList, input is not a json: \n\t%s\n", arg));
 		}
 		jp.nextToken();
 		while(!jp.isClosed()){
 			//System.out.println("("+jp.currentName() +":"+jp.getText()+") ");
 			if (jp.currentToken() == JsonToken.START_OBJECT){
-				opts.add(parseOption(jp));
+				opts.add(parseOption(jp, arg));
 				//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 			} else if (jp.currentToken() == JsonToken.END_ARRAY){
 				jp.nextToken();
@@ -172,13 +168,13 @@ public class QuestionListParser {
 		};
 		return opts;
 	}
-	public static Option parseOption(JsonParser jp) throws IOException {
+	public static Option parseOption(JsonParser jp, String arg) throws IOException {
 		String optTxt = null;
 		String optExpl = null, fieldName;
 		Boolean isCorr = null;
 		Option res=null;
 		if(jp.currentToken() != JsonToken.START_OBJECT){
-			return null;
+			throw new IOException(String.format("Error QuestionListParser.parseOption, input is not a json: \n\t%s\n", arg));
 		}
 		while(!jp.isClosed()){
 			jp.nextToken();
@@ -213,7 +209,7 @@ public class QuestionListParser {
 		return res;
 	}
 
-	public static List<Question> parseQuestionList(JsonParser jp) throws IOException {
+	public static List<Question> parseQuestionList(JsonParser jp, String arg) throws IOException {
 		List<Question> outputBuilder = new LinkedList<>();
 		/* iterating over every Question attributes then Options*/
 		if(jp.currentToken() != JsonToken.START_ARRAY) {
@@ -222,7 +218,7 @@ public class QuestionListParser {
 		while (!jp.isClosed()) {
 			//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 			if(jp.currentToken() == JsonToken.START_OBJECT) {
-				outputBuilder.add(parseQuestion(jp));
+				outputBuilder.add(parseQuestion(jp, arg));
 			} else if(jp.currentToken() == JsonToken.END_ARRAY) {
 				break;
 			}else {

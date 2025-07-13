@@ -15,7 +15,7 @@ import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.ExplainCommand;
 import com.linked.quizbot.commands.list.HelpCommand;
 import com.linked.quizbot.events.ButtonListener;
-import com.linked.quizbot.events.CommandLineListener;
+import com.linked.quizbot.events.MessageListener;
 import com.linked.quizbot.events.ReactionListener;
 import com.linked.quizbot.events.SlashCommandListener;
 import com.linked.quizbot.events.readyEvent;
@@ -78,7 +78,7 @@ public class BotCore {
 			new SlashCommandListener(), 
 			new ReactionListener(), 
 			new ButtonListener(),
-			new CommandLineListener(),
+			new MessageListener(),
 			new readyEvent()
 		);
 		try {

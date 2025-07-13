@@ -58,16 +58,16 @@ public class AddListCommand extends BotCommand{
                     output.addTextMessage(addListAndReturnMessage(l));
                 }
             }catch (IOException e){
-                output.addTextMessage("Failed to import ```js\n"+args.get(i)+"```\n");
+                res.add(String.format("**Failed to import** ```js\n%s```\n",args.get(i) ));
+                res.add(String.format("**Reasons:** %s\n", e.getMessage()));
+                e.printStackTrace();
             }
         }
 		return output.build();
     }
     @Override
 	public List<String> parseArguments(String cmndLineArgs){
-		List<String> res = new ArrayList<>();
-        res.addAll(splitJson(cmndLineArgs));
-		return res;
+		return BotCommand.getCommandByName(CreateListCommand.CMDNAME).parseArguments(cmndLineArgs);
 	}
     private String addListAndReturnMessage(QuestionList l) {
         String res;

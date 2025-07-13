@@ -74,6 +74,12 @@ public class CreateListCommand extends BotCommand {
         res.add(new OptionData(OptionType.ATTACHMENT, "jsonfile", "question list written as a json"));
         return res;
     }
+    @Override
+    public List<String> parseArguments(String cmndLineArgs){
+        List<String> res = new ArrayList<>();
+        res.addAll(splitJson(cmndLineArgs));
+        return res;
+    }
     public CommandOutput execute(String userId,  List<String> args){
         int n = args.size();
         List<String> res = new ArrayList<>();
@@ -100,7 +106,9 @@ public class CreateListCommand extends BotCommand {
                     }
                 }
             }catch (IOException e){
-                res.add("Failed to import ```js\n"+args.get(i)+"```, reason unknown\n");
+                res.add(String.format("**Failed to import** ```js\n%s```\n",args.get(i) ));
+                res.add(String.format("**Reasons:** %s\n", e.getMessage()));
+                e.printStackTrace();
             }
         }
 		return new CommandOutput.Builder()
@@ -108,10 +116,4 @@ public class CreateListCommand extends BotCommand {
 				
 				.build();
     }
-    @Override
-	public List<String> parseArguments(String cmndLineArgs){
-		List<String> res = new ArrayList<>();
-        res.addAll(splitJson(cmndLineArgs));
-		return res;
-	}
 }
