@@ -7,6 +7,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 
 /**
@@ -86,6 +87,22 @@ public class Option {
 	 */
 	@Override
 	public String toString() {
+		return toJson().replace("\n\t\"","\"");
+	}
+	public String toJson() {
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			String s = "{\n\t\"text\":"+mapper.writeValueAsString(getText());
+			s+= ",\n\t\"isCorrect\":"+isCorrect();
+			s+= ",\n\t\"explication\":";
+			if(getExplication()==null || getExplication().equals("null") || getExplication().equals(Constants.NOEXPLICATION)){
+				s+=null;
+			}else {s += mapper.writeValueAsString(getExplication());}
+			s+="\n}";
+			return s;
+		} catch (Exception e){
+			System.err.println("[toJson() failed]"+e.getMessage());
+		}
 		String s = "{\n\t\"text\":\""+getText()+"\"";
 		s+= ",\n\t\"isCorrect\":"+isCorrect();
 		s+= ",\n\t\"explication\":";
@@ -95,7 +112,6 @@ public class Option {
 		s+="\n}";
 		return s;
 	}
-
 	/**
 	 * Compares this Option to another object for equality.
 	 * An Option is considered equal to another Option if their text values match.

@@ -3,17 +3,12 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 
-import net.dv8tion.jda.api.entities.Message;
-
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.core.Viewer;
+import com.linked.quizbot.utils.Users;
 
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class EndCommand extends BotCommand {

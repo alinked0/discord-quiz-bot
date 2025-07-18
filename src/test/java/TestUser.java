@@ -386,7 +386,7 @@ public class TestUser {
 		Path listFile = tempListsPath.resolve(userId).resolve(newList.getId() + ".json");
 		assertTrue(Files.exists(listFile));
 		String fileContent = readFileContent(listFile);
-		System.out.println("fileContent: "+fileContent);
+		//System.out.println("fileContent: "+fileContent);
 		assertTrue(fileContent.contains("\"name\":\"New List\""));
 	}
 
@@ -560,8 +560,8 @@ public class TestUser {
 	}
 
 	@Test
-	@DisplayName("Test userDataToString method")
-	void testUserDataToString() {
+	@DisplayName("Test toJson method")
+	void testToJson() {
 		String userId = "stringUser";
 		String prefix = ">>";
 		double points = 300.75;
@@ -585,11 +585,13 @@ public class TestUser {
 
 		String expectedJsonPart2 = "},\n" +
 								   "\t\"prefixe\":\">>\",\n" +
+								   "\t\"useButtons\":true,\n" +
 								   "\t\"totalPointsEverGained\":300.75,\n" +
 								   "\t\"numberOfGamesPlayed\":30\n" +
 								   "}";
 		
-		String result = user.userDataToString();
+		String result = user.toJson();
+		//System.out.println(String.format("result:%s\npart1:%s\npart2:%s\n", result, expectedJsonPart1, expectedJsonPart2));
 		assertTrue(result.startsWith(expectedJsonPart1));
 		assertTrue(result.endsWith(expectedJsonPart2));
 		assertTrue(result.contains(expectedTag1) || result.contains(expectedTag2));

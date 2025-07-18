@@ -126,7 +126,7 @@ public class TestOption {
     @DisplayName("Test toString method - with explanation")
     void testToString_WithExplanation() {
         Option option = new Option("Test Option", true, "Detailed explanation here.");
-        String expectedJson = "{\n\t\"text\":\"Test Option\",\n\t\"isCorrect\":true,\n\t\"explication\":\"Detailed explanation here.\"\n}";
+        String expectedJson = "{\n\t\"text\":\"Test Option\",\n\t\"isCorrect\":true,\n\t\"explication\":\"Detailed explanation here.\"\n}".replace("\n\t\"","\"");
         assertEquals(expectedJson, option.toString());
     }
 
@@ -134,7 +134,7 @@ public class TestOption {
     @DisplayName("Test toString method - without explanation (null)")
     void testToString_NoExplanationNull() {
         Option option = new Option("Test Option No Expl", false);
-        String expectedJson = "{\n\t\"text\":\"Test Option No Expl\",\n\t\"isCorrect\":false,\n\t\"explication\":null\n}";
+        String expectedJson = "{\n\t\"text\":\"Test Option No Expl\",\n\t\"isCorrect\":false,\n\t\"explication\":null\n}".replace("\n\t\"","\"");
         assertEquals(expectedJson, option.toString());
     }
 
@@ -142,7 +142,7 @@ public class TestOption {
     @DisplayName("Test toString method - with empty string explanation")
     void testToString_EmptyStringExplanation() {
         Option option = new Option("Test Option Empty Expl", true, "");
-        String expectedJson = "{\n\t\"text\":\"Test Option Empty Expl\",\n\t\"isCorrect\":true,\n\t\"explication\":\"\"\n}";
+        String expectedJson = "{\n\t\"text\":\"Test Option Empty Expl\",\n\t\"isCorrect\":true,\n\t\"explication\":\"\"\n}".replace("\n\t\"","\"");
         assertEquals(expectedJson, option.toString());
     }
 
@@ -150,7 +150,7 @@ public class TestOption {
     @DisplayName("Test toString method - with 'null' string explanation")
     void testToString_NullStringExplanation() {
         Option option = new Option("Test Option 'null' Expl", true, "null");
-        String expectedJson = "{\n\t\"text\":\"Test Option 'null' Expl\",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}";
+        String expectedJson = "{\n\t\"text\":\"Test Option 'null' Expl\",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}".replace("\n\t\"","\"");
         assertEquals(expectedJson, option.toString());
     }
 
@@ -158,7 +158,7 @@ public class TestOption {
     @DisplayName("Test toString method - with Constants.NOEXPLICATION explanation")
     void testToString_ConstantsNoExplanation() {
         Option option = new Option("Test Option Constants.NOEXPLICATION", true, Constants.NOEXPLICATION);
-        String expectedJson = "{\n\t\"text\":\"Test Option Constants.NOEXPLICATION\",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}";
+        String expectedJson = "{\n\t\"text\":\"Test Option Constants.NOEXPLICATION\",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}".replace("\n\t\"","\"");
         assertEquals(expectedJson, option.toString());
     }
 

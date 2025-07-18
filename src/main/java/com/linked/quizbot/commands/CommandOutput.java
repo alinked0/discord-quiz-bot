@@ -39,6 +39,7 @@ public class CommandOutput {
 	private final boolean ephemeral;
 	private final boolean clearReactions;
 	private final long delayMillis;
+	private boolean useButtons = true;	
 	private String userId;
 	private Message message;
 	
@@ -48,6 +49,7 @@ public class CommandOutput {
         private final List<Consumer<Message>> postSendActions = new ArrayList<>();
 		private final List<File> attachedFiles= new ArrayList<>();
 		private final List<Emoji> reactions= new ArrayList<>();
+		private boolean useButtons = true;
 		private boolean sendInOriginalMessage = false;
 		private boolean replyToSender = true;
 		private boolean sendInThread= false;
@@ -62,6 +64,10 @@ public class CommandOutput {
 			}
 			return this;
 		}
+		public Builder useButtons(boolean b){ 
+            this.useButtons= b;
+            return this;
+        }
 		public Builder setMessage(Message msg){ message = msg; return this;}
 		public Builder addAllTextMessage(List<String> c){
 			for (String s : c){
@@ -161,7 +167,7 @@ public class CommandOutput {
 			delayMillis = t;
 			return this;
 		}
-		public Builder addCommandOutput(CommandOutput t) {
+		public Builder add(CommandOutput t) {
 			addAllTextMessage(t.textMessages);
 			addAllEmbed(t.embeds);
 			this.replyToSender = t.replyToSender;
@@ -175,6 +181,7 @@ public class CommandOutput {
 			this.message = t.message;
 			this.clearReactions = t.clearReactions;
 			this.reactions.addAll(t.reactions);
+			this.useButtons = t.useButtons;
 			return this;
 		}
 		public CommandOutput build(){
@@ -195,6 +202,7 @@ public class CommandOutput {
 		this.message = builder.message;
 		this.clearReactions = builder.clearReactions;
 		this.reactions = builder.reactions;
+		this.useButtons = builder.useButtons;
 	}
 	public List<File> getFiles(){
 		return attachedFiles;
@@ -202,6 +210,7 @@ public class CommandOutput {
 	public List<Emoji> getReactions(){
 		return reactions;
 	}
+	public boolean useButtons(){ return useButtons;}
 	public List<ActionRow> getActionRows(){
 		int nbOptions = 0;
 		List<Emoji> l = getReactions();

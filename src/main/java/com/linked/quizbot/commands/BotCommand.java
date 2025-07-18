@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -23,7 +22,7 @@ import com.linked.quizbot.commands.list.AddListCommand;
 import com.linked.quizbot.commands.list.CollectionCommand;
 import com.linked.quizbot.commands.list.CreateListCommand;
 import com.linked.quizbot.commands.list.CreateTagCommand;
-import com.linked.quizbot.commands.list.DeleteCommand;
+import com.linked.quizbot.commands.list.DeleteListCommand;
 import com.linked.quizbot.commands.list.EmbedCommand;
 import com.linked.quizbot.commands.list.EndCommand;
 import com.linked.quizbot.commands.list.ExplainCommand;
@@ -46,10 +45,8 @@ import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -74,7 +71,7 @@ public abstract class BotCommand {
             new CreateListCommand(),
             new CollectionCommand(),
             new CreateTagCommand(),
-            new DeleteCommand(),
+            new DeleteListCommand(),
             new EndCommand(),
             new ExplainCommand(),
             new EmbedCommand(),

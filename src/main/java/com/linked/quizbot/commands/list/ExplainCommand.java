@@ -8,6 +8,7 @@ import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.Explain;
 import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -81,21 +82,22 @@ public class ExplainCommand extends BotCommand {
         if (q == null) {
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        q.setExplainTriger(true);
-        CommandOutput.Builder outputBuild = new CommandOutput.Builder();
+        q.isExplaining(true);
+        CommandOutput.Builder output = new CommandOutput.Builder();
         CommandOutput expl;
         int nbPlayers = q.getPlayers().size();
+        Explain ex;
         if (q.isActive()) {
-            expl = new Explain(q, userId, q.getCurrentIndex()).current();
-            outputBuild.addCommandOutput(expl);
-            outputBuild.sendInOriginalMessage(true).addTextMessage(q.getLastTimestamp().toString()).setPostSendAction(List.of());
+            ex = new Explain(q, userId, q.getCurrentIndex());
+            expl = ex.current();
         }else {
-            expl = new Explain(q, userId).start();
-            outputBuild.addCommandOutput(expl);
+            ex = new Explain(q, userId);
+            expl = ex.start();
         }
+        output.add(expl).addTextMessage(q.getLastTimestamp().toString());
         if (nbPlayers>1){
-            outputBuild.sendAsPrivateMessage(userId).sendInOriginalMessage(false);
+            output.sendAsPrivateMessage(userId).sendInOriginalMessage(false);
         }
-		return outputBuild.build();
+		return  output.build();
     }
 }

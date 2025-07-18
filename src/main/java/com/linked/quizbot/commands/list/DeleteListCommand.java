@@ -53,10 +53,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * @see QuestionList
  * @see BotCore#comfirmDeletion
  */
-public class DeleteCommand extends BotCommand{
-    public static final String CMDNAME = "delete";
+public class DeleteListCommand extends BotCommand{
+    public static final String CMDNAME = "deletelist";
     private String cmdDesrciption = "deleting a list of questions";
-	private List<String> abbrevs = List.of("del");
+	private List<String> abbrevs = List.of("dl");
     
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}

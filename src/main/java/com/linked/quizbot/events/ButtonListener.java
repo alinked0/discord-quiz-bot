@@ -6,6 +6,7 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
 import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 
@@ -48,7 +49,7 @@ public class ButtonListener extends ListenerAdapter {
 		if(cmd!=null){
 			if (!Constants.isBugFree()) System.out.printf("  $> "+cmd.getName());
 			CommandOutput.Builder output = new CommandOutput.Builder()
-			.addCommandOutput(cmd.execute(userId, List.of(messageId)));
+			.add(cmd.execute(userId, List.of(messageId)));
 			MessageSender.sendCommandOutput(
 				output.build(),
 				event
@@ -63,13 +64,12 @@ public class ButtonListener extends ListenerAdapter {
 			quizBot.addReaction(userId, reaction);
 			if (quizBot.getCurrentIndex()>=0&& quizBot.awnsersByUserIdByQuestionIndex.get(quizBot.getCurrentIndex()).size()==1){
 				MessageSender.sendCommandOutput(
-					new CommandOutput.Builder().addCommandOutput(quizBot.current()).sendInOriginalMessage(true).build(),
+					new CommandOutput.Builder().add(quizBot.current()).sendInOriginalMessage(true).build(),
 					event
 				);
 				ReactionListener.treatDelay(userId, message, quizBot);
 				return;
 			}else{
-				quizBot.setExplainTriger(false);
 				event.editButton(event.getButton()).queue();
 			}
 		}

@@ -108,6 +108,15 @@ public class QuestionList extends ArrayList<Question> {
 			list.add(q);
 			return this;
 		}
+		public Builder add(QuestionList questions){
+			return new QuestionList.Builder()
+				.id(questions.getId())
+				.name(questions.getName())
+				.authorId(questions.getAuthorId())
+				.addTags(questions.getTags())
+				.timeCreatedMillis(questions.getTimeCreatedMillis())
+			.addAll(questions);
+		}
 		public Builder addAll(List<Question> c){
 			list.addAll(c);
 			return this;
@@ -592,9 +601,10 @@ public class QuestionList extends ArrayList<Question> {
 		return this;
 	}
 	public QuestionList rearrageOptions(){
-		Random r = BotCore.getRandom();
-		for (Question q : this){
-			q.sort((a,b)->r.nextBoolean()?-1:1);
+		Question q;
+		for (int i=0; i<size(); ++i){
+			q = get(i).rearrageOptions();
+			this.set(i, q);
 		}
 		return this;
 	}
@@ -643,6 +653,9 @@ public class QuestionList extends ArrayList<Question> {
 	}
 	public String getFormatedCorrection (int index) {
 		return getFormatedCorrection (index, null, 0.0, 0.0).getSecond();
+	}
+	public QuestionList clone(){
+		return new QuestionList.Builder().add(this).build();
 	}
 	public static QuestionList getExampleQuestionList(){
 		return new QuestionList.Builder()

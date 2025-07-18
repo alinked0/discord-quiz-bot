@@ -70,7 +70,6 @@ public class TagListCommand extends BotCommand{
         
 		return new CommandOutput.Builder()
 				.addTextMessage(res)
-				
 				.build();
     }
 
