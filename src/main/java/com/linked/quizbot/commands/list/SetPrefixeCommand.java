@@ -24,7 +24,7 @@ public class SetPrefixeCommand extends BotCommand{
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
-	public BotCommand.CommandCategory getCategory(){ return BotCommand.CommandCategory.EDITING;}
+	public BotCommand.CommandCategory getCategory(){ return BotCommand.CommandCategory.OTHER;}
     @Override
     public String getName(){ return CMDNAME;}
 	@Override

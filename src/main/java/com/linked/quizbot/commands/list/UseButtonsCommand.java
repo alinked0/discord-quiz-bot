@@ -13,14 +13,14 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class UseButtonsCommand extends BotCommand{
-    public static final String CMDNAME = "setprefixe";
-    private String cmdDesrciption = "choose your perffere prefixe";
+    public static final String CMDNAME = "usebuttons";
+    private String cmdDesrciption = "choose your perfered buttons";
 	private List<String> abbrevs = List.of();
     
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
-	public BotCommand.CommandCategory getCategory(){ return BotCommand.CommandCategory.EDITING;}
+	public BotCommand.CommandCategory getCategory(){ return BotCommand.CommandCategory.OTHER;}
     @Override
     public String getName(){ return CMDNAME;}
 	@Override
