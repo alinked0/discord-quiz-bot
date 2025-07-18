@@ -3,7 +3,6 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
