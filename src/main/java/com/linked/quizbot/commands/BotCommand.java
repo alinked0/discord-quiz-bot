@@ -38,6 +38,7 @@ import com.linked.quizbot.commands.list.RenameListCommand;
 import com.linked.quizbot.commands.list.SetPrefixeCommand;
 import com.linked.quizbot.commands.list.StartCommand;
 import com.linked.quizbot.commands.list.TagListCommand;
+import com.linked.quizbot.commands.list.UseButtonsCommand;
 import com.linked.quizbot.commands.list.UserInfoCommand;
 import com.linked.quizbot.commands.list.ViewCommand;
 import com.linked.quizbot.core.BotCore;
@@ -88,6 +89,7 @@ public abstract class BotCommand {
             new StartCommand(),
             new TagListCommand(),
             new UserInfoCommand(),
+            new UseButtonsCommand(),
             new ViewCommand()
         ));
     }
