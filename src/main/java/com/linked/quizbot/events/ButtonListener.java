@@ -59,7 +59,7 @@ public class ButtonListener extends ListenerAdapter {
 		}
 		Emoji reaction = Emoji.fromFormatted(event.getButton().getLabel());
 		QuizBot quizBot = (QuizBot)BotCore.getViewer(messageId);
-		if (quizBot!=null && quizBot.isActive() && quizBot.getButtons().contains(reaction)){
+		if (quizBot!=null && quizBot.isActive() && quizBot.getReactions().contains(reaction)){
 			// If the reaction is a number, the viewer will handle it.
 			quizBot.addReaction(userId, reaction);
 			if (quizBot.getCurrentIndex()>=0&& quizBot.awnsersByUserIdByQuestionIndex.get(quizBot.getCurrentIndex()).size()==1){

@@ -6,6 +6,8 @@ import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.Viewer;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.Users;
+
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class ViewCommand extends BotCommand{
@@ -34,7 +36,7 @@ public class ViewCommand extends BotCommand{
         if (l==null){
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        Viewer viewer = new Viewer(l);
+        Viewer viewer = new Viewer(l, Users.get(userId).useButtons(), false);
 		return viewer.start();
     }
 

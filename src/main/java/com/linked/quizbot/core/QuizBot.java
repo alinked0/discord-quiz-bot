@@ -97,7 +97,7 @@ public class QuizBot extends Viewer {
 	public Set<String> getPlayers(){return players;}
 	public void addPlayer(String player){players.add(player);}
 	public void autoNext(boolean b){ autoNext=b;}
-    public List<Emoji> getButtonsForOptions(){
+    public List<Emoji> getReactionsForOptions(){
         List<Emoji> emojis = new ArrayList<>();
         for (int i = 0; i < getCurrQuestion().size(); i++) {
             emojis.add(getReactionForAnswer(i + 1));
@@ -162,10 +162,10 @@ public class QuizBot extends Viewer {
             };
     }
     @Override
-	public List<Emoji> getButtons(){
+	public List<Emoji> getReactions(){
 		List<Emoji> emojis = new ArrayList<>();
-		if (-1<getCurrentIndex()) emojis.addAll(getButtonsForOptions());
-		emojis.addAll(super.getButtons());
+		if (-1<getCurrentIndex()) emojis.addAll(getReactionsForOptions());
+		emojis.addAll(super.getReactions());
 		if (-1<getCurrentIndex()) emojis.add(Constants.EMOJIEXPLICATION);
 		return emojis;
 	}

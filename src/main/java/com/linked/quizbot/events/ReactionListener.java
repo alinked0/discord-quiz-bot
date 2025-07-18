@@ -79,7 +79,7 @@ public class ReactionListener extends ListenerAdapter {
 			}
 			
 			QuizBot quizBot = (QuizBot)BotCore.getViewer(messageId);
-			if (quizBot!=null && quizBot.isActive() && quizBot.getButtons().contains(reaction)){
+			if (quizBot!=null && quizBot.isActive() && quizBot.getReactions().contains(reaction)){
 				quizBot.addReaction(userId, reaction);
 				if (quizBot.getCurrentIndex()>=0&& quizBot.awnsersByUserIdByQuestionIndex.get(quizBot.getCurrentIndex()).size()==1){
 					MessageSender.sendCommandOutput(

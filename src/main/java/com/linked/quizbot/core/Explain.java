@@ -46,7 +46,7 @@ public class Explain extends Viewer{
         return getQuestionList().getFormatedCorrection(getCurrentIndex(), userAwnsersByQuestionIndex.get(getCurrentIndex())).getSecond();
     }
     @Override
-	public List<Emoji> getButtons(){
+	public List<Emoji> getReactions(){
 		List<Emoji> emojis = new ArrayList<>();
         if (hasPrevious()) emojis.add(Constants.EMOJIPREVQUESTION);
         if (hasNext()) emojis.add(Constants.EMOJINEXTQUESTION);

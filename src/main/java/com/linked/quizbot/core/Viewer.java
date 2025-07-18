@@ -64,7 +64,7 @@ public class Viewer {
 			.addTextMessage(questions.header())
 			.useButtons(useButtons())
 			.reply(replyToSender)
-			.addReactions(getButtons())
+			.addReactions(getReactions())
 			.addPostSendAction(postSendActionStart())
 			.build();
 	}
@@ -74,7 +74,7 @@ public class Viewer {
 	}
 	public QuestionList getQuestionList(){return questions;}
 	public int getCurrentIndex() { return currIndex;}
-	public List<Emoji> getButtons(){
+	public List<Emoji> getReactions(){
 		List<Emoji> emojis = new ArrayList<>();
 		if (hasPrevious())emojis.add(Constants.EMOJIPREVQUESTION);
 		emojis.add(hasNext()?Constants.EMOJINEXTQUESTION:Constants.EMOJISTOP);
@@ -119,7 +119,7 @@ public class Viewer {
 			.setMessage(message)
 			.useButtons(useButtons())
 			.reply(replyToSender)
-			.addReactions(getButtons())
+			.addReactions(getReactions())
 			.addPostSendAction(postSendActionCurrent())
 			.build();
 	}
