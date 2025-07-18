@@ -48,6 +48,7 @@ public class UseButtonsCommand extends BotCommand{
 				break;
 		}
 		user.useButtons(b);
+		Users.addUser(user);
 		return new CommandOutput.Builder()
 				.addTextMessage(String.format("Your now using %s", b?"Buttons":"Reactions"))
 				.build();
