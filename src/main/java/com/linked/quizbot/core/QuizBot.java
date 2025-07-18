@@ -84,11 +84,14 @@ public class QuizBot extends Viewer {
 	public Timestamp timeLimit;
 
     public QuizBot(QuestionList c) {
-		super(c.rearrageOptions());
+		this(c, true, false);
+    }
+	public QuizBot(QuestionList c, boolean useButtons, boolean replyToSender) {
+		super(c, useButtons, replyToSender);
     }
 	public Timestamp getLastTimestamp(){return timeLimit;}
     public Boolean isExplaining() { return isExplaining;}
-    public void setExplainTriger(boolean b) { isExplaining=b;}
+    public void isExplaining(boolean b) { isExplaining=b;}
 	public int getDelaySec(){ return this.delaySec;}
 	public boolean getAutoNext(){ return this.autoNext;}
 	public Set<String> getPlayers(){return players;}
@@ -138,6 +141,7 @@ public class QuizBot extends Viewer {
         awnsersByUserIdByQuestionIndex.clear();
 		int n = getQuestionList().size();
 		this.timeLimit = TimeFormat.RELATIVE.now();
+		isExplaining(false);
 		for (int i=0; i<n; ++i) 
 			awnsersByUserIdByQuestionIndex.add(new HashMap<>());
 	}
@@ -147,6 +151,7 @@ public class QuizBot extends Viewer {
 			BotCore.explicationRequest.remove(getMessageId());
 		}
 		userAnswersForCurrQuestion.clear();
+		isExplaining(false);
 		this.timeLimit = TimeFormat.RELATIVE.now();
 	}
     @Override

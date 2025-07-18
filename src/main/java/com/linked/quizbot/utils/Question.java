@@ -123,12 +123,14 @@ public class Question extends LinkedList<Option>{
 		res.sort((a,b)->r.nextBoolean()?-1:1);
 		return res;
 	}
-	public void rearrageOptions(){
+	public Question rearrageOptions(){
 		Random r = BotCore.getRandom();
 		sort((a,b)->r.nextBoolean()?-1:1);
+		return this;
 	}
-	public void rearrageOptions(Random random){
+	public Question rearrageOptions(Random random){
 		sort((a,b)->random.nextBoolean()?-1:1);
+		return this;
 	}
 	public String getImageSrc (){ return imageSrc;}
 	public void setImageSrc(String imageSrc){ this.imageSrc = imageSrc;}

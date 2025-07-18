@@ -12,6 +12,7 @@ import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.core.Viewer;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
@@ -73,6 +74,7 @@ public class LeaderBoardCommand extends BotCommand {
 			.addReaction(Constants.EMOJIEXPLICATION)
 			.addPostSendAction(leaderboardPostSendAction)
 			.sendInOriginalMessage(true)
+			.useButtons(q.useButtons())
 		.build();
 	}
 }

@@ -44,7 +44,7 @@ public class MessageSender {
 			.setContent(content)
 			.setAttachments(output.getFiles().stream().map(f->AttachedFile.fromData(f)).toList())
 		.setEmbeds(output.getEmbeds());
-		if (BotCore.useButtons || !channel.getType().isGuild() && !channel.getType().isThread()){
+		if (output.useButtons() || !channel.getType().isGuild() && !channel.getType().isThread()){
 			newMessage.setComponents(output.getActionRows());
 		}
 		event.editMessage(newMessage.build()).queue(
@@ -52,7 +52,7 @@ public class MessageSender {
 				for (Consumer<Message> action : output.getPostSendActions()) {
 					action.accept(message);
 				}
-				if (!BotCore.useButtons && channel.getType().isGuild()) addReactions(message, output.getReactions().iterator());
+				if (!output.useButtons()  && channel.getType().isGuild()) addReactions(message, output.getReactions().iterator());
 			},
 			failure -> System.err.println("   $> Failed to edit Message : " + failure.getMessage()) // Log failure
 		);
@@ -95,7 +95,7 @@ public class MessageSender {
 				.setContent(content)
 				.setAttachments(output.getFiles().stream().map(f->AttachedFile.fromData(f)).toList())
 			.setEmbeds(output.getEmbeds());
-			if (BotCore.useButtons || !channel.getType().isGuild() && !channel.getType().isThread()){
+			if (output.useButtons()  || !channel.getType().isGuild() && !channel.getType().isThread()){
 				newMessage.setComponents(output.getActionRows());
 			}
 			originalMessage.editMessage(newMessage.build()).queue(
@@ -103,7 +103,7 @@ public class MessageSender {
 					for (Consumer<Message> action : output.getPostSendActions()) {
 						action.accept(sentMessage);
 					}
-					if (!BotCore.useButtons && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
+					if (!output.useButtons()  && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
 				},
 				failure -> System.err.println("   $> Failed to edit Message : " + failure.getMessage()) // Log failure
 			);
@@ -171,7 +171,7 @@ public class MessageSender {
 			}
 			sendActions.add(sendAction);
 		}
-		if (BotCore.useButtons || !channel.getType().isGuild()){
+		if (output.useButtons()  || !channel.getType().isGuild()){
 			for (MessageCreateAction sendAction : sendActions){
 				sendAction.setComponents(output.getActionRows());
 			}
@@ -183,7 +183,7 @@ public class MessageSender {
 					for (Consumer<Message> action : output.getPostSendActions()) {
 						action.accept(sentMessage);
 					}
-					if (!BotCore.useButtons && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
+					if (!output.useButtons()  && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
 				},
 				failure -> System.err.println("Failed to send embed: " + failure.getMessage()) // Log failure
 			);

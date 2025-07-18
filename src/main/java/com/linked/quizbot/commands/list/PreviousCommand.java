@@ -9,6 +9,8 @@ import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.core.Viewer;
+import com.linked.quizbot.utils.User;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -50,7 +52,7 @@ public class PreviousCommand extends BotCommand {
 		}
         Viewer q = BotCore.getViewer(args.get(0));
         if (q != null && q.isActive()){
-            return q.previous();
+			return q.previous();
         }
         return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
     }

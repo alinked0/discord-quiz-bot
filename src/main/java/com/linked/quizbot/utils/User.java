@@ -21,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.CommandOutput;
 
@@ -36,6 +38,7 @@ public class User implements Iterable<QuestionList>{
 	protected List<QuestionList> listsSortedById;
 	private int numberOfGamesPlayed;
 	private double totalPointsEverGained;
+	private boolean useButtons;
 	private Map<String, Emoji> tagEmojiPerTagName;
 	private Map<String, List<QuestionList>> questionListPerTags;
 
@@ -43,6 +46,7 @@ public class User implements Iterable<QuestionList>{
         private String userId=null;
         private String perferedPrefix = null;
         protected List<QuestionList> listsSortedById = new ArrayList<>();
+		private boolean useButtons = true;	
         private int numberOfGamesPlayed=0;
         private double totalPointsEverGained=0;
         private Map<String, Emoji> tagEmojiPerTagName= new HashMap<>();
@@ -55,8 +59,12 @@ public class User implements Iterable<QuestionList>{
             this.perferedPrefix= prefixe;
             return this;
         }
+		public Builder useButtons(boolean b){ 
+            this.useButtons= b;
+            return this;
+        }
 		public Builder numberOfGamesPlayed(int n){ 
-            this.numberOfGamesPlayed=n;
+			this.numberOfGamesPlayed=n;
             return this;
         }
 		public Builder totalPointsEverGained(double points){ 
@@ -84,11 +92,11 @@ public class User implements Iterable<QuestionList>{
             return this;
         }
 		public Builder add(QuestionList l){
-            this.listsSortedById.add(l);
+			this.listsSortedById.add(l);
             return this;
         }
 		public Builder addAll(List<QuestionList> c){
-            this.listsSortedById.addAll(c);
+			this.listsSortedById.addAll(c);
             return this;
         }
 		public User build(){
@@ -104,6 +112,7 @@ public class User implements Iterable<QuestionList>{
 		this.tagEmojiPerTagName = builder.tagEmojiPerTagName;
 		this.questionListPerTags = builder.questionListPerTags;
 		this.listsSortedById = builder.listsSortedById;
+		this.useButtons = builder.useButtons;
 		File folder = new File(Constants.LISTSPATH+Constants.SEPARATOR+ userId);
 		File[] listOfFiles = folder.listFiles();
 		if(listOfFiles != null) {
@@ -112,7 +121,7 @@ public class User implements Iterable<QuestionList>{
 				try{
 					QuestionList l = QuestionList.importListQuestionFromJson(listOfFiles[i].getAbsolutePath());
                     if (!listsSortedById.contains(l)){
-                        listsSortedById.add(l);
+						listsSortedById.add(l);
                     }
 				}catch (IOException e) {
 					e.printStackTrace();
@@ -157,6 +166,10 @@ public class User implements Iterable<QuestionList>{
 			tagEmojiPerTagName = new HashMap<>();
 		}
 	}
+	public boolean useButtons(){
+		return useButtons;
+	}
+	public void useButtons(boolean b){ useButtons = b;}
 	public String getPrefix(){
 		return perferedPrefix;
 	}
@@ -444,11 +457,39 @@ public class User implements Iterable<QuestionList>{
 		}
 		return false;
 	}
-
-	public String userDataToString(){
+	public String toJsonUsingMapper() throws JsonProcessingException{
 		String res="", 
 			tab1 = "\t";
-		res += "{\n";
+			res += "{\n";
+		ObjectMapper mapper = new ObjectMapper();
+		res +=tab1+"\"tagEmojiPerTagName\":{";
+		Iterator<Entry<String, Emoji>> iter = tagEmojiPerTagName.entrySet().iterator();
+		Entry<String, Emoji> entry2;
+		while (iter.hasNext()) {
+			entry2 = iter.next();
+			res += mapper.writeValueAsString(entry2.getKey())+":"+mapper.writeValueAsString(entry2.getValue().getFormatted());
+			if(iter.hasNext()){
+				res += ", ";
+			}
+		}
+		res += "},\n";
+		res += tab1+"\"prefixe\":"+mapper.writeValueAsString(getPrefix())+",\n";
+		res += tab1+"\"useButtons\":"+useButtons()+",\n";
+		res += tab1+"\"totalPointsEverGained\":"+getTotalPointsEverGained()+",\n";
+		res += tab1+"\"numberOfGamesPlayed\":"+getNumberOfGamesPlayed()+"\n";
+		res +="}";
+		return res;
+	}
+	public String toJson(){
+		String res="";
+		try {
+			res = toJsonUsingMapper();
+			return res;
+		} catch (Exception e){
+			System.err.println("[toJsonUsingMapper() failed]"+e.getMessage());
+		}
+		String tab1 = "\t";
+		res = "{\n";
 		res +=tab1+"\"tagEmojiPerTagName\":{";
 		Iterator<Entry<String, Emoji>> iter = tagEmojiPerTagName.entrySet().iterator();
 		Entry<String, Emoji> entry2;
@@ -461,6 +502,7 @@ public class User implements Iterable<QuestionList>{
 		}
 		res += "},\n";
 		res += tab1+"\"prefixe\":\""+getPrefix()+"\",\n";
+		res += tab1+"\"useButtons\":"+useButtons()+",\n";
 		res += tab1+"\"totalPointsEverGained\":"+getTotalPointsEverGained()+",\n";
 		res += tab1+"\"numberOfGamesPlayed\":"+getNumberOfGamesPlayed()+"\n";
 		res +="}";
@@ -478,13 +520,13 @@ public class User implements Iterable<QuestionList>{
 			buff.write(this.toString());
 			buff.close();
 		} catch (IOException e) {
-			System.err.println("$> An error occurred while exporting UserData.");
+			System.err.println("$> An error occurred while exporting UserData."+destFilePath);
 			e.printStackTrace();
 		}
 	}
 	@Override
 	public String toString() {
-		String res = userDataToString();
+		String res = toJson();
 		return res;
 	}
 }

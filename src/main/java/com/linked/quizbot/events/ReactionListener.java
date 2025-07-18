@@ -83,14 +83,14 @@ public class ReactionListener extends ListenerAdapter {
 				quizBot.addReaction(userId, reaction);
 				if (quizBot.getCurrentIndex()>=0&& quizBot.awnsersByUserIdByQuestionIndex.get(quizBot.getCurrentIndex()).size()==1){
 					MessageSender.sendCommandOutput(
-						new CommandOutput.Builder().addCommandOutput(quizBot.current()).sendInOriginalMessage(true).build(),
+						new CommandOutput.Builder().add(quizBot.current()).sendInOriginalMessage(true).build(),
 						channel,
 						message 
 					);
 					ReactionListener.treatDelay(userId, message, quizBot);
 					return;
 				}else{
-					quizBot.setExplainTriger(false);
+					quizBot.isExplaining(false);
 				}
 			}
 		});

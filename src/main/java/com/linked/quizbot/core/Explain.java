@@ -15,19 +15,20 @@ public class Explain extends Viewer{
     private double points;
     private String userId;
     
-    public Explain(QuestionList l, List<Set<Option>> userAwnsersByQuestionIndex, String userId, double points){
-        super(l);
+    public Explain(QuestionList l, List<Set<Option>> userAwnsersByQuestionIndex, String userId, double points, boolean useButtons, boolean replyToSender){
+        super(l.clone(), useButtons, replyToSender);
         this.userAwnsersByQuestionIndex = userAwnsersByQuestionIndex;
         this.points = points;
         this.userId = userId;
     }
     public Explain(QuizBot view, String userId){
-        this(view.getQuestionList(), view.getAwsersByQuestion(userId), userId, view.getUserScore(userId));
+        this(view.getQuestionList(), view.getAwsersByQuestion(userId), userId, view.getUserScore(userId), view.useButtons(), true);
     }
     public Explain(QuizBot view, String userId, int currIndex){
-        this(view.getQuestionList(), view.getAwsersByQuestion(userId), userId, view.getUserScore(userId));
+        this(view.getQuestionList(), view.getAwsersByQuestion(userId), userId, view.getUserScore(userId), view.useButtons(), view.replyToSender());
         this.start();
-        while (getCurrentIndex()<currIndex) {
+        int index = view.userAnswersForCurrQuestion.size()>0?currIndex:currIndex-1;
+        while (getCurrentIndex()<index) {
             this.next();
         }
     }

@@ -35,6 +35,7 @@ public class UserDataParser {
 		double totalPointsEverGained=0;
 		int numberOfGamesPlayed = 0;
 		String prefixe = null;
+		boolean useButtons = true;
 		String fieldName;
 		Map<String, Emoji> m = new HashMap<>();
 		while (!jp.isClosed()){
@@ -55,6 +56,9 @@ public class UserDataParser {
 					case "tagEmojiPerTagName" -> {
 						m=parseEmojiPerTagName(jp);
 					}
+					case "useButtons" -> {
+						useButtons=jp.getValueAsBoolean();
+					}
 				}
 			} else {
 				jp.nextToken();
@@ -64,6 +68,7 @@ public class UserDataParser {
 		userBuilder.numberOfGamesPlayed(numberOfGamesPlayed);
 		userBuilder.tagEmojiPerTagName(m);
 		userBuilder.perferedPrefixe(prefixe);
+		userBuilder.useButtons(useButtons);
 		return userBuilder.build();
 	}
 	public static Map<String, Emoji> parseEmojiPerTagName(JsonParser jp) throws IOException {

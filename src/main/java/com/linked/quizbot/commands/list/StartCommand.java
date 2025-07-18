@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListHash;
+import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
@@ -84,7 +85,9 @@ public class StartCommand extends BotCommand{
         if (questions==null){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        QuizBot newQuizBot = new QuizBot(questions);
-        return newQuizBot.start();
+        questions = new QuestionList.Builder().add(questions).build().rearrageOptions();
+		User user = Users.get(userId);
+        QuizBot quizBot = new QuizBot(questions, user.useButtons(), false);
+        return quizBot.start();
     }
 }
