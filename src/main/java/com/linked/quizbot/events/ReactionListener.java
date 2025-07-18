@@ -13,7 +13,7 @@ import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.EndCommand;
 import com.linked.quizbot.commands.list.ExplainCommand;
-import com.linked.quizbot.commands.list.MoreTimeCommand;
+import com.linked.quizbot.commands.list.AutoNextCommand;
 import com.linked.quizbot.commands.list.NextCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
 
@@ -78,42 +78,38 @@ public class ReactionListener extends ListenerAdapter {
 				return;
 			}
 			
-			QuizBot currQuizBot = (QuizBot)BotCore.getViewer(messageId);
-			if (currQuizBot!=null) {
-				if (currQuizBot.isActive()) {
-					if (currQuizBot.getButtons().contains(reaction)){
-						currQuizBot.addReaction(userId, reaction);
-						if (currQuizBot.getDelaySec()>0 && currQuizBot.getCurrentIndex()>=0&& currQuizBot.awnsersByUserIdByQuestionIndex.get(currQuizBot.getCurrentIndex()).size()==1){
-							CommandOutput out = currQuizBot.current();
-							MessageSender.sendCommandOutput(
-								new CommandOutput.Builder().addCommandOutput(out).sendInOriginalMessage(true).build(),
-								channel,
-								message 
-							);
-							ReactionListener.treatDelay(userId, message, currQuizBot);
-							return;
-						}else{
-							currQuizBot.setExplainTriger(false);
-						}
-					}
+			QuizBot quizBot = (QuizBot)BotCore.getViewer(messageId);
+			if (quizBot!=null && quizBot.isActive() && quizBot.getButtons().contains(reaction)){
+				quizBot.addReaction(userId, reaction);
+				if (quizBot.getCurrentIndex()>=0&& quizBot.awnsersByUserIdByQuestionIndex.get(quizBot.getCurrentIndex()).size()==1){
+					MessageSender.sendCommandOutput(
+						new CommandOutput.Builder().addCommandOutput(quizBot.current()).sendInOriginalMessage(true).build(),
+						channel,
+						message 
+					);
+					ReactionListener.treatDelay(userId, message, quizBot);
+					return;
+				}else{
+					quizBot.setExplainTriger(false);
 				}
 			}
 		});
 	}
 
-	public static void treatDelay(String userId, Message message, QuizBot currQuizBot){
-		Question oldQ = currQuizBot.getCurrQuestion();
-		Timestamp oldT = currQuizBot.getLastTimestamp();
+	public static void treatDelay(String userId, Message message, QuizBot quizBot){
+		Question oldQ = quizBot.getCurrQuestion();
 
 		MessageChannel channel = message.getChannel();
 		String messageId = message.getId();
-		try{
-			TimeUnit.SECONDS.sleep(currQuizBot.getDelaySec());
-		}catch (Exception e){
-			e.printStackTrace();
+		if (!quizBot.getAutoNext()){
+			try{
+				TimeUnit.SECONDS.sleep(quizBot.getDelaySec());
+			}catch (Exception e){
+				System.err.println("[AUTONEXT]"+e.getMessage());;
+			}
 		}
-		if(!currQuizBot.explainWasTrigerred() && oldQ.equals(currQuizBot.getCurrQuestion()) && oldT.equals(oldT)){
-			BotCommand cmd = BotCommand.getCommandByName(NextCommand.CMDNAME);
+		if(oldQ.equals(quizBot.getCurrQuestion()) && !quizBot.isExplaining()){
+			BotCommand cmd = BotCommand.getCommandByName(quizBot.getCurrentIndex()<quizBot.getQuestionList().size()-1?NextCommand.CMDNAME:EndCommand.CMDNAME);
 			MessageSender.sendCommandOutput(
 				cmd.execute(userId, List.of(messageId)),
 				channel,
@@ -123,7 +119,7 @@ public class ReactionListener extends ListenerAdapter {
 	}
 	public static BotCommand getCommandFromEmoji(Emoji reaction){
 		if (reaction.equals(Constants.EMOJIMORETIME)){
-			return BotCommand.getCommandByName(MoreTimeCommand.CMDNAME);
+			return BotCommand.getCommandByName(AutoNextCommand.CMDNAME);
 		}
 		if (reaction.equals(Constants.EMOJISTOP)){
 			return BotCommand.getCommandByName(EndCommand.CMDNAME);

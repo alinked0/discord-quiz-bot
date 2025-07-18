@@ -3,15 +3,11 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import java.io.File;
-import java.util.List;
 
-import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 
-import net.dv8tion.jda.api.utils. AttachedFile;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public class RawCommand extends BotCommand{

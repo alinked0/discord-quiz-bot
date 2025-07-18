@@ -386,6 +386,7 @@ public class TestUser {
 		Path listFile = tempListsPath.resolve(userId).resolve(newList.getId() + ".json");
 		assertTrue(Files.exists(listFile));
 		String fileContent = readFileContent(listFile);
+		System.out.println("fileContent: "+fileContent);
 		assertTrue(fileContent.contains("\"name\":\"New List\""));
 	}
 

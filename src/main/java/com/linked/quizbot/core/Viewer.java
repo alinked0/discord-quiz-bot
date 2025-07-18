@@ -53,7 +53,8 @@ public class Viewer {
 		return outputBuilder.sendInOriginalMessage(false)
 			.addTextMessage(questions.header())
             .addReactions(getButtons())
-			.addPostSendAction(postSendActionStart()).build();
+			.addPostSendAction(postSendActionStart())
+            .build();
 	}
     public Question getCurrQuestion() {
         if (!isActive() || getCurrentIndex()>=questions.size()) { return null;}
@@ -105,7 +106,8 @@ public class Viewer {
             .clearReactions(true)
             .setMessage(message)
             .addReactions(getButtons())
-			.addPostSendAction(postSendActionCurrent()).build();
+			.addPostSendAction(postSendActionCurrent())
+            .build();
     }
     public boolean hasNext(){ return getCurrentIndex()+1 < questions.size();}
     public boolean hasPrevious(){ return -1 <= getCurrentIndex()-1;}

@@ -30,7 +30,7 @@ import com.linked.quizbot.commands.list.ExplainCommand;
 import com.linked.quizbot.commands.list.HelpCommand;
 import com.linked.quizbot.commands.list.InviteCommand;
 import com.linked.quizbot.commands.list.LeaderBoardCommand;
-import com.linked.quizbot.commands.list.MoreTimeCommand;
+import com.linked.quizbot.commands.list.AutoNextCommand;
 import com.linked.quizbot.commands.list.NextCommand;
 import com.linked.quizbot.commands.list.PingCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
@@ -81,7 +81,7 @@ public abstract class BotCommand {
             new HelpCommand(),
             new InviteCommand(),
             new LeaderBoardCommand(),
-            new MoreTimeCommand(),
+            new AutoNextCommand(),
             new NextCommand(),
             new PingCommand(),
             new PreviousCommand(),

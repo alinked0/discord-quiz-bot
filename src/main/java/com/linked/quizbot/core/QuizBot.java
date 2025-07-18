@@ -78,20 +78,22 @@ public class QuizBot extends Viewer {
     public final List<Map<String, Set<Option>>> awnsersByUserIdByQuestionIndex = new ArrayList<>();
     public final Set<String> players = new HashSet<>();
 	public Map<String, Double> userScoreExact = null;
-    public boolean explainWasTrigerred = false;
-    public int delaySec = 5;
+    public boolean isExplaining = false;
+    public boolean autoNext = true;
+    public final int delaySec = 5;
 	public Timestamp timeLimit;
 
     public QuizBot(QuestionList c) {
 		super(c.rearrageOptions());
     }
 	public Timestamp getLastTimestamp(){return timeLimit;}
-    public Boolean explainWasTrigerred() { return explainWasTrigerred;}
-    public void setExplainTriger(boolean b) { explainWasTrigerred=b;}
+    public Boolean isExplaining() { return isExplaining;}
+    public void setExplainTriger(boolean b) { isExplaining=b;}
 	public int getDelaySec(){ return this.delaySec;}
-	public void setDelay(int sec) { this.delaySec = sec;}
+	public boolean getAutoNext(){ return this.autoNext;}
 	public Set<String> getPlayers(){return players;}
 	public void addPlayer(String player){players.add(player);}
+	public void autoNext(boolean b){ autoNext=b;}
     public List<Emoji> getButtonsForOptions(){
         List<Emoji> emojis = new ArrayList<>();
         for (int i = 0; i < getCurrQuestion().size(); i++) {
@@ -135,6 +137,7 @@ public class QuizBot extends Viewer {
 		userAnswersForCurrQuestion.clear();
         awnsersByUserIdByQuestionIndex.clear();
 		int n = getQuestionList().size();
+		this.timeLimit = TimeFormat.RELATIVE.now();
 		for (int i=0; i<n; ++i) 
 			awnsersByUserIdByQuestionIndex.add(new HashMap<>());
 	}
@@ -144,6 +147,7 @@ public class QuizBot extends Viewer {
 			BotCore.explicationRequest.remove(getMessageId());
 		}
 		userAnswersForCurrQuestion.clear();
+		this.timeLimit = TimeFormat.RELATIVE.now();
 	}
     @Override
     public Consumer<Message> postSendActionCurrent(){
@@ -162,9 +166,7 @@ public class QuizBot extends Viewer {
 	}
     @Override
     public String getFormatedQuestion () {
-		if (delaySec>0&& awnsersByUserIdByQuestionIndex.get(getCurrentIndex()).size()>=1){
-			this.timeLimit = TimeFormat.RELATIVE.after(delaySec*1000);
-		} else if (delaySec==0){
+		if (getAutoNext() && awnsersByUserIdByQuestionIndex.get(getCurrentIndex()).size()>1){
 			this.timeLimit = TimeFormat.RELATIVE.after(delaySec*1000);
 		}
         return getQuestionList().getFormated(getCurrentIndex())+getLastTimestamp()+"\n";

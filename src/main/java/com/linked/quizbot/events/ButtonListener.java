@@ -57,26 +57,22 @@ public class ButtonListener extends ListenerAdapter {
 			return;
 		}
 		Emoji reaction = Emoji.fromFormatted(event.getButton().getLabel());
-		QuizBot currQuizBot = (QuizBot)BotCore.getViewer(messageId);
-		if (currQuizBot!=null) {
-			if (currQuizBot.isActive()) {
-				if (currQuizBot.getButtons().contains(reaction)){
-					// If the reaction is a number, the viewer will handle it.
-					currQuizBot.addReaction(userId, reaction);
-					if (currQuizBot.getDelaySec()>0 && currQuizBot.getCurrentIndex()>=0&& currQuizBot.awnsersByUserIdByQuestionIndex.get(currQuizBot.getCurrentIndex()).size()==1){
-						CommandOutput out = currQuizBot.current();
-						MessageSender.sendCommandOutput(
-							new CommandOutput.Builder().addCommandOutput(out).sendInOriginalMessage(true).build(),
-							event
-						);
-						ReactionListener.treatDelay(userId, message, currQuizBot);
-						return;
-					}else{
-						currQuizBot.setExplainTriger(false);
-						event.editButton(event.getButton()).queue();
-					}
-				}
+		QuizBot quizBot = (QuizBot)BotCore.getViewer(messageId);
+		if (quizBot!=null && quizBot.isActive() && quizBot.getButtons().contains(reaction)){
+			// If the reaction is a number, the viewer will handle it.
+			quizBot.addReaction(userId, reaction);
+			if (quizBot.getCurrentIndex()>=0&& quizBot.awnsersByUserIdByQuestionIndex.get(quizBot.getCurrentIndex()).size()==1){
+				MessageSender.sendCommandOutput(
+					new CommandOutput.Builder().addCommandOutput(quizBot.current()).sendInOriginalMessage(true).build(),
+					event
+				);
+				ReactionListener.treatDelay(userId, message, quizBot);
+				return;
+			}else{
+				quizBot.setExplainTriger(false);
+				event.editButton(event.getButton()).queue();
 			}
 		}
 	}
 }
+

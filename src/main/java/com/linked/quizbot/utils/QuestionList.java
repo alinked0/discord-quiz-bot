@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 
@@ -392,7 +394,89 @@ public class QuestionList extends ArrayList<Question> {
 	 */
 	@Override
 	public String toString() {
-		return toJson();
+		String res;
+		try {
+			res = toJsonUsingMapper();
+		} catch (Exception e){
+			System.err.println("[toJsonUsingMapper() failed]"+e.getMessage());
+			res = toJson();
+		}
+		return res;
+	}
+	public String toJsonUsingMapper() throws JsonProcessingException{
+		String res="", 
+			tab="",
+			tab1 = "\t",
+			tab2 = "\t\t",
+			tab3 = "\t\t\t",
+		seperatorParamOpt = "\n";
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		res += "{\n";
+		tab = "\t";
+		res += tab+"\"authorId\":\""+getAuthorId()+"\",\n";
+		res += tab + "\"name\":\""+getName()+"\",\n";
+		res += tab + "\"id\":\""+getId()+"\",\n";
+		res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
+
+		res += tab + "\"tags\":{";
+		Iterator<Entry<String, Emoji>> iter = tags.entrySet().iterator();
+		Entry<String, Emoji> entry;
+		while (iter.hasNext()) {
+			entry = iter.next();
+			res += "\""+entry.getKey()+"\" : \""+entry.getValue().getFormatted()+"\"";
+			if(iter.hasNext()){
+				res += ", ";
+			}
+		}
+		res += "},\n";
+
+		res += tab + "\"questions\": \n";
+		res += "\t[\n";
+		Iterator<Question> iterQuestion = this.iterator();
+		while (iterQuestion.hasNext()){
+			Question q = iterQuestion.next();
+			tab = "\t\t";
+			res += "\t{\n" + tab2 + "\"question\":"+mapper.writeValueAsString(q.getQuestion())+",\n";
+			res += tab2 + "\"explication\":";
+			if(q.getExplication()==null || q.getExplication().equals("null") || q.getExplication().equals(Constants.NOEXPLICATION)){
+				res +=null;
+			}else {
+				res += mapper.writeValueAsString(q.getExplication());
+			}
+			res += ",\n";
+			res +=tab2 + "\"imageSrc\":"+(q.getImageSrc()==null?null:mapper.writeValueAsString(q.getImageSrc()))+",\n";
+			res +=tab2 + "\"options\": [\n";
+			List<Option> opts = q.getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
+			Iterator<Option> iterOpt = opts.iterator();
+			while (iterOpt.hasNext()){
+				Option opt = iterOpt.next();
+				res += tab2+"{\n";
+				res += tab3+"\"text\":"+mapper.writeValueAsString(opt.getText())+","+seperatorParamOpt;
+				res += tab3+"\"isCorrect\":"+opt.isCorrect()+","+seperatorParamOpt;
+				res += tab3+"\"explication\":";
+				if(opt.getExplication()==null || opt.getExplication().equals("null") || opt.getExplication().equals(Constants.NOEXPLICATION)){
+					res +=null+seperatorParamOpt;
+				}else {
+					res += mapper.writeValueAsString(opt.getExplication())+seperatorParamOpt;
+				}
+				res += tab2+"}";
+				if (iterOpt.hasNext()){
+					res += ",";
+				}
+				res += "\n";
+			}
+			res += tab2+"]\n";
+			res += tab1+"}";
+			if(iterQuestion.hasNext()) {
+				res+= ",";
+			}
+			res += "\n";
+		}
+		res += tab1+"]\n";
+		res +="}";
+		return res;
 	}
 	public String toJson() {
 		String res="", 
@@ -432,7 +516,7 @@ public class QuestionList extends ArrayList<Question> {
 			if(q.getExplication()==null || q.getExplication().equals("null") || q.getExplication().equals(Constants.NOEXPLICATION)){
 				res +=null;
 			}else {
-				res += "\""+q.getExplication()+"\"";
+				res += "\""+q.getExplication().replace("\"", "\\\"")+"\"";
 			}
 			res += ",\n";
 			res +=tab2 + "\"imageSrc\":"+(q.getImageSrc()==null?null:"\""+q.getImageSrc()+"\"")+",\n";
@@ -448,7 +532,7 @@ public class QuestionList extends ArrayList<Question> {
 				if(opt.getExplication()==null || opt.getExplication().equals("null") || opt.getExplication().equals(Constants.NOEXPLICATION)){
 					res +=null+seperatorParamOpt;
 				}else {
-					res += "\""+opt.getExplication()+"\""+seperatorParamOpt;
+					res += "\""+opt.getExplication().replace("\"", "\\\"")+"\""+seperatorParamOpt;
 				}
 				res += tab2+"}";
 				if (iterOpt.hasNext()){
@@ -465,7 +549,6 @@ public class QuestionList extends ArrayList<Question> {
 		}
 		res += tab1+"]\n";
 		res +="}";
-		res = res.replace("\\", "\\\\");
 		res = res.replace("\\", "\\\\");
 		return res;
 	}

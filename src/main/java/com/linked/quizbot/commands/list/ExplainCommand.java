@@ -84,6 +84,7 @@ public class ExplainCommand extends BotCommand {
         q.setExplainTriger(true);
         CommandOutput.Builder outputBuild = new CommandOutput.Builder();
         CommandOutput expl;
+        int nbPlayers = q.getPlayers().size();
         if (q.isActive()) {
             expl = new Explain(q, userId, q.getCurrentIndex()).current();
             outputBuild.addCommandOutput(expl);
@@ -92,8 +93,9 @@ public class ExplainCommand extends BotCommand {
             expl = new Explain(q, userId).start();
             outputBuild.addCommandOutput(expl);
         }
-        int delay = q.getDelaySec();
-        q.setDelay(delay);
+        if (nbPlayers>1){
+            outputBuild.sendAsPrivateMessage(userId).sendInOriginalMessage(false);
+        }
 		return outputBuild.build();
     }
 }
