@@ -89,7 +89,7 @@ public class MessageListener extends ListenerAdapter {
 			}
 		}
 		if (!Constants.isBugFree()) {
-			System.out.print("  $> "+content.replace("\n", "").replace("\t", ""));
+			System.out.print("  $> ("+cmd.getName()+") "+content.replace("\n", "").replace("\t", ""));
 			System.out.print(" ; arguments :");
 			for (int i=0; i<arguments.size(); i++) { 
 				System.out.print(arguments.get(i).replace("\n", "").replace("\t", "")+":");

@@ -14,9 +14,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -251,7 +248,7 @@ public class TestQuestion {
 
         // Test rearrageOptions() directly on the question object
         Random fixedRandom = new Random(123L); // Use a fixed seed for predictability in test
-        q.rearrageOptions(fixedRandom);
+        q.rearrageOptions((e,f)-> fixedRandom.nextBoolean()?1:-1);
         List<Option> rearranged2 = q.getOptions(); // Get the now rearranged internal list
 
         // Check if the order is different from original (and consistent with the fixed seed)
@@ -261,7 +258,7 @@ public class TestQuestion {
 
         // Re-randomize with a *different* fixed seed and ensure it changes again
         Random differentRandom = new Random(456L);
-        q.rearrageOptions(differentRandom);
+        q.rearrageOptions((e,f)-> differentRandom.nextBoolean()?1:-1);
         List<Option> rearranged3 = q.getOptions();
         assertNotEquals(rearranged2, rearranged3, "rearrageOptions should change order with a new seed.");
     }

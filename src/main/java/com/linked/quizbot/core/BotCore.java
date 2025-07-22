@@ -51,6 +51,7 @@ public class BotCore {
 	public static Map<String, Message> deletionMessages = new HashMap<>();
 	public static Set<String> explicationRequest = new HashSet<>();
 	public static boolean useButtons = true;
+	
 	public static Random getRandom(){ return rand;}
 	public static String getPrefixe() { return cmdPrefixe;}
 	public static List<User> getAllUsers() { return new ArrayList<>(allUsers);}
@@ -103,28 +104,9 @@ public class BotCore {
 	public static boolean isShutingDown(){
 		return BotCore.SHUTINGDOWN;
 	}
-	public static void comfirmDeletion(Message message, QuestionList l) {
-		//System.out.println("  $> list="+l);
-		String messageId = message.getId();
-		toBeDeleted.put(messageId, l);
-		deletionMessages.put(messageId, message);
-	}
 	public static Viewer getViewer(String messageId) {
 		return viewerByMessageId.getOrDefault(messageId, null);
 	}
-	public static void deleteList(QuestionList l, String messageId){
-		Users.deleteList(l);
-		Message message = BotCore.deletionMessages.get(messageId);
-		int n = l.toString().length();
-		if (n>Constants.CHARSENDLIM) {
-			message.editMessageAttachments(AttachedFile.fromData(new File(l.getPathToList()))).queue();
-		} else{
-			message.editMessage("```js\n"+l.toString()+"\n``` is deleted form your collection\n").queue();
-		}
-		BotCore.toBeDeleted.remove(messageId);
-		BotCore.deletionMessages.remove(messageId);
-	}
-	public void setPrefixe(String prefixe) { cmdPrefixe = prefixe;}
 	public static String getEffectiveNameFromId(String userId){
 		String res;User user;
 		if (getJDA()!=null){

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
@@ -125,11 +126,10 @@ public class Question extends LinkedList<Option>{
 	}
 	public Question rearrageOptions(){
 		Random r = BotCore.getRandom();
-		sort((a,b)->r.nextBoolean()?-1:1);
-		return this;
+		return rearrageOptions((a,b)->r.nextBoolean()?-1:1);
 	}
-	public Question rearrageOptions(Random random){
-		sort((a,b)->random.nextBoolean()?-1:1);
+	public Question rearrageOptions(Comparator<? super Option> comp){
+		sort(comp);
 		return this;
 	}
 	public String getImageSrc (){ return imageSrc;}

@@ -115,8 +115,7 @@ public class Users {
 		user.listsSortedById.remove(l);
 		File f = new File(l.getPathToList());
 		f.delete();
-		Users.allUsers.remove(user);
-		Users.allUsers.add(user);
+		Users.update(user);
 	}
 	public static <T> int myBinarySearchIndexOf(List<T> tab, int start, int end, T q, Comparator<? super T> compare){
 		if (start > end){

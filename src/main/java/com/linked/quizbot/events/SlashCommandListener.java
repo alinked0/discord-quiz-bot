@@ -65,7 +65,7 @@ public class SlashCommandListener extends ListenerAdapter {
 					args.add(tmp.getAsUser().getId());
 				}
 				else if (tmp.getType().equals(OptionType.ATTACHMENT)){
-					args.addAll(BotCommand.getArgFromAttachments(userId, tmp.getAsAttachment()));
+					args.addAll(BotCommand.getArgFromAttachment(userId, tmp.getAsAttachment()));
 				} else {
 					args.add(tmp.getAsString());
 				}

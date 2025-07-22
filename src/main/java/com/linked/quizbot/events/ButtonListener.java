@@ -46,6 +46,7 @@ public class ButtonListener extends ListenerAdapter {
 		String messageId = event.getMessageId();
 		Message message = event.getMessage();
 		BotCommand cmd = BotCommand.getCommandByName(componentId);
+		System.out.println(String.format("%s %s %s", event, componentId, cmd));
 		if(cmd!=null){
 			if (!Constants.isBugFree()) System.out.printf("  $> "+cmd.getName());
 			CommandOutput.Builder output = new CommandOutput.Builder()

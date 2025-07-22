@@ -601,9 +601,13 @@ public class QuestionList extends ArrayList<Question> {
 		return this;
 	}
 	public QuestionList rearrageOptions(){
+		Random r = BotCore.getRandom();
+		return rearrageOptions((a,b)->r.nextBoolean()?-1:1);
+	}
+	public QuestionList rearrageOptions(Comparator<? super Option> comp){
 		Question q;
 		for (int i=0; i<size(); ++i){
-			q = get(i).rearrageOptions();
+			q = get(i).rearrageOptions(comp);
 			this.set(i, q);
 		}
 		return this;

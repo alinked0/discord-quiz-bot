@@ -2,7 +2,6 @@ package com.linked.quizbot.utils;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -15,22 +14,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Set;
-import java.util.function.Consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.commands.CommandOutput;
 
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.utils.AttachedFile;
 
 public class User implements Iterable<QuestionList>{
 	private String userId;
@@ -288,6 +280,7 @@ public class User implements Iterable<QuestionList>{
 		} else {
 			k.addAll(l);
 		}
+		k.rearrageOptions((e, f) -> e.isCorrect()?-1:1);
 		index = myBinarySearchIndexOf(listsSortedById, k, QuestionList.comparatorById());
 		if (index>=0) {
 			listsSortedById.set(index, k);

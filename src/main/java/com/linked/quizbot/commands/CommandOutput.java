@@ -21,10 +21,14 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.events.ReactionListener;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class CommandOutput {
@@ -104,8 +108,30 @@ public class CommandOutput {
 			}
 			return this;
 		}
-		public Builder addFile(File file){
-			this.attachedFiles.add(file);
+		public Builder addFile(File file) throws IOException{
+			File parent = file.getParentFile();
+			if (parent!=null){
+				File tmp = new File(parent.getPath()+Constants.SEPARATOR+"tmp"+Constants.SEPARATOR);
+				if(tmp.mkdir()){
+					String contents = "", s = "";
+					BufferedReader fr = new BufferedReader(new FileReader(file));
+					while(s!=null) {
+						contents += s+"\n";
+						s = fr.readLine();
+					}
+					fr.close();
+					File newF = new File(tmp.getPath()+Constants.SEPARATOR+file.getName());
+					File folder = newF.getParentFile();
+					if(folder != null && !newF.getParentFile().exists()) {
+						folder.mkdirs();
+					}
+					BufferedWriter buff = Files.newBufferedWriter(newF.toPath());
+					buff.write(contents);
+					buff.close();
+					this.attachedFiles.add(newF);
+					addPostSendAction(m -> newF.delete());
+				}
+			}
 			return this;
 		}
 		public Builder addFile(String filePath){
@@ -222,7 +248,7 @@ public class CommandOutput {
 			e = Emoji.fromUnicode("U+3"+(nbOptions+1)+"U+fe0fU+20e3");
 			if (l.get(nbOptions).equals(e)){
 				row.add(Button.of(ButtonStyle.PRIMARY, String.format("%s", (nbOptions+1)), e.getFormatted())); //ReactionListener.getCommandFromEmoji(e).getName()
-				if(nbOptions+1==5){
+				if(row.size()==5){
 					newActionRows.add(ActionRow.of(row));
 					row = new ArrayList<>();
 				}
@@ -234,7 +260,7 @@ public class CommandOutput {
 		row = new ArrayList<>();
 		for (i=nbOptions; i<l.size(); ++i){
 			e = l.get(i);
-			BotCommand cmd = ReactionListener.getCommandFromEmoji(e);
+			BotCommand cmd = BotCommand.getCommandFromEmoji(e);
 			if (cmd!=null){
 				String id = cmd.getName();
 				row.add(Button.of(ButtonStyle.PRIMARY, id, e.getFormatted()));

@@ -31,7 +31,7 @@ public class Constants {
 		DISCORDIDLENMIN= 17,
 		DISCORDIDLENMAX= 18;
 	public static final Emoji
-		EMOJIDEL = Emoji.fromUnicode("U+1F525"),
+		EMOJIDEL = Emoji.fromUnicode("🔥"),
 		EMOJITRUE = Emoji.fromUnicode("✅"), //✅
 		EMOJIFALSE = Emoji.fromUnicode("❌"), //❌
 		EMOJICORRECT = Emoji.fromUnicode("✔️"),//✔️

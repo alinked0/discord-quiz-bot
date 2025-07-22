@@ -1,0 +1,51 @@
+package com.linked.quizbot.commands.list;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.linked.quizbot.Constants;
+import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.Users;
+
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+
+public class RemoveListCommand extends BotCommand{
+    public static final String CMDNAME = "removelist";
+    @Override
+    public String getName(){ return CMDNAME;}
+    @Override
+    public String getDescription(){ return "permenantly removing a list of questions with no confirmation";}
+    @Override
+    public List<OptionData> getOptionData(){
+        List<OptionData> res = new ArrayList<OptionData>();
+        res.add(new OptionData(OptionType.STRING, "message-id", "the message id associated with the ongoing viewer", true)
+        .setRequiredLength(Constants.DISCORDIDLENMIN, Constants.DISCORDIDLENMAX));
+        return res;
+    }
+    @Override
+    public CommandOutput execute(String userId,  List<String> args){
+        if (args.size()<getOptionData().size()){
+            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+        }
+        CommandOutput.Builder output = new CommandOutput.Builder();
+        String messageId = args.get(0);
+        if (BotCore.toBeDeleted.get(messageId)==null){
+            output.addTextMessage(String.format("Couldn't guess your intention, nothing will change."));
+        } else {
+            QuestionList l= BotCore.toBeDeleted.get(messageId);
+            String listId = l.getId();
+            output.addTextMessage(String.format("**%s** is deleted form your collection\n", l.getName()))
+            .add(BotCommand.getCommandByName(RawListCommand.CMDNAME).execute(userId, List.of(listId)))
+            .setMessage(BotCore.deletionMessages.get(messageId))
+            .sendInOriginalMessage(true);
+            Users.deleteList(l);
+        }
+        BotCore.toBeDeleted.remove(messageId);
+        BotCore.deletionMessages.remove(messageId);
+        return output.build();
+    }
+}

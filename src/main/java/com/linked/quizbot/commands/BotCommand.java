@@ -33,7 +33,8 @@ import com.linked.quizbot.commands.list.AutoNextCommand;
 import com.linked.quizbot.commands.list.NextCommand;
 import com.linked.quizbot.commands.list.PingCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
-import com.linked.quizbot.commands.list.RawCommand;
+import com.linked.quizbot.commands.list.RawListCommand;
+import com.linked.quizbot.commands.list.RemoveListCommand;
 import com.linked.quizbot.commands.list.RenameListCommand;
 import com.linked.quizbot.commands.list.SetPrefixeCommand;
 import com.linked.quizbot.commands.list.StartCommand;
@@ -64,10 +65,14 @@ public abstract class BotCommand {
 
     // Static set to hold all command instances, initialized once.
     private static final Set<BotCommand> ALL_COMMANDS;
+    private static final Set<BotCommand> PUBLIC_COMMANDS;
+    private static final Set<BotCommand> PRIVATE_COMMANDS;
 
     static {
+		PUBLIC_COMMANDS = new HashSet<>();
+		PRIVATE_COMMANDS = new HashSet<>();
         ALL_COMMANDS = new HashSet<>();
-        ALL_COMMANDS.addAll(List.of(
+        PUBLIC_COMMANDS.addAll(List.of(
             new AddListCommand(),
             new CreateListCommand(),
             new CollectionCommand(),
@@ -83,7 +88,7 @@ public abstract class BotCommand {
             new NextCommand(),
             new PingCommand(),
             new PreviousCommand(),
-			new RawCommand(),
+			new RawListCommand(),
 			new RenameListCommand(),
             new SetPrefixeCommand(),
             new StartCommand(),
@@ -91,7 +96,12 @@ public abstract class BotCommand {
             new UserInfoCommand(),
             new UseButtonsCommand(),
             new ViewCommand()
+        )); 
+		PRIVATE_COMMANDS.addAll(List.of(
+            new RemoveListCommand()
         ));
+		ALL_COMMANDS.addAll(PUBLIC_COMMANDS);
+		ALL_COMMANDS.addAll(PRIVATE_COMMANDS);
     }
 
 	public static enum CommandCategory {
@@ -138,7 +148,7 @@ public abstract class BotCommand {
 	}
 
 	public static Set<BotCommand> getCommands() {
-		return ALL_COMMANDS;
+		return PUBLIC_COMMANDS;
 	}
 
 	public List<String> parseArguments(String cmndLineArgs){
@@ -177,7 +187,7 @@ public abstract class BotCommand {
         }
         return res;
     }
-    public static List<String> getArgFromAttachments(String userId, Attachment attachment){
+    public static List<String> getArgFromAttachment(String userId, Attachment attachment){
         List<String> res = new ArrayList<>();
         if (attachment==null){
             return res;
@@ -218,22 +228,15 @@ public abstract class BotCommand {
             return res;
         }
         for (Attachment attachment : c){
-            res.addAll(getArgFromAttachments( userId, attachment));
+            res.addAll(getArgFromAttachment( userId, attachment));
         }
         return res;
     }
 
 	public static BotCommand getCommandByName(String name) {
-		for (BotCommand cmd : BotCommand.getCommands()) {
-			if(cmd.getName().equals(name)) {
+		for (BotCommand cmd : BotCommand.ALL_COMMANDS) {
+			if(cmd.getName().equals(name) || cmd.getAbbreviations().contains(name)) {
 				return cmd;
-			}
-		}
-		for (BotCommand cmd : BotCommand.getCommands()) {
-			for(int i=0; i<cmd.getAbbreviations().size(); i++) {
-				if(cmd.getAbbreviations().get(i).equals(name)) {
-					return cmd;
-				}
 			}
 		}
 		return null;
@@ -265,10 +268,7 @@ public abstract class BotCommand {
 				String userName = u.getName().toLowerCase();
 				String userEffectiveName = u.getEffectiveName().toLowerCase(); // Nickname in server
 				String userTag = u.getAsTag().toLowerCase(); // Username#Discriminator (if not new system)
-				identifiers.add(userId);
-				identifiers.add(userName);
-				identifiers.add(userEffectiveName);
-				identifiers.add(userTag);
+				identifiers.addAll(List.of(userId, userName, userEffectiveName, userTag));
 
 				if (!Constants.isBugFree()) { // Debug logging
 					System.out.printf("   $> %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
@@ -282,10 +282,10 @@ public abstract class BotCommand {
 					}
 					// Simple difference for approximate matching 
 					// TODO improve with Levenshtein distance
-					int v = lowerArg.compareTo(s);
-					if(Math.abs(v) < minDistTo0){
+					int v = Math.abs(lowerArg.compareTo(s));
+					if(v < minDistTo0){
 						approxiUserId = userId;
-						minDistTo0 = Math.abs(v);
+						minDistTo0 = v;
 					}
 				}
 			}
@@ -320,7 +320,7 @@ public abstract class BotCommand {
 			for (BotCommand.CommandCategory c : BotCommand.CommandCategory.getCategories()){
 				commandByCategory.put(c, new HashSet<>());
 			}
-			for (BotCommand cmd : getCommands()){
+			for (BotCommand cmd : BotCommand.ALL_COMMANDS){
 				commandByCategory.get(cmd.getCategory()).add(cmd);
 			}
 		}
@@ -334,6 +334,27 @@ public abstract class BotCommand {
 			}
 		}
 		return res;
+	}
+	public static BotCommand getCommandFromEmoji(Emoji reaction){
+		if (reaction.equals(Constants.EMOJIMORETIME)){
+			return BotCommand.getCommandByName(AutoNextCommand.CMDNAME);
+		}
+		if (reaction.equals(Constants.EMOJISTOP)){
+			return BotCommand.getCommandByName(EndCommand.CMDNAME);
+		}
+		if(reaction.equals(Constants.EMOJINEXTQUESTION)){
+			return BotCommand.getCommandByName(NextCommand.CMDNAME);
+		}
+		if(reaction.equals(Constants.EMOJIPREVQUESTION)){
+			return BotCommand.getCommandByName(PreviousCommand.CMDNAME);
+		}
+		if(reaction.equals(Constants.EMOJIEXPLICATION)){
+			return BotCommand.getCommandByName(ExplainCommand.CMDNAME);
+		}
+		if(reaction.equals(Constants.EMOJIDEL)){
+			return BotCommand.getCommandByName(RemoveListCommand.CMDNAME);
+		}
+		return null;
 	}
 	@Override
 	public int hashCode() {

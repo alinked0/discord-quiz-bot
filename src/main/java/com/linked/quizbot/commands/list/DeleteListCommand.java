@@ -53,10 +53,10 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
  * @see BotCore#comfirmDeletion
  */
 public class DeleteListCommand extends BotCommand{
-    public static final String CMDNAME = "deletelist";
-    private String cmdDesrciption = "deleting a list of questions";
+	public static final String CMDNAME = "deletelist";
+	private String cmdDesrciption = "deleting a list of questions";
 	private List<String> abbrevs = List.of("dl");
-    
+	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
@@ -64,43 +64,41 @@ public class DeleteListCommand extends BotCommand{
 		return BotCommand.CommandCategory.EDITING;
 	}
 	@Override
-    public String getName(){ return CMDNAME;}
+	public String getName(){ return CMDNAME;}
 	@Override
-    public String getDescription(){ return cmdDesrciption;}
-    
+	public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public List<OptionData> getOptionData(){
-        List<OptionData> res = new ArrayList<OptionData>();
-        res.add(BotCommand.getCommandByName(StartCommand.CMDNAME).getOptionData().get(0).setRequired(true));
-        return res;
-    }
+	public List<OptionData> getOptionData(){
+		List<OptionData> res = new ArrayList<OptionData>();
+		res.add(BotCommand.getCommandByName(StartCommand.CMDNAME).getOptionData().get(0).setRequired(true));
+		return res;
+	}
 	@Override
-    public CommandOutput execute(String userId,  List<String> args){
-        
-        String res,ownerId; 
-        MessageCreateAction send;
-        QuestionList l;
-        Consumer<Message> success;
-        if (args.size()<getOptionData().size()){
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-        }
-        
-        l = getSelectedQuestionList(args.get(0));
-        ownerId = l.getAuthorId(); 
-        if (ownerId.equals(userId)){
-            res = "Are you sure you want to delete :\n\""+l.getName()+"\"?";
-            success = msg ->{
-                BotCore.comfirmDeletion(msg, l);
-            };
-        }else {
-            res = "You are not the owner of the list:\n\""+l.getName()+"\"";
-            success = null;
-        }
+	public CommandOutput execute(String userId,  List<String> args){
+		String res,ownerId;
+		QuestionList l;
+		Consumer<Message> success;
+		if (args.size()<getOptionData().size()){
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+		}
+		l = getSelectedQuestionList(args.get(0));
+		ownerId = l.getAuthorId(); 
+		if (ownerId.equals(userId)){
+			res = String.format("Are you sure you want to delete :\n**%s**?", l.getName());
+			success = message ->{
+				String messageId = message.getId();
+				BotCore.toBeDeleted.put(messageId, l);
+				BotCore.deletionMessages.put(messageId, message);
+			};
+		}else {
+			res = String.format("You are not the owner of the list:\n**%s**?", l.getName());
+			success = null;
+		}
 		return new CommandOutput.Builder()
 				.addTextMessage(res)
 				.addReaction(Constants.EMOJIDEL)
-                .addPostSendAction(success)
+				.addPostSendAction(success)
 				.build();
-    }
+	}
 
 }

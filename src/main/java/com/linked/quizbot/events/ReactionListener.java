@@ -1,7 +1,10 @@
 package com.linked.quizbot.events;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
@@ -9,15 +12,25 @@ import com.linked.quizbot.core.MessageSender;
 import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.QuestionListHash;
+import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.EndCommand;
 import com.linked.quizbot.commands.list.ExplainCommand;
+import com.linked.quizbot.commands.list.HelpCommand;
 import com.linked.quizbot.commands.list.AutoNextCommand;
+import com.linked.quizbot.commands.list.CollectionCommand;
 import com.linked.quizbot.commands.list.NextCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
+import com.linked.quizbot.commands.list.RawListCommand;
+import com.linked.quizbot.commands.list.RemoveListCommand;
+import com.linked.quizbot.commands.list.StartCommand;
 
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.utils.AttachedFile;
 import net.dv8tion.jda.api.utils.Timestamp;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -61,7 +74,7 @@ public class ReactionListener extends ListenerAdapter {
 		Emoji reaction = f.getEmoji();
 		String messageId = event.getMessageId();
 		event.getChannel().retrieveMessageById(messageId).queue(message -> {
-			BotCommand cmd = getCommandFromEmoji(reaction);
+			BotCommand cmd = BotCommand.getCommandFromEmoji(reaction);
 			if(cmd!=null){
 				if (!Constants.isBugFree()) System.out.printf("  $> "+cmd.getName());
 				MessageSender.sendCommandOutput(
@@ -72,12 +85,6 @@ public class ReactionListener extends ListenerAdapter {
 				if (!Constants.isBugFree()) System.out.printf("   $> time = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
 				return;
 			}
-			QuestionList l = BotCore.toBeDeleted.get(messageId);
-			if (l!=null && reaction.equals(Constants.EMOJIDEL)) {
-				BotCore.deleteList(l, messageId);
-				return;
-			}
-			
 			QuizBot quizBot = (QuizBot)BotCore.getViewer(messageId);
 			if (quizBot!=null && quizBot.isActive() && quizBot.getReactions().contains(reaction)){
 				quizBot.addReaction(userId, reaction);
@@ -116,24 +123,6 @@ public class ReactionListener extends ListenerAdapter {
 				message 
 			);
 		}
-	}
-	public static BotCommand getCommandFromEmoji(Emoji reaction){
-		if (reaction.equals(Constants.EMOJIMORETIME)){
-			return BotCommand.getCommandByName(AutoNextCommand.CMDNAME);
-		}
-		if (reaction.equals(Constants.EMOJISTOP)){
-			return BotCommand.getCommandByName(EndCommand.CMDNAME);
-		}
-		if(reaction.equals(Constants.EMOJINEXTQUESTION)){
-			return BotCommand.getCommandByName(NextCommand.CMDNAME);
-		}
-		if(reaction.equals(Constants.EMOJIPREVQUESTION)){
-			return BotCommand.getCommandByName(PreviousCommand.CMDNAME);
-		}
-		if(reaction.equals(Constants.EMOJIEXPLICATION)){
-			return BotCommand.getCommandByName(ExplainCommand.CMDNAME);
-		}
-		return null;
 	}
 	@Override
 	public void onMessageReactionRemove(MessageReactionRemoveEvent event){
