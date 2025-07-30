@@ -73,6 +73,7 @@ public class TestUser {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("{\n");
+		sb.append("\t\"userId\":\"").append(userId).append("\",\n");
 		sb.append("\t\"tagEmojiPerTagName\":{");
 		Iterator<Entry<String, Emoji>> iter = tags.entrySet().iterator();
 		while (iter.hasNext()) {
@@ -117,8 +118,8 @@ public class TestUser {
 		preloadedLists.add(l);
 
 		User user = new User.Builder()
-				.userId("testBuilderUser")
-				.perferedPrefixe("!")
+				.id("testBuilderUser")
+				.prefixe("!")
 				.numberOfGamesPlayed(10)
 				.totalPointsEverGained(100.5)
 				.tagEmojiPerTagName(tags)
@@ -126,7 +127,7 @@ public class TestUser {
 				.build();
 
 		assertNotNull(user);
-		assertEquals("testBuilderUser", user.getUserId());
+		assertEquals("testBuilderUser", user.getId());
 		assertEquals("!", user.getPrefix());
 		assertEquals(10, user.getNumberOfGamesPlayed());
 		assertEquals(100.5, user.getTotalPointsEverGained());
@@ -171,8 +172,8 @@ public class TestUser {
 
 		// Manually add to Users.allUsers and UserDataParser.predefinedUsers for stub lookup
 		User predefinedUserStub = new User.Builder()
-				.userId(userId)
-				.perferedPrefixe(expectedPrefix)
+				.id(userId)
+				.prefixe(expectedPrefix)
 				.totalPointsEverGained(expectedPoints)
 				.numberOfGamesPlayed(expectedGames)
 				.tagEmojiPerTagName(expectedTags)
@@ -181,9 +182,10 @@ public class TestUser {
 		// Instantiate User, which should load data
 		Users.reset();
 		User user = new User(userId);
+		Users.addUser(user);
 
 		assertNotNull(user);
-		assertEquals(userId, user.getUserId());
+		assertEquals(userId, user.getId());
 		assertEquals(expectedPrefix, user.getPrefix());
 		assertEquals(expectedPoints, user.getTotalPointsEverGained());
 		assertEquals(expectedGames, user.getNumberOfGamesPlayed());
@@ -217,10 +219,10 @@ public class TestUser {
 	void testUserConstructor_NewUser() {
 		String userId = "newUser";
 		
-		User user = new User(userId); // No pre-existing files or stub data for this user
+		User user = Users.get(userId); // No pre-existing files or stub data for this user
 
 		assertNotNull(user);
-		assertEquals(userId, user.getUserId());
+		assertEquals(userId, user.getId());
 		assertNull(user.getPrefix()); // Default prefix if no user-data.json
 		assertEquals(0.0, user.getTotalPointsEverGained());
 		assertEquals(0, user.getNumberOfGamesPlayed());
@@ -233,7 +235,7 @@ public class TestUser {
 	@DisplayName("Test setPrefix and exportUserData")
 	void testSetPrefixAndExport() throws IOException {
 		String userId = "prefixUser";
-		User user = new User.Builder().userId(userId).perferedPrefixe("old!").build();
+		User user = new User.Builder().id(userId).prefixe("old!").build();
 		Users.addUser(user); // Add user to Users' global map
 
 		// Initially, user-data.json might not exist or have old!
@@ -254,7 +256,7 @@ public class TestUser {
 	@DisplayName("Test statistics incrementors and exportUserData")
 	void testStatsIncrementors() throws IOException {
 		String userId = "statsUser";
-		User user = new User.Builder().userId(userId).totalPointsEverGained(50.0).numberOfGamesPlayed(5).build();
+		User user = new User.Builder().id(userId).totalPointsEverGained(50.0).numberOfGamesPlayed(5).build();
 		Users.addUser(user);
 
 		user.incrTotalPointsEverGained(25.0);
@@ -277,7 +279,7 @@ public class TestUser {
 		QuestionList list1 = new QuestionList.Builder().authorId(userId).name("L1").id("id1").timeCreatedMillis(1L).build();
 		QuestionList list2 = new QuestionList.Builder().authorId(userId).name("L2").id("id2").timeCreatedMillis(2L).build();
 		User user = new User.Builder()
-				.userId(userId)
+				.id(userId)
 				.listsSortedById(new ArrayList<>(Arrays.asList(list1, list2)))
 				.build();
 		Users.addUser(user);
@@ -299,7 +301,7 @@ public class TestUser {
 	@DisplayName("Test createTag method - successful creation")
 	void testCreateTag_Success() throws IOException {
 		String userId = "tagUser";
-		User user = new User.Builder().userId(userId).build();
+		User user = new User.Builder().id(userId).build();
 		Users.addUser(user);
 
 		Emoji emoji = Emoji.fromFormatted("✅");
@@ -321,7 +323,7 @@ public class TestUser {
 	@DisplayName("Test createTag method - tag already exists")
 	void testCreateTag_AlreadyExists() throws IOException {
 		String userId = "tagUser2";
-		User user = new User.Builder().userId(userId).build();
+		User user = new User.Builder().id(userId).build();
 		user.createTag("duplicate", Emoji.fromFormatted("❌")); // Initial creation
 		Users.addUser(user);
 
@@ -334,7 +336,7 @@ public class TestUser {
 	@DisplayName("Test deleteTag method - successful deletion")
 	void testDeleteTag_Success() throws IOException {
 		String userId = "tagUser3";
-		User user = new User.Builder().userId(userId).build();
+		User user = new User.Builder().id(userId).build();
 		user.createTag("toDelete", Emoji.fromFormatted("🗑️"));
 		user.createTag("keep", Emoji.fromFormatted("👍"));
 		Users.addUser(user);
@@ -357,7 +359,7 @@ public class TestUser {
 	@DisplayName("Test deleteTag method - tag does not exist")
 	void testDeleteTag_DoesNotExist() {
 		String userId = "tagUser4";
-		User user = new User.Builder().userId(userId).build();
+		User user = new User.Builder().id(userId).build();
 		Users.addUser(user);
 
 		assertFalse(user.deleteTag("nonExistent"));
@@ -367,7 +369,7 @@ public class TestUser {
 	@DisplayName("Test addList method - new list")
 	void testAddList_NewList() throws IOException {
 		String userId = "addListUser";
-		User user = new User.Builder().userId(userId).build();
+		User user = new User.Builder().id(userId).build();
 		Users.addUser(user);
 
 		QuestionList newList = new QuestionList.Builder()
@@ -403,7 +405,7 @@ public class TestUser {
 		existingList.exportListQuestionAsJson(); // Simulate pre-existing file
 
 		User user = new User.Builder()
-			.userId(userId)
+			.id(userId)
 			.listsSortedById(new ArrayList<>(Collections.singletonList(existingList)))
 			.build();
 		Users.addUser(user);
@@ -414,8 +416,7 @@ public class TestUser {
 			.id("existId456")
 			.timeCreatedMillis(System.currentTimeMillis()+1000)
 			.add(new Question("New Q", new Option("Y", true)))
-			.build();
-
+		.build();
 		user.addList(updatedList);
 
 		assertEquals(1, user.getLists().size()); // Should still be one list, updated
@@ -443,10 +444,10 @@ public class TestUser {
 			.id(id)
 			.timeCreatedMillis(1L)
 			.build();
-		list1.exportListQuestionAsJson(); // Make sure file exists for Users.getUserListQuestions
+		list1.exportListQuestionAsJson(); // Make sure file exists for Users.importUserLists
 		
 		Users.reset();
-		User user = new User(userId); // Constructor will load list1
+		User user = Users.get(userId); // Constructor will load list1
 
 		QuestionList foundList = user.getById(id);
 		assertNotNull(foundList);
@@ -457,7 +458,7 @@ public class TestUser {
 	@DisplayName("Test getUserQuestionListById - not found")
 	void testGetUserQuestionListById_NotFound() throws IOException {
 		String userId = "searchUser2";
-		User user = new User(userId); // No lists for this user
+		User user = Users.get(userId); // No lists for this user
 		QuestionList foundList = user.getById("nonExistentId");
 		assertNull(foundList);
 	}
@@ -474,7 +475,7 @@ public class TestUser {
 			.build();
 		list1.exportListQuestionAsJson();
 
-		User user = new User.Builder().userId(userId).add(list1).build();
+		User user = new User.Builder().id(userId).add(list1).build();
 
 		QuestionList foundList = user.getByName("Unique Name Quiz");
 		assertNotNull(foundList);
@@ -485,7 +486,7 @@ public class TestUser {
 	@DisplayName("Test getUserQuestionListByName - not found")
 	void testGetUserQuestionListByName_NotFound() throws IOException {
 		String userId = "searchUser4";
-		User user = new User(userId);
+		User user = Users.get(userId);
 		QuestionList foundList = user.getByName("Non Existent Name");
 		assertNull(foundList);
 	}
@@ -498,7 +499,7 @@ public class TestUser {
 		tags.put("mood", Emoji.fromFormatted("😊"));
 		tags.put("food", Emoji.fromFormatted("🍕"));
 		
-		User user = new User.Builder().userId(userId).tagEmojiPerTagName(tags).build();
+		User user = new User.Builder().id(userId).tagEmojiPerTagName(tags).build();
 		Users.addUser(user);
 
 		// Test instance method
@@ -540,9 +541,9 @@ public class TestUser {
 	@DisplayName("Test myBinarySearchUserId for Users")
 	void testMyBinarySearchUserId() {
 		List<User> users = new ArrayList<>();
-		users.add(new User.Builder().userId("user1").build());
-		users.add(new User.Builder().userId("user3").build());
-		users.add(new User.Builder().userId("user5").build());
+		users.add(new User.Builder().id("user1").build());
+		users.add(new User.Builder().id("user3").build());
+		users.add(new User.Builder().id("user5").build());
 		
 		// Ensure the list is sorted for binary search
 		users.sort(User.comparatorByUserId());
@@ -571,14 +572,14 @@ public class TestUser {
 		tags.put("art", Emoji.fromFormatted("🎨"));
 
 		User user = new User.Builder()
-				.userId(userId)
-				.perferedPrefixe(prefix)
+				.id(userId)
+				.prefixe(prefix)
 				.totalPointsEverGained(points)
 				.numberOfGamesPlayed(games)
 				.tagEmojiPerTagName(tags)
 				.build();
 		
-		String expectedJsonPart1 = "{\n\t\"tagEmojiPerTagName\":{";
+		String expectedJsonPart1 = "{\n\t\"userId\":\"stringUser\"";
 		// Order of tags in map can vary, so check for both permutations
 		String expectedTag1 = "\"sport\":\"⚽\", \"art\":\"🎨\"";
 		String expectedTag2 = "\"art\":\"🎨\", \"sport\":\"⚽\"";
@@ -586,6 +587,7 @@ public class TestUser {
 		String expectedJsonPart2 = "},\n" +
 								   "\t\"prefixe\":\">>\",\n" +
 								   "\t\"useButtons\":true,\n" +
+								   "\t\"useAutoNext\":false,\n" +
 								   "\t\"totalPointsEverGained\":300.75,\n" +
 								   "\t\"numberOfGamesPlayed\":30\n" +
 								   "}";
@@ -600,9 +602,9 @@ public class TestUser {
 	@Test
 	@DisplayName("Test equals method for User objects")
 	void testEquals_UserObjects() {
-		User user1 = new User.Builder().userId("u1").build();
-		User user2 = new User.Builder().userId("u1").build(); // Same ID, different instance
-		User user3 = new User.Builder().userId("u2").build(); // Different ID
+		User user1 = new User.Builder().id("u1").build();
+		User user2 = new User.Builder().id("u1").build(); // Same ID, different instance
+		User user3 = new User.Builder().id("u2").build(); // Different ID
 
 		assertTrue(user1.equals(user1)); // Self equality
 		assertTrue(user1.equals(user2)); // Same userId
@@ -614,15 +616,15 @@ public class TestUser {
 	@Test
 	@DisplayName("Test equals method for User and String")
 	void testEquals_UserAndString() {
-		User user = new User.Builder().userId("u123").build();
+		User user = new User.Builder().id("u123").build();
 
 		assertTrue(user.equals("u123"));
 
-		User userNumericId = new User.Builder().userId("12345").build();
+		User userNumericId = new User.Builder().id("12345").build();
 		assertTrue(userNumericId.equals("12345"));
 
 		// Test with original logic: if userId is "alpha123"
-		User userAlphaNumericId = new User.Builder().userId("alpha123").build();
+		User userAlphaNumericId = new User.Builder().id("alpha123").build();
 		assertTrue(userAlphaNumericId.equals("alpha123"));
 	}
 }

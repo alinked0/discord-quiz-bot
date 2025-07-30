@@ -3,13 +3,17 @@ package com.linked.quizbot.utils;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
+
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 /**
  * The Question class represents a question in a quiz, along with its possible answer options.
@@ -20,8 +24,49 @@ public class Question extends LinkedList<Option>{
 	private final String question;
 	private String explication;
 
-	private String imageSrc = null;//pour l'intant pas encore implementer
-	
+	private String imageSrc = null;// TODO pour l'intant pas encore implementer
+	public static class Builder {
+		private final List<Option> list= new ArrayList<>();
+		private  String question = null;
+		private String explication= null;
+		private String imageSrc = null;
+
+		public  Builder question(String question){
+			this.question = question;
+			return this;
+		}
+		public  Builder explication(String explication){
+			this.explication = explication;
+			return this;
+		}
+		public  Builder imageSrc(String imageSrc){
+			this.imageSrc = imageSrc;
+			return this;
+		}
+		public Builder add(Option opt){
+			if (opt!=null){
+				list.add(opt);
+			}
+			return this;
+		}
+		public Builder add(Question question){
+			return this.question(question.getQuestion()).explication(question.getExplication()).imageSrc(question.getImageSrc()).addAll(question);
+		}
+		public Builder addAll(List<Option> c){
+			list.addAll(c);
+			return this;
+		}
+		public Question build(){
+			this.list.sort((e, f) -> e.isCorrect()?-1:1);
+			return new Question(this);
+		}
+	}
+	public Question(Builder builder){
+        super(builder.list);
+        this.question = builder.question;
+        this.explication = builder.explication;
+		this.imageSrc = builder.imageSrc;
+	}
 	/**
 	 * Constructor for a true-or-false question.
 	 *
@@ -86,7 +131,15 @@ public class Question extends LinkedList<Option>{
 	 *
 	 * @return the number of correct options
 	 */
-	public int getNumberTrue() {return getTrueOptions().size();}
+	public int getNumberTrue() {
+		int t = 0;
+		for (Option opt:getOptions()) {
+			if (opt.isCorrect()) {
+				++t;
+			}
+		}
+		return t;
+	}
 
 	/**
 	 * Returns the explanation for the question, if any.
@@ -220,7 +273,9 @@ public class Question extends LinkedList<Option>{
 		s+= "\n\t]\n}";
 		return s;
 	}
-
+	public Question clone(){
+		return new Question.Builder().add(this).build();
+	}
 	/**
 	 * Compares this Question to another object for equality.
 	 *

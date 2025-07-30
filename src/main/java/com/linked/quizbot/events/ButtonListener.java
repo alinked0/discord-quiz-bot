@@ -5,8 +5,7 @@ import java.util.List;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
-import com.linked.quizbot.core.QuizBot;
-import com.linked.quizbot.utils.Users;
+import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 
@@ -68,7 +67,7 @@ public class ButtonListener extends ListenerAdapter {
 					new CommandOutput.Builder().add(quizBot.current()).sendInOriginalMessage(true).build(),
 					event
 				);
-				ReactionListener.treatDelay(userId, message, quizBot);
+				ReactionListener.autoNext(userId, message, quizBot);
 				return;
 			}else{
 				event.editButton(event.getButton()).queue();

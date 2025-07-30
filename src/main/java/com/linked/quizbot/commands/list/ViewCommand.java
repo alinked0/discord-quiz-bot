@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
-import com.linked.quizbot.core.Viewer;
+import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
 
@@ -36,7 +36,8 @@ public class ViewCommand extends BotCommand{
         if (l==null){
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        Viewer viewer = new Viewer(l, Users.get(userId).useButtons(), false);
+        System.out.println(l.toJson());
+        Viewer viewer = new Viewer(l, Users.get(userId).useButtons());
 		return viewer.start();
     }
 

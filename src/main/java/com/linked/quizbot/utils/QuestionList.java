@@ -109,13 +109,14 @@ public class QuestionList extends ArrayList<Question> {
 			return this;
 		}
 		public Builder add(QuestionList questions){
-			return new QuestionList.Builder()
-				.id(questions.getId())
+			for (Question q : questions){
+				this.add(q.clone());
+			}
+			return this.id(questions.getId())
 				.name(questions.getName())
 				.authorId(questions.getAuthorId())
 				.addTags(questions.getTags())
-				.timeCreatedMillis(questions.getTimeCreatedMillis())
-			.addAll(questions);
+				.timeCreatedMillis(questions.getTimeCreatedMillis());
 		}
 		public Builder addAll(List<Question> c){
 			list.addAll(c);
@@ -130,13 +131,12 @@ public class QuestionList extends ArrayList<Question> {
 	 * Initializes the list with default values for authorId, name, and tags.
 	 */
 	public QuestionList(Builder builder) {
-		super();
+		super(builder.list);
 		this.authorId = builder.authorId;
 		this.name = builder.name;
 		this.tags = builder.tags;
 		this.id = builder.id;
 		this.timeCreatedMillis = builder.timeCreatedMillis;
-		this.addAll(builder.list);
 	}
 
 	/**
@@ -147,10 +147,7 @@ public class QuestionList extends ArrayList<Question> {
 	 * @param c the initial collection of questions to populate the list
 	 */
 	public QuestionList(String authorId, String name, Collection<? extends Question> c) {
-		super(c);
-		this.authorId = authorId;
-		this.name = name;
-		this.tags = new HashMap<>();
+		this(new QuestionList.Builder().authorId(authorId).name(name));
 		this.timeCreatedMillis = System.currentTimeMillis();
 		this.id = QuestionListHash.generate(authorId+name, timeCreatedMillis);
 	}
@@ -162,9 +159,7 @@ public class QuestionList extends ArrayList<Question> {
 	 * @param name the name of this question list
 	 */
 	public QuestionList(String authorId, String name){
-		this.authorId = authorId;
-		this.name = name;
-		this.tags = new HashMap<>();
+		this(new QuestionList.Builder().authorId(authorId).name(name));
 		this.timeCreatedMillis = System.currentTimeMillis();
 		this.id = QuestionListHash.generate(authorId+name, timeCreatedMillis);
 	}
@@ -175,15 +170,7 @@ public class QuestionList extends ArrayList<Question> {
 	 * @param filePath the file path of the JSON file to import the list from
 	 */
 	public QuestionList(String filePath) throws IOException {
-		QuestionList res = QuestionListParser.fromJsonFile(filePath);
-		if (res!=null && res.getName()!=null) {
-			this.addAll(res);
-			this.name = res.getName();
-			this.authorId = res.getAuthorId();
-			this.tags = res.getTags();
-			this.timeCreatedMillis = res.getTimeCreatedMillis();
-			this.id = res.getId();
-		}
+		this(new QuestionList.Builder().add(QuestionListParser.fromJsonFile(filePath)));
 	}
 
 	/**
@@ -403,14 +390,7 @@ public class QuestionList extends ArrayList<Question> {
 	 */
 	@Override
 	public String toString() {
-		String res;
-		try {
-			res = toJsonUsingMapper();
-		} catch (Exception e){
-			System.err.println("[toJsonUsingMapper() failed]"+e.getMessage());
-			res = toJson();
-		}
-		return res;
+		return toJson().replace("\n", "").replace("\t", "");
 	}
 	public String toJsonUsingMapper() throws JsonProcessingException{
 		String res="", 
@@ -487,78 +467,13 @@ public class QuestionList extends ArrayList<Question> {
 		res +="}";
 		return res;
 	}
-	public String toJson() {
-		String res="", 
-			tab="",
-			tab1 = "\t",
-			tab2 = "\t\t",
-			tab3 = "\t\t\t",
-		seperatorParamOpt = "\n";
-
-		res += "{\n";
-		tab = "\t";
-		res += tab+"\"authorId\":\""+getAuthorId()+"\",\n";
-		res += tab + "\"name\":\""+getName()+"\",\n";
-		res += tab + "\"id\":\""+getId()+"\",\n";
-		res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
-
-		res += tab + "\"tags\":{";
-		Iterator<Entry<String, Emoji>> iter = tags.entrySet().iterator();
-		Entry<String, Emoji> entry;
-		while (iter.hasNext()) {
-			entry = iter.next();
-			res += "\""+entry.getKey()+"\" : \""+entry.getValue().getFormatted()+"\"";
-			if(iter.hasNext()){
-				res += ", ";
-			}
+	public String toJson(){
+		String res=null;
+		try {
+			res = toJsonUsingMapper();
+		} catch (Exception e){
+			System.err.println("[toJsonUsingMapper() failed]"+e.getMessage());
 		}
-		res += "},\n";
-
-		res += tab + "\"questions\": \n";
-		res += "\t[\n";
-		Iterator<Question> iterQuestion = this.iterator();
-		while (iterQuestion.hasNext()){
-			Question q = iterQuestion.next();
-			tab = "\t\t";
-			res += "\t{\n" + tab2 + "\"question\":\""+q.getQuestion()+"\",\n";
-			res += tab2 + "\"explication\":";
-			if(q.getExplication()==null || q.getExplication().equals("null") || q.getExplication().equals(Constants.NOEXPLICATION)){
-				res +=null;
-			}else {
-				res += "\""+q.getExplication().replace("\"", "\\\"")+"\"";
-			}
-			res += ",\n";
-			res +=tab2 + "\"imageSrc\":"+(q.getImageSrc()==null?null:"\""+q.getImageSrc()+"\"")+",\n";
-			res +=tab2 + "\"options\": [\n";
-			List<Option> opts = q.getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
-			Iterator<Option> iterOpt = opts.iterator();
-			while (iterOpt.hasNext()){
-				Option opt = iterOpt.next();
-				res += tab2+"{\n";
-				res += tab3+"\"text\":\""+opt.getText()+"\","+seperatorParamOpt;
-				res += tab3+"\"isCorrect\":"+opt.isCorrect()+","+seperatorParamOpt;
-				res += tab3+"\"explication\":";
-				if(opt.getExplication()==null || opt.getExplication().equals("null") || opt.getExplication().equals(Constants.NOEXPLICATION)){
-					res +=null+seperatorParamOpt;
-				}else {
-					res += "\""+opt.getExplication().replace("\"", "\\\"")+"\""+seperatorParamOpt;
-				}
-				res += tab2+"}";
-				if (iterOpt.hasNext()){
-					res += ",";
-				}
-				res += "\n";
-			}
-			res += tab2+"]\n";
-			res += tab1+"}";
-			if(iterQuestion.hasNext()) {
-				res+= ",";
-			}
-			res += "\n";
-		}
-		res += tab1+"]\n";
-		res +="}";
-		res = res.replace("\\", "\\\\");
 		return res;
 	}
 	/**

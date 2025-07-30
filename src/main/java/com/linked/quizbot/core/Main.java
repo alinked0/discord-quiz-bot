@@ -25,7 +25,6 @@ public class Main {
 		Constants.AREWETESTING = false;
 		Scanner scanner = new Scanner(System.in);
 		if (args.length ==0 || args[0].isEmpty()) {
-					System.out.println("case 1");
 			System.out.print("Input bot token: ");
 			Constants.TOKEN =scanner.nextLine().trim();
 		} else if (args.length ==1 && !args[0].isEmpty()){
@@ -51,10 +50,7 @@ public class Main {
 		}
 		BotCore.jda= null;
 		Users.loadAllUsers();
-		if (Constants.isBugFree()){
-			BotCore.startJDA();
-		}
-		if(Constants.AUTHORID.isEmpty()){
+		if(Constants.isBugFree() || Constants.AUTHORID.isEmpty()){
 			BotCore.startJDA();
 		}else {
 			CommandLineInterface.execute(scanner);

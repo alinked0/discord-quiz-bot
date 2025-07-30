@@ -45,6 +45,7 @@ public class CommandLineInterface {
 					BotCore.shutDown();
 					scanner.close();
 					exiting = true;
+					break;
 				}
 				case "shutdown", "stop" -> {
 					BotCore.shutDown();
@@ -117,7 +118,7 @@ public class CommandLineInterface {
 		if (!Constants.isBugFree()) {
 			System.out.print("  $> "+content.replace("\n", "").replace("\t", ""));
 			System.out.print(" ; arguments size="+arguments.size()+":");
-			for (int i=0; i<arguments.size(); i++) { 
+			for (int i=0; i<arguments.size(); i++) {
 				System.out.print(arguments.get(i).replace("\n", "").replace("\t", "")+":");
 			}
 			System.out.print("\n");
@@ -153,7 +154,7 @@ public class CommandLineInterface {
 		if (message.length()<=0) {
 			return List.of();
 		}
-		userCmdName = message.split(" ")[0];
+		userCmdName = message.split(" ")[0].toLowerCase();
 		BotCommand cmd = BotCommand.getCommandByName(userCmdName);
 		if (cmd!=null){
 			String remainingMessage = message.substring(userCmdName.length()).trim();

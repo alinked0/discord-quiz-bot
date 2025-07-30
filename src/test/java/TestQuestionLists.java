@@ -59,6 +59,7 @@ public class TestQuestionLists {
     public void testQuestionListEquality() {
         // Test equality between two QuestionLists with same attributes and questions
         assertEquals(questionList1, questionList2, "Two QuestionLists with the same attributes and questions should be equal");
+        assertEquals(questionList1.size(), questionList2.size(), "Two QuestionLists with the same attributes and questions should be equal");
         
         // Test equality with itself
         assertEquals(questionList1, questionList1, "A QuestionList should be equal to itself");

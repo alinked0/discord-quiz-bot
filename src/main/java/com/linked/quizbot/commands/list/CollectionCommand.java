@@ -86,7 +86,7 @@ public class CollectionCommand extends BotCommand {
 		String tmp = "Collection of ";
 		tmp += String.format("<@%s>\n",userId);
 
-		User user = new User(userId);
+		User user = Users.get(userId);
 		List<QuestionList> list = user.getLists();
 		QuestionList example = QuestionList.getExampleQuestionList();
 		list.sort(QuestionList.comparatorByDate().reversed());

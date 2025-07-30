@@ -9,8 +9,6 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.utils.AttachedFile;
-import okio.Buffer;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +16,6 @@ import java.util.Scanner;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.events.ReactionListener;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,9 +23,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class CommandOutput {

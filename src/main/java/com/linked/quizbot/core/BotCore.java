@@ -1,6 +1,5 @@
 package com.linked.quizbot.core;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,16 +10,13 @@ import java.util.Set;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.CommandOutput;
-import com.linked.quizbot.commands.list.ExplainCommand;
 import com.linked.quizbot.commands.list.HelpCommand;
+import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.events.ButtonListener;
 import com.linked.quizbot.events.MessageListener;
 import com.linked.quizbot.events.ReactionListener;
+import com.linked.quizbot.events.ReadyEventListener;
 import com.linked.quizbot.events.SlashCommandListener;
-import com.linked.quizbot.events.readyEvent;
-import com.linked.quizbot.utils.Option;
-import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
 
@@ -29,10 +25,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.requests.GatewayIntent;
-import net.dv8tion.jda.api.utils.AttachedFile;
 /**
  * Te class BotCore stores bot prefrences. 
  * this class takes insparation from net.askigh.quizz.core.BotCore
@@ -80,7 +73,7 @@ public class BotCore {
 			new ReactionListener(), 
 			new ButtonListener(),
 			new MessageListener(),
-			new readyEvent()
+			new ReadyEventListener()
 		);
 		try {
 			jda.awaitReady();
@@ -105,7 +98,7 @@ public class BotCore {
 		return BotCore.SHUTINGDOWN;
 	}
 	public static Viewer getViewer(String messageId) {
-		return viewerByMessageId.getOrDefault(messageId, null);
+		return viewerByMessageId.get(messageId);
 	}
 	public static String getEffectiveNameFromId(String userId){
 		String res;User user;

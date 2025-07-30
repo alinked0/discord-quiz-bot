@@ -7,13 +7,15 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.core.viewers.QuizBot;
+import com.linked.quizbot.utils.User;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code AutoNextCommand} class adds a few more secs on the awnser time.
+ * The {@code UseAutoNextCommand} class adds a few more secs on the awnser time.
  *
  * @author alinked0
  * @version 1.0
@@ -21,10 +23,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see QuizBot
  * @see BotCore
  */
-public class AutoNextCommand extends BotCommand {
-	public static final String CMDNAME = "autonext";
+public class UseAutoNextCommand extends BotCommand {
+	public static final String CMDNAME = "useautonext";
 	private String cmdDesrciption = "going to the next question as soon as an awnser is registered";
-	private List<String> abbrevs = List.of("an");
+	private List<String> abbrevs = List.of("un");
 	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
@@ -39,8 +41,6 @@ public class AutoNextCommand extends BotCommand {
 	@Override
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<OptionData>();
-        res.add(new OptionData(OptionType.STRING, "message-id", "the message id associated with the ongoing viewer", true)
-        .setRequiredLength(Constants.DISCORDIDLENMIN, Constants.DISCORDIDLENMAX));
         res.add(new OptionData(OptionType.STRING, "yes-or-no", "choose if the game should automaticly go to the next question", true));
         return res;
     }
@@ -49,12 +49,9 @@ public class AutoNextCommand extends BotCommand {
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		QuizBot q = (QuizBot) BotCore.getViewer(args.get(0));
-		if (q == null){
-			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-		}
-		String s = args.get(1).toLowerCase();
 		boolean b;
+		User user = Users.get(userId);
+		String s = args.get(0).toLowerCase();
 		switch (s) {
 			case "false", "f", "no", "n", "off":
 				b = false;
@@ -63,7 +60,8 @@ public class AutoNextCommand extends BotCommand {
 				b = true;
 				break;
 		}
-		q.autoNext(b);
+		user.useAutoNext(b);
+		Users.update(user);
 		return new CommandOutput.Builder()
 				.addTextMessage(String.format("AutoNext has been set to %s", b))
 				.build();

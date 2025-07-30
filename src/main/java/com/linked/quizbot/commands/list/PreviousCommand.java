@@ -7,8 +7,8 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.core.QuizBot;
-import com.linked.quizbot.core.Viewer;
+import com.linked.quizbot.core.viewers.QuizBot;
+import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 

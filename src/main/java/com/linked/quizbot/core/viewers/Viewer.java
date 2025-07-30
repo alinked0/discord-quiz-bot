@@ -1,4 +1,4 @@
-package com.linked.quizbot.core;
+package com.linked.quizbot.core.viewers;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
@@ -21,19 +22,16 @@ public class Viewer {
 	private boolean active= false;
 	private boolean sendInOriginalMessage= true;
 	private final boolean useButtons;
-	private final boolean replyToSender;	
 	private int currIndex;
 	private Message message = null;
 
-	public Viewer(QuestionList l, boolean useButtons, boolean replyToSender){
+	public Viewer(QuestionList l, boolean useButtons){
 		this.questions = l;
 		this.useButtons = useButtons;
-		this.replyToSender=replyToSender;
 	}
-	public Viewer(QuestionList l){this(l, true, true);}
+	public Viewer(QuestionList l){this(l, true);}
 	public void setMessage(Message m) { message = m;}
 	public Message getMessage() { return message;}
-	public boolean replyToSender(){	return replyToSender;}
 	public boolean useButtons(){return useButtons;}
 	public String getMessageId() { return getMessage()!=null?getMessage().getId(): null;}
 	public MessageChannel getChannel() { return getMessage()!=null?getMessage().getChannel(): null;}
@@ -61,9 +59,8 @@ public class Viewer {
 		inBetweenProccessorStart();
 		CommandOutput.Builder output = new CommandOutput.Builder();
 		return output.sendInOriginalMessage(false)
-			.addTextMessage(questions.header())
+			.addTextMessage(getHeader())
 			.useButtons(useButtons())
-			.reply(replyToSender)
 			.addReactions(getReactions())
 			.addPostSendAction(postSendActionStart())
 			.build();
@@ -118,7 +115,6 @@ public class Viewer {
 			.clearReactions(true)
 			.setMessage(message)
 			.useButtons(useButtons())
-			.reply(replyToSender)
 			.addReactions(getReactions())
 			.addPostSendAction(postSendActionCurrent())
 			.build();

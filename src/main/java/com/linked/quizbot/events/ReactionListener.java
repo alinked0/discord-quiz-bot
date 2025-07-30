@@ -9,29 +9,14 @@ import java.util.function.Consumer;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
-import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.utils.Question;
-import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.QuestionListHash;
-import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.EndCommand;
-import com.linked.quizbot.commands.list.ExplainCommand;
-import com.linked.quizbot.commands.list.HelpCommand;
-import com.linked.quizbot.commands.list.AutoNextCommand;
-import com.linked.quizbot.commands.list.CollectionCommand;
 import com.linked.quizbot.commands.list.NextCommand;
-import com.linked.quizbot.commands.list.PreviousCommand;
-import com.linked.quizbot.commands.list.RawListCommand;
-import com.linked.quizbot.commands.list.RemoveListCommand;
-import com.linked.quizbot.commands.list.StartCommand;
 
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.utils.AttachedFile;
-import net.dv8tion.jda.api.utils.Timestamp;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -94,7 +79,7 @@ public class ReactionListener extends ListenerAdapter {
 						channel,
 						message 
 					);
-					ReactionListener.treatDelay(userId, message, quizBot);
+					ReactionListener.autoNext(userId, message, quizBot);
 					return;
 				}else{
 					quizBot.isExplaining(false);
@@ -103,18 +88,13 @@ public class ReactionListener extends ListenerAdapter {
 		});
 	}
 
-	public static void treatDelay(String userId, Message message, QuizBot quizBot){
+	public static void autoNext(String userId, Message message, QuizBot quizBot){
+		if(!quizBot.useAutoNext()){
+			return;
+		}
 		Question oldQ = quizBot.getCurrQuestion();
-
 		MessageChannel channel = message.getChannel();
 		String messageId = message.getId();
-		if (!quizBot.getAutoNext()){
-			try{
-				TimeUnit.SECONDS.sleep(quizBot.getDelaySec());
-			}catch (Exception e){
-				System.err.println("[AUTONEXT]"+e.getMessage());;
-			}
-		}
 		if(oldQ.equals(quizBot.getCurrQuestion()) && !quizBot.isExplaining()){
 			BotCommand cmd = BotCommand.getCommandByName(quizBot.getCurrentIndex()<quizBot.getQuestionList().size()-1?NextCommand.CMDNAME:EndCommand.CMDNAME);
 			MessageSender.sendCommandOutput(

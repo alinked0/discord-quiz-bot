@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.core.Explain;
-import com.linked.quizbot.core.QuizBot;
+import com.linked.quizbot.core.viewers.Explain;
+import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;

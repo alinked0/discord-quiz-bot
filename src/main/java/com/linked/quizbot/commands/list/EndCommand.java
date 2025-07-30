@@ -6,7 +6,7 @@ import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.core.Viewer;
+import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;

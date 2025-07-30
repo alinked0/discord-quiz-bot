@@ -1,24 +1,17 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.List;
-import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.core.QuizBot;
-import com.linked.quizbot.core.Viewer;
-import com.linked.quizbot.utils.Users;
+import com.linked.quizbot.core.viewers.QuizBot;
 
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 public class LeaderBoardCommand extends BotCommand {
 	public static final String CMDNAME = "leaderboard";

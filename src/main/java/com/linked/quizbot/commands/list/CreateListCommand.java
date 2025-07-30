@@ -93,7 +93,7 @@ public class CreateListCommand extends BotCommand {
                 if (l!=null) {
                     l.setAuthorId(userId);
                     if (l.getName()!=null) {
-                        if(Users.getUserListQuestions(userId).contains(l)) {
+                        if(Users.get(userId).getByName(l.getName())==null) {
                             res.add("Failed, list of name : \""+l.getName()+"\" already exists.\n");
                         } else {
                             String id = QuestionListHash.generate(l);

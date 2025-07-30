@@ -40,15 +40,9 @@ public class UserInfoCommand extends BotCommand{
     }
 	@Override
     public CommandOutput execute(String userId,  List<String> args){
-        String res = "```js\n";
-		User user = args.size()>0?new User(args.get(0)): null;
-        if (user==null){
-            user = new User(userId);
-        }
-		res += user.toString()+"\n```";
-        
+		User user = args.size()>0?Users.get(args.get(0)): Users.get(userId);
 		return new CommandOutput.Builder()
-				.addTextMessage(res)
+				.addTextMessage(String.format("```js\n%s\n```", user.toString()))
 				.build();
     }
 

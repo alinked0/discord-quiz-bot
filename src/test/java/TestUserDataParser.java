@@ -51,7 +51,7 @@ public class TestUserDataParser {
 			writer.write(jsonContent);
 		}
 		
-		User user = UserDataParser.fromJsonFile(tempFile.getAbsolutePath());
+		User user = UserDataParser.fromJsonFile(tempFile.getAbsolutePath()).id("testUser").build();
 
 		assertNotNull(user);
 		assertEquals("!test", user.getPreferredPrefix());
@@ -83,7 +83,7 @@ public class TestUserDataParser {
 							 "\"quiz\": \"<:quiz_emoji:111222>\"" +
 							 "}" +
 							 "}";
-		User user = UserDataParser.fromString(jsonContent);
+		User user = UserDataParser.fromString(jsonContent).id("testUser").build();
 
 		assertNotNull(user);
 		assertEquals("@quiz", user.getPreferredPrefix());
@@ -100,7 +100,7 @@ public class TestUserDataParser {
 	void testFromString_EmptyObject() throws IOException {
 		String jsonContent = "{}";
 
-		User user = UserDataParser.fromString(jsonContent);
+		User user = UserDataParser.fromString(jsonContent).id("testUser").build();
 
 		assertNotNull(user);
 		assertNull(user.getPreferredPrefix()); // Default value for String
@@ -114,7 +114,7 @@ public class TestUserDataParser {
 	@DisplayName("Test fromString with missing fields")
 	void testFromString_MissingFields() throws IOException {
 		String jsonContent = "{\"totalPointsEverGained\": 50.0}";
-			User user = UserDataParser.fromString(jsonContent);
+			User user = UserDataParser.fromString(jsonContent).id("testUser").build();
 
 		assertNotNull(user);
 		assertNull(user.getPreferredPrefix());
@@ -137,7 +137,7 @@ public class TestUserDataParser {
 							 "}" +
 							 "}";
 		JsonParser jp = new JsonFactory().createParser(jsonContent);
-		User user = UserDataParser.parser(jp);
+		User user = UserDataParser.parser(jp).id("testUser").build();
 
 		assertNotNull(user);
 		assertEquals("#", user.getPreferredPrefix());

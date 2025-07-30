@@ -4,13 +4,13 @@ import java.util.List;
 
 import java.util.ArrayList;
 
-import com.linked.quizbot.core.QuizBot;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.QuestionListHash;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.utils.Question;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -87,7 +87,16 @@ public class StartCommand extends BotCommand{
         }
         questions = new QuestionList.Builder().add(questions).build().rearrageOptions();
 		User user = Users.get(userId);
-        QuizBot quizBot = new QuizBot(questions, user.useButtons(), false);
+        boolean autoNext = user.useAutoNext();
+        if (autoNext){
+            for (Question q: questions){
+                if (q.getNumberTrue()>1){
+                    autoNext = false;
+                    break;
+                }
+            }
+        }
+        QuizBot quizBot = new QuizBot(questions, user.useButtons(), autoNext);
         return quizBot.start();
     }
 }

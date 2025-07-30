@@ -1,4 +1,4 @@
-package com.linked.quizbot.core;
+package com.linked.quizbot.core.viewers;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
@@ -79,24 +80,24 @@ public class QuizBot extends Viewer {
     public final Set<String> players = new HashSet<>();
 	public Map<String, Double> userScoreExact = null;
     public boolean isExplaining = false;
-    public boolean autoNext = true;
+    public final boolean autoNext;
     public final int delaySec = 5;
 	public Timestamp timeLimit;
 
     public QuizBot(QuestionList c) {
 		this(c, true, false);
     }
-	public QuizBot(QuestionList c, boolean useButtons, boolean replyToSender) {
-		super(c, useButtons, replyToSender);
+	public QuizBot(QuestionList c, boolean useButtons, boolean autoNext) {
+		super(c, useButtons);
+		this.autoNext = autoNext;
     }
 	public Timestamp getLastTimestamp(){return timeLimit;}
     public Boolean isExplaining() { return isExplaining;}
     public void isExplaining(boolean b) { isExplaining=b;}
 	public int getDelaySec(){ return this.delaySec;}
-	public boolean getAutoNext(){ return this.autoNext;}
+	public boolean useAutoNext(){ return this.autoNext;}
 	public Set<String> getPlayers(){return players;}
 	public void addPlayer(String player){players.add(player);}
-	public void autoNext(boolean b){ autoNext=b;}
     public List<Emoji> getReactionsForOptions(){
         List<Emoji> emojis = new ArrayList<>();
         for (int i = 0; i < getCurrQuestion().size(); i++) {
@@ -106,11 +107,9 @@ public class QuizBot extends Viewer {
     }
     public void addReaction(String userId, Emoji emoji){
 		Question currQuestion = this.getCurrQuestion();
-		if (!this.userAnswersForCurrQuestion.containsKey(userId)) {
-			if (!this.getPlayers().contains(userId)){
-				Users.getUser(userId).incrNumberOfGamesPlayed();
-				this.addPlayer(userId);
-			}
+		if (!this.getPlayers().contains(userId)){
+			Users.getUser(userId).incrNumberOfGamesPlayed();
+			this.addPlayer(userId);
 			this.userAnswersForCurrQuestion.put(userId, new HashSet<>());
 		}
 		Option userAwnser = null;
@@ -121,36 +120,36 @@ public class QuizBot extends Viewer {
 				if (userAwnser != null) {
 					//System.out.printf("  $> awnser %s, %s ;\n", userAwnser.isCorrect(), userAwnser.getText());
 					this.userAnswersForCurrQuestion.get(userId).add(userAwnser);
+					// If it's the correct answer, increase their score
+					double point = (userAwnser.isCorrect()?QuestionList.pointsForCorrect:QuestionList.pointsForIncorrect)/currQuestion.getTrueOptions().size();
+					this.userScoreApproxi.put(userId, this.getUserScore(userId) +point);
 				}
-				break;
+				return;
 			}
-		}
-		Map<String, Set<Option>> tmpUserAnswers = new HashMap<>(this.userAnswersForCurrQuestion);
-		this.awnsersByUserIdByQuestionIndex.set(getCurrentIndex(), tmpUserAnswers);
-		// If it's the correct answer, increase their score
-		if (userAwnser != null) {
-			double point = (userAwnser.isCorrect()?QuestionList.pointsForCorrect:QuestionList.pointsForIncorrect)/currQuestion.getTrueOptions().size();
-			this.userScoreApproxi.put(userId, this.getUserScore(userId) +point);
 		}
 	};
     public void removeReaction(String userId, Emoji emoji){};
     @Override
     public void inBetweenProccessorStart(){
-		userScoreApproxi.clear();
-		userAnswersForCurrQuestion.clear();
-        awnsersByUserIdByQuestionIndex.clear();
+		this.userScoreApproxi.clear();
+		this.userAnswersForCurrQuestion.clear();
+        this.awnsersByUserIdByQuestionIndex.clear();
 		int n = getQuestionList().size();
 		this.timeLimit = TimeFormat.RELATIVE.now();
 		isExplaining(false);
 		for (int i=0; i<n; ++i) 
-			awnsersByUserIdByQuestionIndex.add(new HashMap<>());
+			this.awnsersByUserIdByQuestionIndex.add(new HashMap<>());
 	}
 	@Override
 	public void inBetweenProccessorCurrent(){
 		if (getMessage() != null) {
 			BotCore.explicationRequest.remove(getMessageId());
 		}
-		userAnswersForCurrQuestion.clear();
+		this.awnsersByUserIdByQuestionIndex.set(getCurrentIndex(), new HashMap<>(this.userAnswersForCurrQuestion));
+		this.userAnswersForCurrQuestion.clear();
+		for (String userId : getPlayers()){
+			this.userAnswersForCurrQuestion.put(userId, new HashSet<>());
+		}
 		isExplaining(false);
 		this.timeLimit = TimeFormat.RELATIVE.now();
 	}
@@ -170,8 +169,15 @@ public class QuizBot extends Viewer {
 		return emojis;
 	}
     @Override
+	public String getHeader(){
+		String res = super.getHeader();
+		res += "---\n";
+		res += String.format("**AutoNext:** `%s`\n", useAutoNext());
+		return res;
+	}
+    @Override
     public String getFormatedQuestion () {
-		if (getAutoNext() && awnsersByUserIdByQuestionIndex.get(getCurrentIndex()).size()>1){
+		if (useAutoNext() && awnsersByUserIdByQuestionIndex.get(getCurrentIndex()).size()>1){
 			this.timeLimit = TimeFormat.RELATIVE.after(delaySec*1000);
 		}
         return getQuestionList().getFormated(getCurrentIndex())+getLastTimestamp()+"\n";

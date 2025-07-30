@@ -29,7 +29,7 @@ import com.linked.quizbot.commands.list.ExplainCommand;
 import com.linked.quizbot.commands.list.HelpCommand;
 import com.linked.quizbot.commands.list.InviteCommand;
 import com.linked.quizbot.commands.list.LeaderBoardCommand;
-import com.linked.quizbot.commands.list.AutoNextCommand;
+import com.linked.quizbot.commands.list.UseAutoNextCommand;
 import com.linked.quizbot.commands.list.NextCommand;
 import com.linked.quizbot.commands.list.PingCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
@@ -84,7 +84,7 @@ public abstract class BotCommand {
             new HelpCommand(),
             new InviteCommand(),
             new LeaderBoardCommand(),
-            new AutoNextCommand(),
+            new UseAutoNextCommand(),
             new NextCommand(),
             new PingCommand(),
             new PreviousCommand(),
@@ -249,7 +249,7 @@ public abstract class BotCommand {
             return null;
         }
     }
-	public static String getUserIdFromArg(String arg, JDA jda) {
+	public static String getIdFromArg(String arg, JDA jda) {
         long start = System.nanoTime();
 		if (arg.startsWith("<@")) {
 			return arg.substring(2, arg.length()-1);
@@ -292,7 +292,7 @@ public abstract class BotCommand {
 		}
 		if (!Constants.isBugFree()) { // Debug logging
 			System.out.printf("    $> approxiUserId %s;\n", approxiUserId);
-			System.out.printf("   $> time getUserIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
+			System.out.printf("   $> time getIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
 		}
 
 		// If the arg itself is a raw ID of the correct length
@@ -337,7 +337,7 @@ public abstract class BotCommand {
 	}
 	public static BotCommand getCommandFromEmoji(Emoji reaction){
 		if (reaction.equals(Constants.EMOJIMORETIME)){
-			return BotCommand.getCommandByName(AutoNextCommand.CMDNAME);
+			return BotCommand.getCommandByName(UseAutoNextCommand.CMDNAME);
 		}
 		if (reaction.equals(Constants.EMOJISTOP)){
 			return BotCommand.getCommandByName(EndCommand.CMDNAME);

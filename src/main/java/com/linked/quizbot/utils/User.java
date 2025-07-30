@@ -25,34 +25,43 @@ import com.linked.quizbot.Constants;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 public class User implements Iterable<QuestionList>{
-	private String userId;
-	private String perferedPrefix;
-	protected List<QuestionList> listsSortedById;
+	private final String userId;
+	private final List<QuestionList> listsSortedById= new ArrayList<>();
+	private  final Map<String, Emoji> tagEmojiPerTagName= new HashMap<>();
+	private final Map<String, List<QuestionList>> questionListPerTags= new HashMap<>();
+	private String prefixe;
 	private int numberOfGamesPlayed;
 	private double totalPointsEverGained;
 	private boolean useButtons;
-	private Map<String, Emoji> tagEmojiPerTagName;
-	private Map<String, List<QuestionList>> questionListPerTags;
+	private boolean useAutoNext;
 
 	public static class Builder {
-        private String userId=null;
-        private String perferedPrefix = null;
-        protected List<QuestionList> listsSortedById = new ArrayList<>();
+        private String userId = null;
+        private String prefixe = null;
+        protected List<QuestionList> list = new ArrayList<>();
 		private boolean useButtons = true;	
+		private boolean useAutoNext = false;
         private int numberOfGamesPlayed=0;
         private double totalPointsEverGained=0;
         private Map<String, Emoji> tagEmojiPerTagName= new HashMap<>();
         private Map<String, List<QuestionList>> questionListPerTags= new HashMap<>();
-		public Builder userId(String userId){ 
+		public Builder id(String userId){ 
+			if (userId == null){
+				throw new NullPointerException();
+			}
             this.userId = userId;
             return this;
         }  
-		public Builder perferedPrefixe(String prefixe){ 
-            this.perferedPrefix= prefixe;
+		public Builder prefixe(String prefixe){ 
+            this.prefixe= prefixe;
             return this;
         }
 		public Builder useButtons(boolean b){ 
             this.useButtons= b;
+            return this;
+        }
+		public Builder useAutoNext(boolean b){ 
+            this.useAutoNext= b;
             return this;
         }
 		public Builder numberOfGamesPlayed(int n){ 
@@ -80,15 +89,15 @@ public class User implements Iterable<QuestionList>{
             return this;
         }
 		public Builder listsSortedById(List<QuestionList> listsSortedById){
-            this.listsSortedById = new ArrayList<>(listsSortedById);
+            this.list = new ArrayList<>(listsSortedById);
             return this;
         }
 		public Builder add(QuestionList l){
-			this.listsSortedById.add(l);
+			this.list.add(l);
             return this;
         }
 		public Builder addAll(List<QuestionList> c){
-			this.listsSortedById.addAll(c);
+			this.list.addAll(c);
             return this;
         }
 		public User build(){
@@ -97,89 +106,77 @@ public class User implements Iterable<QuestionList>{
 	}
 
 	public User(User.Builder builder){
+		if (builder.userId == null){
+			throw new NullPointerException();
+		}
 		this.userId = builder.userId;
-        this.perferedPrefix = builder.perferedPrefix;
+        this.prefixe = builder.prefixe;
 		this.numberOfGamesPlayed = builder.numberOfGamesPlayed;
 		this.totalPointsEverGained = builder.totalPointsEverGained;
-		this.tagEmojiPerTagName = builder.tagEmojiPerTagName;
-		this.questionListPerTags = builder.questionListPerTags;
-		this.listsSortedById = builder.listsSortedById;
+		this.tagEmojiPerTagName.putAll(builder.tagEmojiPerTagName);
+		this.questionListPerTags.putAll(builder.questionListPerTags);
+		this.listsSortedById.addAll(builder.list);
 		this.useButtons = builder.useButtons;
-		File folder = new File(Constants.LISTSPATH+Constants.SEPARATOR+ userId);
-		File[] listOfFiles = folder.listFiles();
-		if(listOfFiles != null) {
-			for (int i = 0; i < listOfFiles.length; i++) {
-				if (List.of("user-data.json", "tmp").contains(listOfFiles[i].getName())) continue;
-				try{
-					QuestionList l = QuestionList.importListQuestionFromJson(listOfFiles[i].getAbsolutePath());
-                    if (!listsSortedById.contains(l)){
-						listsSortedById.add(l);
-                    }
-				}catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		listsSortedById.sort(QuestionList.comparatorById());;
+		this.useAutoNext = builder.useAutoNext;
 	}
-	public User(String userId){
-		this(new User.Builder());
-		this.userId = userId;
-		listsSortedById = getUserListQuestions(userId);
-		initStats();
-		initTags();
-	}
-	private void initTags(){
+	public void syncWithLocal() {
 		Map<String, Emoji> tags;
-		listsSortedById.sort(QuestionList.comparatorById());
 		for(QuestionList l: listsSortedById){
 			QuestionListHash.addGeneratedCode(l.getId());
+		}
+		listsSortedById.sort(QuestionList.comparatorById());
+		if (new File(getPathToUserData()).exists()){
+			try {
+				User.Builder builder = UserDataParser.fromJsonFile(getPathToUserData());
+				this.prefixe = builder.prefixe;
+				this.numberOfGamesPlayed = builder.numberOfGamesPlayed;
+				this.totalPointsEverGained = builder.totalPointsEverGained;
+				this.tagEmojiPerTagName.putAll(builder.tagEmojiPerTagName);
+				this.questionListPerTags.putAll(builder.questionListPerTags);
+				this.useButtons = builder.useButtons;
+				this.useAutoNext = builder.useAutoNext;
+			} catch (IOException e){
+				e.printStackTrace();
+			}
+		}
+		for(QuestionList l: listsSortedById){
 			tags = l.getTags();
 			tagEmojiPerTagName.putAll(tags);
 			for (String tagName : tags.keySet()){
-				if (questionListPerTags.getOrDefault(tagName, null)==null){
+				if (questionListPerTags.get(tagName)==null){
 					questionListPerTags.put(tagName, new ArrayList<QuestionList>());
 				}
 				questionListPerTags.get(tagName).add(l);
 			}
 		}
-        Users.addUser(this);
 	}
-	public void initStats(){
-		try{
-			User tmp = UserDataParser.fromJsonFile(getPathToUserData());
-			perferedPrefix = tmp.getPrefix();
-			numberOfGamesPlayed = tmp.getNumberOfGamesPlayed();
-			totalPointsEverGained = tmp.getTotalPointsEverGained();
-			tagEmojiPerTagName = tmp.getTagEmojiPerTagName();
-		} catch (IOException e) {
-			numberOfGamesPlayed = 0;
-			totalPointsEverGained = 0;
-			tagEmojiPerTagName = new HashMap<>();
-		}
+	public User(@NotNull String userId){
+		this(new User.Builder().id(userId));
+		listsSortedById.addAll(importUserLists());
+		syncWithLocal();
 	}
-	public boolean useButtons(){
-		return useButtons;
-	}
+	public boolean useButtons(){return useButtons;}
 	public void useButtons(boolean b){ useButtons = b;}
+	public boolean useAutoNext(){return useAutoNext;}
+	public void useAutoNext(boolean b){ useAutoNext = b;}
 	public String getPrefix(){
-		return perferedPrefix;
+		return prefixe;
 	}
 	public String getPreferredPrefix(){
 		return getPrefix();
 	}
-	public void setPrefix(String perferedPrefix){
-		this.perferedPrefix= perferedPrefix;
+	public void setPrefix(String prefixe){
+		this.prefixe= prefixe;
 		exportUserData();
 	}
 	public List<QuestionList> getLists() {
 		List<QuestionList> res = new ArrayList<>(listsSortedById);
 		return res;
 	}
-	public String getUserId(){ return userId;}
+	public String getId(){ return userId;}
 
 	public String getPathToUserData(){
-		return Constants.USERDATAPATH+Constants.SEPARATOR+getUserId()+Constants.SEPARATOR+"user-data.json";
+		return Constants.USERDATAPATH+Constants.SEPARATOR+getId()+Constants.SEPARATOR+"user-data.json";
 	}
 	public QuestionList get(int index) {
 		return listsSortedById.get(index);
@@ -230,9 +227,10 @@ public class User implements Iterable<QuestionList>{
 		return new ArrayList<>(res);
 	}
 	public QuestionList getById(String id) {
-		QuestionList res= null;
+		QuestionList res;
 		if (QuestionList.getExampleQuestionList().getId().equals(id)){
 			res =  QuestionList.getExampleQuestionList();
+			return res.clone();
 		} else {
 			QuestionList searched = new QuestionList.Builder().id(id).build();
 			int i=-1;
@@ -240,16 +238,17 @@ public class User implements Iterable<QuestionList>{
 			i = Users.myBinarySearchIndexOf(l, searched, QuestionList.comparatorById());
 			if (i>=0){
 				res = l.get(i);
+				return res.clone();
 			}
 		}
-		return res;
+		return null;
 	}
 	public QuestionList getByName(String listName){
 		List<QuestionList> listsSortedByName = new ArrayList<>(listsSortedById);
 		listsSortedByName.sort(QuestionList.comparatorByName());
 		int index = QuestionList.myBinarySearchIndexOf(listsSortedByName, listName);
 		if (index<0) return null;
-		return listsSortedByName.get(index);
+		return listsSortedByName.get(index).clone();
 	}
 	public static QuestionList getQuestionListByName(String listName){
 		return Users.getQuestionListByName(listName);
@@ -260,26 +259,19 @@ public class User implements Iterable<QuestionList>{
 	public static Emoji getEmojiFomTagName(String userId, String tagName){
 		return Users.getUser(userId).getEmojiFomTagName(tagName);
 	}
-	public void setNumberOfGamesPlayed(int number) {
-		this.numberOfGamesPlayed = number;
-	}
-	public void setTotalPointsEverGained(double points) {
-		this.totalPointsEverGained = points;
-	}
-	public void setTagEmojiPerTagName(Map<String, Emoji> m) {
-		this.tagEmojiPerTagName = m;
-	}
 	public static void addListToUser(String userId, QuestionList l) {
 		Users.addListToUser(userId, l);
 	}
 	public boolean addList(@NotNull QuestionList l){
 		int index;
-		QuestionList k = getByName(l.getName());
+		QuestionList k = getById(l.getId());
 		if (k==null){
-			k = l;
-		} else {
-			k.addAll(l);
+			k = getByName(l.getId());
+			if (k==null){
+				k = l;
+			} 
 		}
+		k.addAll(l);
 		k.rearrageOptions((e, f) -> e.isCorrect()?-1:1);
 		index = myBinarySearchIndexOf(listsSortedById, k, QuestionList.comparatorById());
 		if (index>=0) {
@@ -375,13 +367,13 @@ public class User implements Iterable<QuestionList>{
 	public static boolean removeTagFromList(String id, String tagName) {
 		return Users.removeTagFromList(id, tagName);
 	}
-	public static void deleteList(QuestionList l){
-		User user = new User(l.getAuthorId());
-		user.listsSortedById.remove(l);
+	public void deleteList(QuestionList l){
+		if(l.getAuthorId()!= getId()){
+			return;
+		}
+		this.listsSortedById.remove(l);
 		File f = new File(l.getPathToList());
 		f.delete();
-		Users.allUsers.remove(user);
-		Users.allUsers.add(user);
 	}
 	public static <T> int myBinarySearchIndexOf(List<T> tab, int start, int end, T q, Comparator<? super T> compare){
 		if (start > end){
@@ -405,7 +397,7 @@ public class User implements Iterable<QuestionList>{
 			return -1*start-1;
 		}
 		int m = (start+end)/2;
-		int comp = tab.get(m).getUserId().compareTo(userId);
+		int comp = tab.get(m).getId().compareTo(userId);
 		if(comp == 0){
 			return m;
 		}
@@ -422,10 +414,24 @@ public class User implements Iterable<QuestionList>{
 		return getLists().iterator();
 	}
 	public static Comparator<? super User> comparatorByUserId() {
-		return (e, f)->(e.getUserId().compareTo(f.getUserId()));
+		return (e, f)->(e.getId().compareTo(f.getId()));
 	}
-	public static List<QuestionList> getUserListQuestions(String userId) {
-		return Users.getUserListQuestions(userId);
+	public List<QuestionList> importUserLists() {
+		List<QuestionList> res = new ArrayList<>();
+		File folder = new File(Constants.LISTSPATH+Constants.SEPARATOR+ userId+Constants.SEPARATOR);
+		File[] listOfFiles = folder.listFiles();
+		if(listOfFiles != null) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if (List.of("tmp").contains(listOfFiles[i].getName())) continue;
+				try{
+					QuestionList l = QuestionList.importListQuestionFromJson(listOfFiles[i].getAbsolutePath());
+					res.add(l);
+				}catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return res;
 	}
 	public void exportUserLists() {
 		List<QuestionList> listsSortedById = getLists();
@@ -435,18 +441,18 @@ public class User implements Iterable<QuestionList>{
 	}
 	@Override
 	public int hashCode(){
-		return getUserId().hashCode();
+		return getId().hashCode();
 	}
 	@Override
 	public boolean equals(Object o){
 		if (this == o) {return true;}
 		if(o instanceof  User) {
 			User u = (User) o;
-			return getUserId().equals(u.getUserId());
+			return getId().equals(u.getId());
 		}
 		if(o instanceof  String) {
 			String u = (String) o;
-			return getUserId().equals(u);
+			return getId().equals(u);
 		}
 		return false;
 	}
@@ -455,6 +461,7 @@ public class User implements Iterable<QuestionList>{
 			tab1 = "\t";
 			res += "{\n";
 		ObjectMapper mapper = new ObjectMapper();
+		res += tab1+mapper.writeValueAsString("userId")+":"+mapper.writeValueAsString(getId())+",\n";
 		res +=tab1+"\"tagEmojiPerTagName\":{";
 		Iterator<Entry<String, Emoji>> iter = tagEmojiPerTagName.entrySet().iterator();
 		Entry<String, Emoji> entry2;
@@ -466,39 +473,21 @@ public class User implements Iterable<QuestionList>{
 			}
 		}
 		res += "},\n";
-		res += tab1+"\"prefixe\":"+mapper.writeValueAsString(getPrefix())+",\n";
-		res += tab1+"\"useButtons\":"+useButtons()+",\n";
-		res += tab1+"\"totalPointsEverGained\":"+getTotalPointsEverGained()+",\n";
-		res += tab1+"\"numberOfGamesPlayed\":"+getNumberOfGamesPlayed()+"\n";
+		res += tab1+mapper.writeValueAsString("prefixe")+":"+mapper.writeValueAsString(getPrefix())+",\n";
+		res += tab1+mapper.writeValueAsString("useButtons")+":"+useButtons()+",\n";
+		res += tab1+mapper.writeValueAsString("useAutoNext")+":"+useAutoNext()+",\n";
+		res += tab1+mapper.writeValueAsString("totalPointsEverGained")+":"+getTotalPointsEverGained()+",\n";
+		res += tab1+mapper.writeValueAsString("numberOfGamesPlayed")+":"+getNumberOfGamesPlayed()+"\n";
 		res +="}";
 		return res;
 	}
 	public String toJson(){
-		String res="";
+		String res=null;
 		try {
 			res = toJsonUsingMapper();
-			return res;
 		} catch (Exception e){
 			System.err.println("[toJsonUsingMapper() failed]"+e.getMessage());
 		}
-		String tab1 = "\t";
-		res = "{\n";
-		res +=tab1+"\"tagEmojiPerTagName\":{";
-		Iterator<Entry<String, Emoji>> iter = tagEmojiPerTagName.entrySet().iterator();
-		Entry<String, Emoji> entry2;
-		while (iter.hasNext()) {
-			entry2 = iter.next();
-			res += "\""+entry2.getKey()+"\":\""+entry2.getValue().getFormatted()+"\"";
-			if(iter.hasNext()){
-				res += ", ";
-			}
-		}
-		res += "},\n";
-		res += tab1+"\"prefixe\":\""+getPrefix()+"\",\n";
-		res += tab1+"\"useButtons\":"+useButtons()+",\n";
-		res += tab1+"\"totalPointsEverGained\":"+getTotalPointsEverGained()+",\n";
-		res += tab1+"\"numberOfGamesPlayed\":"+getNumberOfGamesPlayed()+"\n";
-		res +="}";
 		return res;
 	}
 	public void exportUserData(){
@@ -519,7 +508,7 @@ public class User implements Iterable<QuestionList>{
 	}
 	@Override
 	public String toString() {
-		String res = toJson();
+		String res = toJson().replace("\n", "").replace("\t", "");
 		return res;
 	}
 }

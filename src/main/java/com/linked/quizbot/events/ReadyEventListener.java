@@ -13,9 +13,9 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
-public class readyEvent extends ListenerAdapter {
+public class ReadyEventListener extends ListenerAdapter {
 	@Override
-	public void onReady(ReadyEvent event){
+	public void onReady(net.dv8tion.jda.api.events.session.ReadyEvent event){
 		List<SlashCommandData> commandData = BotCommand.getSlashCommandDataList();
 
 		// Clear all global commands

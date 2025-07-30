@@ -1,7 +1,8 @@
 package com.linked.quizbot;
 
+import java.io.File;
+
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.utils.data.DataObject;
 
 /**
  * The Constants class is the class that contains all static variables
@@ -11,8 +12,7 @@ import net.dv8tion.jda.api.utils.data.DataObject;
 public class Constants {
 	public static boolean AREWETESTING;
 	public static String 
-		root = System.getProperty("user.dir").substring(0, 1),
-		SEPARATOR= root.equals("/")?"/":"\\",
+		SEPARATOR= File.separator,
 		RESOURCESPATH= "src"+SEPARATOR+"main"+SEPARATOR+"resources",
 		LISTSPATH=RESOURCESPATH+ SEPARATOR +"lists",
 		USERDATAPATH=RESOURCESPATH+ SEPARATOR +"user-data",

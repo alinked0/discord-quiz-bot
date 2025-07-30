@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class UseButtonsCommand extends BotCommand{
     public static final String CMDNAME = "usebuttons";
     private String cmdDesrciption = "choose your perfered buttons";
-	private List<String> abbrevs = List.of();
+	private List<String> abbrevs = List.of("ub");
     
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
@@ -48,7 +48,7 @@ public class UseButtonsCommand extends BotCommand{
 				break;
 		}
 		user.useButtons(b);
-		Users.addUser(user);
+		Users.update(user);
 		return new CommandOutput.Builder()
 				.addTextMessage(String.format("Your now using %s", b?"Buttons":"Reactions"))
 				.build();

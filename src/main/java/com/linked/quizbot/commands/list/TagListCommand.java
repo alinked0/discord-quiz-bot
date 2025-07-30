@@ -42,7 +42,7 @@ public class TagListCommand extends BotCommand{
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
         String tagNameInput=args.get(0);
-        User user = new User(userId);
+        User user = Users.get(userId);
         Emoji emoji = user.getEmojiFomTagName(tagNameInput);
         String res = "";
         String taggedStr = "Taged";

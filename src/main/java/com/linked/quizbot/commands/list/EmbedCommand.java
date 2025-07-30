@@ -76,7 +76,7 @@ public class EmbedCommand extends BotCommand {
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
 		//Liste de l'utilisateur
-		User user = new User(userId);
+		User user = Users.get(userId);
 		QuestionList list = user.get(0);
 		Question question = list.get(0);
 		// Créer l'embed
