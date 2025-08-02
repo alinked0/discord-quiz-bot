@@ -58,6 +58,11 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
  * The  BotCommand is an abstract class that represents any command that can be ran by the bot.
  * 
  * This class takes insparation from {@link https://github.com/Tran-Antoine/Askigh-Bot/}
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand.CommandCategory
+ * @see CommandOutput
  */
 public abstract class BotCommand {
 	private final static Map<BotCommand.CommandCategory, Set<BotCommand>> commandByCategory = new HashMap<>();
@@ -68,6 +73,7 @@ public abstract class BotCommand {
     private static final Set<BotCommand> PUBLIC_COMMANDS;
     private static final Set<BotCommand> PRIVATE_COMMANDS;
 
+	// Static block to initialize the command sets.
     static {
 		PUBLIC_COMMANDS = new HashSet<>();
 		PRIVATE_COMMANDS = new HashSet<>();
@@ -103,7 +109,9 @@ public abstract class BotCommand {
 		ALL_COMMANDS.addAll(PUBLIC_COMMANDS);
 		ALL_COMMANDS.addAll(PRIVATE_COMMANDS);
     }
-
+	/**
+	 * This enum represents the different categories of commands that can be used in the bot.
+	 */
 	public static enum CommandCategory {
 		GAME, NAVIGATION, EDITING, READING, OTHER;
 		private String name;
@@ -123,34 +131,76 @@ public abstract class BotCommand {
 			return name;
 		}
 	}
-	
+
+	/**
+	 * Executes the command with the given userId and arguments.
+	 * @param userId The ID of the user who is executing the command.
+	 * @param args The arguments passed to the command.
+	 * @return The output of the command execution.
+	 */
 	public abstract CommandOutput execute(String userId,  List<String> args);
 
+	/**
+	 * This is a getter method that returns the name of the command.
+	 * @return The name of the command as a String.
+	 * @pure
+	 */
 	public abstract String getName();
 
+	/**
+	 * @return The category of the command as a CommandCategory enum.
+	 * @pure
+	 */
 	public BotCommand.CommandCategory getCategory(){
 		return BotCommand.CommandCategory.OTHER;
 	}
 
+	/**
+	 * @return A list of abbreviations as Strings.
+	 * @pure
+	 */
 	public List<String> getAbbreviations(){
 		return List.of();
 	}
 
+	/**
+	 * Returns a list of OptionData objects that represent the options for the command.
+	 * It is mainly use to create the slash command.
+	 * @return A list of OptionData objects.
+	 * @pure
+	 */
     public List<OptionData> getOptionData(){
 		List<OptionData> res = new ArrayList<>();
         return res;
 	}
 
+	/**
+	 * @return A String that describes the command.
+	 * @pure
+	 */
 	public abstract String getDescription();
 
+	/**
+	 * @return A String that contains detailed examples of the command or a message indicating that no examples were found.
+	 * @pure
+	 */
 	public String getDetailedExamples(){
 		return "no examples found.";
 	}
 
+	/**
+	 * @return A set of BotCommand objects that represent all commands.
+	 * @pure
+	 */
 	public static Set<BotCommand> getCommands() {
 		return PUBLIC_COMMANDS;
 	}
 
+	/**
+	 * Parses the command line arguments and returns a list of non-empty arguments.
+	 * @param cmndLineArgs The command line arguments as a String.
+	 * @return A list of non-empty arguments as Strings.
+	 */
 	public List<String> parseArguments(String cmndLineArgs){
 		int k = 0;
 		List<String> res = new ArrayList<>();
@@ -162,6 +212,14 @@ public abstract class BotCommand {
 		}
 		return res;
 	}
+
+	/** 
+	 * Splits a JSON-like string into a list of JSON objects.
+	 * It handles nested JSON objects by keeping track of the opening and closing braces.
+	 * This method is useful for parsing JSON strings that may contain nested objects.
+	 * @param argumment The JSON-like string to be split.
+	 * @return A list of JSON objects as Strings. 
+	 */
     public static  List<String> splitJson(String argumment){
         int k = 0;
         int start = -1;
@@ -187,6 +245,17 @@ public abstract class BotCommand {
         }
         return res;
     }
+
+	/**
+	 * Retrieves arguments from an attachment associated with a user.
+	 * It downloads the attachment from the provided URL, reads its content, and splits it into a list of arguments.
+	 * If the attachment is null, it returns an empty list.
+	 * @param userId
+	 * @param attachment
+	 * @ensures \result != null
+	 * @ensures \result.size() <= 1
+	 * @return a list of arguments If the attachment is not null else it returns an empty list.
+	 */
     public static List<String> getArgFromAttachment(String userId, Attachment attachment){
         List<String> res = new ArrayList<>();
         if (attachment==null){
@@ -222,6 +291,16 @@ public abstract class BotCommand {
 		}
         return res;
     }
+
+	/**
+	 * Retrieves arguments from a list of attachments associated with a user.
+	 * @param userId
+	 * @param c The list of attachments to retrieve arguments from.
+	 * @ensures \result != null
+	 * @ensures \result.size() <= c.size()
+	 * @return A list of arguments extracted from the attachments. If the list is null, it returns an empty list.
+	 * @see #getArgFromAttachment(String, Attachment)
+	 */
     public static List<String> getArgFromAttachments(String userId, List<Attachment> c){
         List<String> res = new ArrayList<>();
         if (c==null){
@@ -233,6 +312,12 @@ public abstract class BotCommand {
         return res;
     }
 
+	/**
+	 * Retrieves a command by its name or abbreviation.
+	 * @param name The name or abbreviation of the command to retrieve.
+	 * @ensures \result != null <==> \result.getName().equals(name) || \result.getAbbreviations().contains(name)
+	 * @return The BotCommand object that matches the given name or abbreviation, or null if no match is found.
+	 */
 	public static BotCommand getCommandByName(String name) {
 		for (BotCommand cmd : BotCommand.ALL_COMMANDS) {
 			if(cmd.getName().equals(name) || cmd.getAbbreviations().contains(name)) {
@@ -241,6 +326,12 @@ public abstract class BotCommand {
 		}
 		return null;
 	}
+
+	/**
+	 * Attempts to parse the argument as an emoji using the JDA library.
+	 * @param arg The argument string that may contain an emoji.
+	 * @return The parsed Emoji object if successful, or null if the argument cannot be parsed as an emoji.
+	 */
     public static Emoji getEmojiFromArg(String arg){
         try {
             return Emoji.fromFormatted(arg);
@@ -249,6 +340,20 @@ public abstract class BotCommand {
             return null;
         }
     }
+
+	/**
+	 * Retrieves the ID of a user from a given argument string.
+	 * It checks if the argument starts with "<@" to identify a user mention,
+	 * and if not, it searches through all users in the JDA instance to find a match based on the argument.
+	 * If an approximate match is found, it returns the user ID of that match.
+	 * If the argument is a raw ID of the correct length, it returns that ID directly.
+	 * @param arg The argument string that may contain a user mention or ID.
+	 * @param jda The JDA instance used to access all users.
+	 * @requires jda != null
+	 * @ensures \result != null <==> \result.length() >= Constants.DISCORDIDLENMIN && \result.length() <= Constants.DISCORDIDLENMAX
+	 * @return The user ID as a String if found, or null if no match is found.
+	 * @pure
+	 */
 	public static String getIdFromArg(String arg, JDA jda) {
         long start = System.nanoTime();
 		if (arg.startsWith("<@")) {
@@ -302,12 +407,32 @@ public abstract class BotCommand {
 		return approxiUserId;
 	}
 
+	/**
+	 * Retrieves a QuestionList by its ID.
+	 * It uses the Users class to get the QuestionList associated with the given ID.
+	 * @param id The ID of the QuestionList to retrieve.
+	 * @return The QuestionList associated with the given ID, or null if no such list exists.
+	 * @see Users#getQuestionListById(String)
+	 * @pure
+	 */
 	public static QuestionList getSelectedQuestionList(String id) {
 		return Users.getQuestionListById(id);
 	}
+
+	/**
+	 * Returns the slash command data for this command.
+	 * It creates a SlashCommandData object with the command's name, description, and options.
+	 * @return A SlashCommandData object representing this command.
+	 * @pure
+	 */
 	public SlashCommandData getSlashCommandData(){
 		return Commands.slash(getName(), getDescription()).addOptions(getOptionData());
 	}
+
+	/**
+	 * @return A list of SlashCommandData objects representing all commands.
+	 * @pure
+	 */
 	public static List<SlashCommandData> getSlashCommandDataList(){
 		List<SlashCommandData> commandData= new ArrayList<>();
 		for (BotCommand cmd : BotCommand.getCommands()) {
@@ -315,6 +440,15 @@ public abstract class BotCommand {
 		}
 		return commandData;
 	}
+
+	/**
+	 * Returns a set of all commands that belong to the specified category.
+	 * If the category is not found, it returns an empty set.
+	 * @param cat The category for which to retrieve commands.
+	 * @ensures \result != null
+	 * @ensures \result.size() <= BotCommand.ALL_COMMANDS.size()
+	 * @return A set of BotCommand objects belonging to the specified category.
+	 */
 	public static Set<BotCommand> getCommandsByCategory(BotCommand.CommandCategory cat){
 		if(commandByCategory.isEmpty()){
 			for (BotCommand.CommandCategory c : BotCommand.CommandCategory.getCategories()){
@@ -326,6 +460,13 @@ public abstract class BotCommand {
 		}
 		return commandByCategory.getOrDefault(cat, Collections.emptySet());
 	}
+
+	/**
+	 * Returns a list of OptionData objects that are required for the command.
+	 * It filters the options to include only those that are marked as required.
+	 * @return A list of OptionData objects that are required for the command.
+	 * @pure
+	 */
 	public List<OptionData> getRequiredOptionData(){
 		ArrayList<OptionData> res = new ArrayList<>();
 		for (OptionData opt:getOptionData()){
@@ -335,6 +476,14 @@ public abstract class BotCommand {
 		}
 		return res;
 	}
+
+	/**
+	 * Returns a BotCommand object based on the provided emoji reaction.
+	 * It checks the reaction against predefined emojis and returns the corresponding command.
+	 * @param reaction The emoji reaction to check.
+	 * @return The BotCommand associated with the emoji, or null if no match is found.
+	 * @pure
+	 */
 	public static BotCommand getCommandFromEmoji(Emoji reaction){
 		if (reaction.equals(Constants.EMOJIMORETIME)){
 			return BotCommand.getCommandByName(UseAutoNextCommand.CMDNAME);
@@ -356,10 +505,25 @@ public abstract class BotCommand {
 		}
 		return null;
 	}
+
+	/**
+	 * Returns a string representation of the command in JSON format.
+	 * It includes the command's name, description, and category.
+	 * @return A JSON string representation of the command.
+	 * @pure
+	 */
 	@Override
 	public int hashCode() {
 		return getName().hashCode()*7 + getDescription().hashCode()*2 + getCategory().hashCode();
 	}
+
+	/**
+	 * Checks if this command is equal to another object.
+	 * Two commands are considered equal if they have the same name, description, and category.
+	 * @param o The object to compare with this command.
+	 * @return true if the commands are equal, false otherwise.
+	 * @pure
+	 */
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)	return true;

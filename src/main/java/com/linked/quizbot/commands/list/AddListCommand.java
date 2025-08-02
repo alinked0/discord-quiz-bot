@@ -15,6 +15,16 @@ import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code AddListCommand} class allows users to add a list of questions to their personal lists.
+ * It extends {@link BotCommand} and processes multiple lists provided as arguments.
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ * @see QuestionList
+ * @see Users
+ */
 public class AddListCommand extends BotCommand{
     public static final String CMDNAME = "addlist";
     private String cmdDesrciption = "adding a list of questions to a user's lists";
@@ -42,11 +52,11 @@ public class AddListCommand extends BotCommand{
     }
 	@Override
     public CommandOutput execute(String userId,  List<String> args){
+		if (args.size()<getRequiredOptionData().size()){
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+		}
         int n = args.size();
         List<String> res = new ArrayList<>();
-        if (n<=0) {
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-        }
         CommandOutput.Builder output = new CommandOutput.Builder();
         for (int i = 0; i<n; i++) {
             try {

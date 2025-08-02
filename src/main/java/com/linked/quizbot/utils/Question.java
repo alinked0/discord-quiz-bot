@@ -3,17 +3,13 @@ package com.linked.quizbot.utils;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
-
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 /**
  * The Question class represents a question in a quiz, along with its possible answer options.
@@ -294,6 +290,7 @@ public class Question extends LinkedList<Option>{
 			return getQuestion().equals(q.getQuestion())
 					&& getOptions().equals(q.getOptions());
 	}
+	
 	public static Question getExampleQuestion(){
 		Question q = new Question("What is H₂O?", Option.getExampleOption());
 		return q;

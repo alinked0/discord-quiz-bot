@@ -15,13 +15,19 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code UseAutoNextCommand} class adds a few more secs on the awnser time.
- *
+ * The {@code UseAutoNextCommand} class allows users to enable or disable the automatic progression
+ * to the next question in a quiz game as soon as an answer is registered. It extends {@link BotCommand}
+ * and provides functionality to toggle this feature for the user.
+ * <p>
+ * This command is part of a Discord bot that manages quiz games and user interactions.
+ * It allows users to customize their gaming experience by choosing whether to automatically
+ * proceed to the next question after answering.
+ * </p>
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
- * @see QuizBot
- * @see BotCore
+ * @see Users
  */
 public class UseAutoNextCommand extends BotCommand {
 	public static final String CMDNAME = "useautonext";

@@ -7,22 +7,22 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
-import com.linked.quizbot.utils.User;
-import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code PreviousCommand} class the previous question to get sent.
- *
+ * The {@code PreviousCommand} class provides functionality to trigger the previous question in an ongoing quiz.
+ * It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
+ * <p>
+ * This command allows users to go back to the previous question in a quiz, which can be useful if players need
+ * to review or change their answers.
+ * </p>
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
- * @see QuizBot
- * @see BotCore
  */
 public class PreviousCommand extends BotCommand {
     public static final String CMDNAME = "previous";

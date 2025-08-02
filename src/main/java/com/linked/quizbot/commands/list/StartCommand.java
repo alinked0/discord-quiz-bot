@@ -17,45 +17,19 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code StartCommand} class is responsible for initiating a quiz based on a selected question list.
- * Users can start their own quiz or a quiz from another user's collection.
- *
- * <h2>Usage:</h2>
- * <ul>
- *     <li>Allows users to start a quiz using the stored question lists.</li>
- *     <li>Users can specify a theme ID and a question list ID, or let the bot select randomly.</li>
- *     <li>Supports both targeted and randomized quiz selection.</li>
- * </ul>
- *
- * <h2>Features:</h2>
- * <ul>
- *     <li>Retrieves questions from {@link Users} and {@link QuestionList}.</li>
- *     <li>Randomizes questions if no specific list is provided.</li>
- *     <li>Initiates a new {@link QuizBot} instance to handle quiz interactions.</li>
- * </ul>
- *
- * <h2>Command Parameters:</h2>
- * <ul>
- *     <li>{@code themeIndex} (Optional) - The index of the theme in the user's question collection.</li>
- *     <li>{@code questionid} (Optional) - The index of a specific question list within the chosen theme.</li>
- * </ul>
- *
- * <h2>Example:</h2>
- * <pre>
- * // Start a quiz with a specific theme and question list
- * !start 2 3
- *
- * // Start a quiz with a random question list from the first theme
- * !start
- * </pre>
- *
+ * The {@code StartCommand} class provides functionality to start a quiz game with a specified question list.
+ * It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
+ * <p>
+ * This command allows users to initiate a quiz using a question list identified by its ID.
+ * It can be used to start quizzes created by the user or other users, enhancing the interactive gaming experience.
+ * </p>
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
- * @see QuizBot
- * @see Users
  * @see QuestionList
- * @see Question
+ * @see Users
+ * @see QuizBot
  */
 public class StartCommand extends BotCommand{
     public static final String CMDNAME = "start";

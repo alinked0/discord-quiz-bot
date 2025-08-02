@@ -22,6 +22,31 @@ import net.dv8tion.jda.api.utils.AttachedFile;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 
+/**
+ * The {@code MessageSender} class is responsible for sending command outputs to Discord channels.
+ * It handles both immediate and delayed message sending, including text messages, embeds, and file attachments.
+ * This class is designed to work with Discord's JDA (Java Discord API) library.
+ * <p>
+ * It provides methods to send command outputs in response to button interactions or directly to message channels,
+ * while respecting Discord's character limits and message formatting requirements.
+ * </p>
+ * <p>
+ * This class also includes functionality to handle message reactions and buttons, allowing for interactive messages.
+ * It can send messages in threads or private channels based on the command output configuration.
+ * </p>
+ * <p>
+ * Note: This class uses a {@link ScheduledExecutorService} to manage delayed message sending without blocking the main thread.
+ * It ensures that messages are sent asynchronously, improving responsiveness and user experience.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see CommandOutput
+ * @see net.dv8tion.jda.api.entities.Message
+ * @see net.dv8tion.jda.api.entities.MessageEmbed
+ * @see net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
+ * @see net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+ */	
 public class MessageSender {
 	// A ScheduledExecutorService for handling delayed messages without blocking the main thread.
 	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);

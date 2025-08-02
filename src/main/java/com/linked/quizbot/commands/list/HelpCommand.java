@@ -49,6 +49,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  *
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
  * @see BotCore
  * @see EmbedBuilder

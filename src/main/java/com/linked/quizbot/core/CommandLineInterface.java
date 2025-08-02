@@ -11,6 +11,11 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.utils.Users;
 
+/**
+ * CommandLineInterface is a class that provides a command line interface for the bot.
+ * It allows users to interact with the bot through commands.
+ * It also provides methods to execute commands and get the status of the bot.
+ */
 public class CommandLineInterface {
 	public static String getStatus(){
 		String s = "";

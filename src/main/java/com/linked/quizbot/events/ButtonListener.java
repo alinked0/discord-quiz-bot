@@ -17,10 +17,19 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
 /**
- * The ReactionListener class is a specialized {@link ListenerAdapter} class, 
- * designed to keep track of reactions that are added or removed on any message that was sent by the bot. 
- * The messages are tracked through a list of {@link QuizBot} found in the {@link BotCore} class; 
- * every {@link QuizBot} class contains the message on which the current game is being played.
+ * The {@code ButtonListener} class listens for button interactions in Discord.
+ * It extends {@link ListenerAdapter} and processes button clicks to execute commands or handle quiz reactions.
+ * <p>
+ * This class is part of a Discord bot that manages quiz games and user interactions.
+ * It checks if the user is allowed to interact based on the channel type and executes the corresponding command
+ * or handles quiz reactions based on the button clicked.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see ListenerAdapter
+ * @see BotCommand
+ * @see QuizBot
  */
 public class ButtonListener extends ListenerAdapter {
 	@Override

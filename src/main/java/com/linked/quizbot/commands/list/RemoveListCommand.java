@@ -13,6 +13,22 @@ import com.linked.quizbot.utils.Users;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code RemoveListCommand} class provides functionality to permanently remove a list of questions
+ * without confirmation. It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
+ * <p>
+ * This command allows users to delete a specified question list from their collection, bypassing the usual
+ * confirmation step for quicker removal.
+ * </p>
+ * <p>
+ * For now this command is not listed in the help command, as it is intended for
+ * administrative use or for specific scenarios where immediate deletion is required.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ */
 public class RemoveListCommand extends BotCommand{
     public static final String CMDNAME = "removelist";
     @Override

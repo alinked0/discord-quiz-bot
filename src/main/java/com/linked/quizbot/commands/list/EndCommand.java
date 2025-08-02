@@ -11,6 +11,18 @@ import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code EndCommand} class provides functionality to end an ongoing quiz game.
+ * It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
+ * <p>
+ * This command allows users to terminate a currently active quiz, which can be useful
+ * if the game needs to be stopped prematurely for any reason.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ */
 public class EndCommand extends BotCommand {
     public static final String CMDNAME = "end";
     private String cmdDesrciption = "ending an already ongoing quiz.";

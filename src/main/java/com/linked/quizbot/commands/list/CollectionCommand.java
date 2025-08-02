@@ -21,40 +21,16 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
  * The {@code CollectionCommand} class retrieves and displays a user's collection of question lists,
- * categorized by theme. It extends {@link BotCommand} and allows users to view their own collections
+ * categorized by tags. It extends {@link BotCommand} and allows users to view their own collections
  * or those of other users by specifying a user ID.
- *
- * <h2>Usage:</h2>
- * <ul>
- *     <li>Typing {@code /collection} lists all question themes and lists for the sender.</li>
- *     <li>Typing {@code /collection [user-id]} lists the question themes and lists of the specified user.</li>
- * </ul>
- *
- * <h2>Features:</h2>
- * <ul>
- *     <li>Fetches and categorizes question lists based on themes.</li>
- *     <li>Supports both the sender’s collection and another user’s collection.</li>
- *     <li>Handles message length constraints by sending multiple messages when needed.</li>
- *     <li>Two execution methods provided:
- *         <ul>
- *             <li>{@code exec1} - Optimized execution (default).</li>
- *             <li>{@code exec2} - Slower, alternative execution method.</li>
- *         </ul>
- *     </li>
- *     <li>Messages are automatically deleted after a set duration to keep channels clean.</li>
- * </ul>
- *
- * <h2>Example:</h2>
- * <pre>
- * // Listing the sender's collection
- * /collection
- *
- * // Listing another user's collection
- * /collection 123456789012345678
- * </pre>
- *
+ * <p>
+ * This command is part of a Discord bot that manages quiz questions and user interactions.
+ * It provides functionality to list all question lists associated with a user, including an example list.
+ * The command can be invoked with various abbreviations and includes options for specifying the user ID.
+ * </p>
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
  * @see Users
  * @see QuestionList

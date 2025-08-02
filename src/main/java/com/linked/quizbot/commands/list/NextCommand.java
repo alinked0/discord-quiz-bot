@@ -13,13 +13,16 @@ import com.linked.quizbot.utils.Users;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code NextCommand} class triggers the next question to get sent, creating a new quiz question.
- *
+ * The {@code NextCommand} class provides functionality to trigger the next question in an ongoing quiz.
+ * It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
+ * <p>
+ * This command allows users to advance to the next question in a quiz, which is useful for keeping the game
+ * moving smoothly without waiting for all players to respond.
+ * </p>
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
- * @see QuizBot
- * @see BotCore
  */
 public class NextCommand extends BotCommand {
 	public static final String CMDNAME = "next";

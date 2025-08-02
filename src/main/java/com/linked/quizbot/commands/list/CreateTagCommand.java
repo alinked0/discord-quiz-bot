@@ -14,6 +14,19 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code CreateTagCommand} class allows users to create a tag that can be used to sort question lists.
+ * It extends {@link BotCommand} and provides functionality to create a new tag with an associated emoji.
+ * <p>
+ * This command is part of a Discord bot that manages quiz questions and user interactions.
+ * It provides options for specifying the tag name and an emoji for visual representation.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ * @see Users
+ */
 public class CreateTagCommand extends BotCommand{
     public static final String CMDNAME = "createtag";
     private String cmdDesrciption = "creating a tag that can be use to sort question lists";

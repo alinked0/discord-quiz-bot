@@ -12,6 +12,19 @@ import com.linked.quizbot.utils.Users;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code RenameListCommand} class allows users to rename a question list they own.
+ * It extends {@link BotCommand} and provides functionality to change the name of a specified list.
+ * <p>
+ * This command is part of a Discord bot that manages quiz questions and user interactions.
+ * It requires the user to specify the list ID and the new name for the list.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ * @see Users
+ */
 public class RenameListCommand extends BotCommand{
 	public static final String CMDNAME = "renamelist";
 	private String cmdDesrciption = "renaming a question list";

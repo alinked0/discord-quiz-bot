@@ -26,11 +26,11 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+
 /**
- * Te class BotCore stores bot prefrences. 
+ * The class BotCore stores bot prefrences. 
  * this class takes insparation from net.askigh.quizz.core.BotCore
  */
-
 public class BotCore {
 	public static boolean SHUTINGDOWN = false;
 	public static JDA jda = null;

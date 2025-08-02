@@ -19,34 +19,12 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code CreateListCommand} class allows users to create a list of questions to their personal lists.
+ * The {@code CreateListCommand} class allows users to create a list of questions to their personal collection.
  * It extends {@link BotCommand} and takes a JSON-formatted list as an argument.
- *
- * <p>Once executed, the command processes the provided JSON string, stores it temporarily,
- * and attempts to create a {@link QuestionList}. If successful, the list is added to the user's stored lists.</p>
- *
- * <h2>Usage:</h2>
- * <ul>
- *     <li>Typing {@code /createlist [json]} adds a list of questions from a JSON-formatted input.</li>
- * </ul>
- *
- * <h2>Features:</h2>
- * <ul>
- *     <li>Validates the provided JSON structure to ensure it contains a "name" and "theme".</li>
- *     <li>Assigns an author ID to the ID of the sender.</li>
- *     <li>Stores the list persistently using {@link Users}.</li>
- *     <li>Removes temporary files after processing.</li>
- *     <li>Provides feedback to the user on success or failure.</li>
- * </ul>
- *
- * <h2>Example:</h2>
- * <pre>
- * // creating a list of questions (JSON format required)
- * /createlist {"name": "Math Quiz", "theme": "Mathematics", "questions": [...]}
- * </pre>
  *
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
  * @see QuestionList
  * @see Users
@@ -81,11 +59,11 @@ public class CreateListCommand extends BotCommand {
         return res;
     }
     public CommandOutput execute(String userId,  List<String> args){
+		if (args.size()<getRequiredOptionData().size()){
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+		}
         int n = args.size();
         List<String> res = new ArrayList<>();
-        if (n<=0) {
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-        }
         String s;
         for (int i = 0; i<n; i++) {
             try {

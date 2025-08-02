@@ -16,6 +16,19 @@ import com.linked.quizbot.utils.Users;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code UserInfoCommand} class allows users to retrieve and display their user information in a JSON format.
+ * It extends {@link BotCommand} and provides functionality to show user details based on their Discord ID.
+ * <p>
+ * This command is part of a Discord bot that manages user interactions and provides information about users.
+ * It can be used to view user details such as username, ID, and other relevant information in a structured format.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ * @see Users
+ */
 public class UserInfoCommand extends BotCommand{
     public static final String CMDNAME = "userinfo";
     private String cmdDesrciption = "showing user information in a json format";

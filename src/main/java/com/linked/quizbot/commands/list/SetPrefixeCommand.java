@@ -16,6 +16,19 @@ import com.linked.quizbot.utils.Users;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code SetPrefixeCommand} class allows users to set their preferred command prefix for the bot.
+ * It extends {@link BotCommand} and provides functionality to change the prefix used for bot commands.
+ * <p>
+ * This command is part of a Discord bot that manages user interactions and preferences.
+ * It allows users to customize their experience by setting a unique prefix for commands.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ * @see Users
+ */
 public class SetPrefixeCommand extends BotCommand{
     public static final String CMDNAME = "setprefixe";
     private String cmdDesrciption = "choose your perffere prefixe";

@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 public class QuestionListParser {
     public static QuestionList fromJsonFile(String filePathToJson) throws IOException{
-        long start = System.nanoTime();
 		QuestionList outputBuilder = null;
 		File f = new File(filePathToJson);
 		if (!f.exists()){

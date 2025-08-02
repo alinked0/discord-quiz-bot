@@ -12,14 +12,15 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 public class Constants {
 	public static boolean AREWETESTING;
 	public static String 
+		TOKEN,
+		AUTHORID = "",
+		DEBUGGUILDID = "",
+		DEBUGCHANNELID = "";
+	public static String 
 		SEPARATOR= File.separator,
 		RESOURCESPATH= "src"+SEPARATOR+"main"+SEPARATOR+"resources",
 		LISTSPATH=RESOURCESPATH+ SEPARATOR +"lists",
 		USERDATAPATH=RESOURCESPATH+ SEPARATOR +"user-data",
-		TOKEN,
-		AUTHORID = "",
-		DEBUGGUILDID = "",
-		DEBUGCHANNELID = "",
 		CMDPREFIXE = "q!",
 		NOEXPLICATION = "No explanation found.",
 		UPDATEEXPLANATION = "The bot is curretly getting an update, please be patient.";

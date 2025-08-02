@@ -1,7 +1,6 @@
 package com.linked.quizbot.utils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -11,6 +10,22 @@ import com.linked.quizbot.Constants;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
+/**
+ * A central registry and utility class for managing all {@link User} objects in the application.
+ * <p>
+ * This class serves as a static access point to user data, providing methods for
+ * retrieving, adding, and updating users. It is responsible for loading all user data
+ * from local files on startup and exporting it to ensure data persistence.
+ * This class also contains utility methods for performing efficient binary searches
+ * on sorted lists of users and quiz lists.
+ * </p>
+ * **This class is tested using JUnit 5.**
+ * * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see User
+ * @see QuestionList
+ */
 public class Users {
 	public static final List<User> allUsers = new ArrayList<>();
 

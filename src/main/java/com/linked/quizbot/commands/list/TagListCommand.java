@@ -16,6 +16,19 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code TagListCommand} class allows users to tag a list of questions with a specific tag.
+ * It extends {@link BotCommand} and provides functionality to associate a tag with multiple question lists.
+ * <p>
+ * This command is part of a Discord bot that manages quiz questions and user interactions.
+ * It enables users to organize their question lists by tagging them, making it easier to find and manage related content.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ * @see Users
+ */
 public class TagListCommand extends BotCommand{
     public static final String CMDNAME = "taglist";
     private String cmdDesrciption = "add a tag to a list of questions";

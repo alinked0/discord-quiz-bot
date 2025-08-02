@@ -11,6 +11,18 @@ import com.linked.quizbot.utils.QuestionList;
 
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code RawListCommand} class provides functionality to send the raw list of questions in a JSON format.
+ * It extends {@link BotCommand} and is part of a Discord bot that manages quiz questions.
+ * <p>
+ * This command allows users to retrieve the raw data of a question list, which can be useful for developers
+ * or users who want to see the underlying structure of the questions.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ */
 public class RawListCommand extends BotCommand{
     public static final String CMDNAME = "rawlist";
     private String cmdDesrciption = "sending the raw list of questions in a json format";

@@ -1,10 +1,6 @@
 package com.linked.quizbot.events;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;

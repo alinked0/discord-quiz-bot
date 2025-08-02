@@ -10,6 +10,17 @@ import com.linked.quizbot.core.BotCore;
 
 import net.dv8tion.jda.api.Permission;
 
+/**
+ * The {@code InviteCommand} class provides functionality to generate an installation link for the bot
+ * with specific permissions. It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
+ * <p>
+ * This command allows users to create a link that can be used to invite the bot to their server with the necessary permissions.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ */
 public class InviteCommand extends BotCommand {
     public static String CMDNAME = "invite";
     private String cmdDesrciption = "creating a bot instalation link";

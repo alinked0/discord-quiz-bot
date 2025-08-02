@@ -17,40 +17,17 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 /**
- * The {@code DeleteCommand} class allows users to delete a specific list of questions 
- * from their collection. It extends {@link BotCommand} and requires the user to confirm 
- * the deletion by reacting with a designated emoji.
- *
- * <h2>Usage:</h2>
- * <ul>
- *     <li>Typing {@code /delete [index-of-theme] [index-of-list]} initiates the deletion process.</li>
- *     <li>The bot prompts the user for confirmation via an emoji reaction.</li>
- *     <li>Deletion is only finalized after confirmation.</li>
- * </ul>
- *
- * <h2>Features:</h2>
- * <ul>
- *     <li>Deletes a list of questions from a user’s collection.</li>
- *     <li>Uses indexes from the {@code !c} (collection) command to identify the list.</li>
- *     <li>Requires confirmation before deletion to prevent accidental loss.</li>
- *     <li>Utilizes {@link BotCore#comfirmDeletion} to handle the confirmation process.</li>
- * </ul>
- *
- * <h2>Example:</h2>
- * <pre>
- * // Request to delete a specific question list
- * /delete 2 3
- * 
- * // The bot will prompt: "Are you sure you want to delete: [List Name]?"
- * // User reacts with the delete emoji to confirm.
- * </pre>
- *
- * @author alinked
+ * The {@code DeleteListCommand} class allows users to delete a question list they own.
+ * It extends {@link BotCommand} and provides functionality to confirm deletion of a specified list.
+ * <p>
+ * This command is part of a Discord bot that manages quiz questions and user interactions.
+ * It prompts the user for confirmation before proceeding with the deletion.
+ * </p>
+ * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
  * @see Users
- * @see QuestionList
- * @see BotCore#comfirmDeletion
  */
 public class DeleteListCommand extends BotCommand{
 	public static final String CMDNAME = "deletelist";

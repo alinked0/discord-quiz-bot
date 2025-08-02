@@ -55,6 +55,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  *
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
  * @see EmbedBuilder
  * @see Users

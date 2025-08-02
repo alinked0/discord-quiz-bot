@@ -13,6 +13,17 @@ import com.linked.quizbot.core.viewers.QuizBot;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code LeaderBoardCommand} class provides functionality to display the leaderboard of the last played game.
+ * It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
+ * <p>
+ * This command allows users to view the leaderboard, which shows the scores of players from the most recent game.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ */
 public class LeaderBoardCommand extends BotCommand {
 	public static final String CMDNAME = "leaderboard";
 	private String cmdDesrciption = "displaying the leaderboard of the last played game.";

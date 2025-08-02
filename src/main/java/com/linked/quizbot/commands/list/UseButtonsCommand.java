@@ -12,6 +12,19 @@ import com.linked.quizbot.utils.Users;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
+/**
+ * The {@code UseButtonsCommand} class allows users to choose whether they want to use buttons or reactions
+ * for interactions in the bot. It extends {@link BotCommand} and provides functionality to toggle this preference.
+ * <p>
+ * This command is part of a Discord bot that manages quiz questions and user interactions.
+ * It enables users to switch between using buttons or reactions for their interactions with the bot.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ * @see Users
+ */
 public class UseButtonsCommand extends BotCommand{
     public static final String CMDNAME = "usebuttons";
     private String cmdDesrciption = "choose your perfered buttons";

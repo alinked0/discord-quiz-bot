@@ -58,6 +58,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  * @see ArrayList
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  */
 public class QuestionList extends ArrayList<Question> {
 	private String authorId;

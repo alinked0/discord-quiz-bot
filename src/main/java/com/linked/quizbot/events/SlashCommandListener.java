@@ -5,12 +5,9 @@ import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
-import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
 
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;

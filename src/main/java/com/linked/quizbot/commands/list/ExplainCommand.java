@@ -14,42 +14,17 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code ExplainCommand} class handles the explanation of the current or previous quiz question.
- * If a quiz is currently running in the channel, it provides an explanation for the current question.
- * If no active quiz is found, it attempts to retrieve the previous quiz for explanation.
- *
- * <h2>Usage:</h2>
- * <ul>
- *     <li>Retrieves the explanation for the current question in an active quiz session.</li>
- *     <li>If no active quiz is found, checks for the previous quiz session in the channel.</li>
- *     <li>If no quiz data is available, redirects the user to the help command.</li>
- * </ul>
- *
- * <h2>Features:</h2>
- * <ul>
- *     <li>Fetches quiz data from {@link BotCore}.</li>
- *     <li>Calls the {@code explain} method in {@link QuizBot} to provide explanations.</li>
- *     <li>Handles cases where no quiz data is available.</li>
- * </ul>
- *
- * <h2>Command Behavior:</h2>
- * <ul>
- *     <li>If a quiz is active, calls {@code q.explain(sender)} to provide an explanation.</li>
- *     <li>If no quiz is active, retrieves the previous quiz using {@code BotCore.getPrevQuizBot(channelId)}.</li>
- *     <li>If no previous quiz exists, invokes the help command.</li>
- * </ul>
- *
- * <h2>Example:</h2>
- * <pre>
- * // Get an explanation for the current quiz question
- * !explain
- * </pre>
- *
+ * The {@code ExplainCommand} class provides functionality to explain the scoring for the current question
+ * in an ongoing game or all questions if no game is active. It extends {@link BotCommand} and is part of
+ * a Discord bot that manages quiz games.
+ * <p>
+ * This command allows users to understand how their scores are calculated based on their answers.
+ * It can be used during an active game or to review past questions when no game is currently running.
+ * </p>
  * @author alinked0
  * @version 1.0
+ * @since 2025-02-01
  * @see BotCommand
- * @see QuizBot
- * @see BotCore
  */
 public class ExplainCommand extends BotCommand {
     public static final String CMDNAME = "explain";

@@ -5,19 +5,14 @@ import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.CreateListCommand;
-import com.linked.quizbot.commands.list.HelpCommand;
 import com.linked.quizbot.commands.list.AddListCommand;
-import com.linked.quizbot.commands.list.ViewCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.CommandLineInterface;
 import com.linked.quizbot.core.MessageSender;
-import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;

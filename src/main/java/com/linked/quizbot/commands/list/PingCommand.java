@@ -7,10 +7,20 @@ import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
+/**
+ * The {@code PingCommand} class provides functionality to check the bot's responsiveness
+ * by measuring the internal processing time and the WebSocket latency to Discord.
+ * It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
+ * <p>
+ * This command allows users to verify that the bot is online and responsive, 
+ * providing feedback on both internal processing time and gateway ping.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see BotCommand
+ */
 public class PingCommand extends BotCommand {
 	public static final String CMDNAME = "ping";
 	private String cmdDesrciption = "getting comfirmation that the bot is online.";

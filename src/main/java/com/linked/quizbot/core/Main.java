@@ -6,6 +6,16 @@ import java.util.Scanner;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.Users;
 
+/**
+ * The Main class is the entry point of the QuizBot application.
+ * It initializes the bot, loads user data, and starts the bot in either testing or production mode based on command line arguments.
+ * <p>
+ * This class handles command line arguments to configure the bot's behavior and provides usage instructions if needed.
+ * </p>
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ */
 public class Main {
 	public static void usageMain(){
 		String s="";

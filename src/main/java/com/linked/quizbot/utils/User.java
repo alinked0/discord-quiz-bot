@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +23,23 @@ import com.linked.quizbot.Constants;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
+/**
+ * A stateful utility class that manages all data and preferences for a single bot user.
+ * <p>
+ * This class serves as the central repository for a user's quiz lists, game statistics,
+ * command prefixes, and personal settings. It provides methods for creating and managing
+ * quiz lists and tags, as well as handling data persistence by importing from and exporting
+ * to local files. The class uses a Builder pattern for robust object creation and is
+ * designed to be the primary interface for all user-specific data.
+ * </p>
+ *
+ * @author alinked0
+ * @version 1.0
+ * @since 2025-02-01
+ * @see QuestionList
+ * @see QuestionListHash
+ * @see Users
+ */
 public class User implements Iterable<QuestionList>{
 	private final String userId;
 	private final List<QuestionList> listsSortedById= new ArrayList<>();
