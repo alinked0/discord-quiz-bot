@@ -1,7 +1,7 @@
 package com.linked.quizbot.core.viewers;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -44,7 +44,7 @@ public class Explain extends Viewer{
      * @param useButtons If true, uses buttons for navigation; otherwise, uses reactions.
      */
     public Explain(QuestionList l, List<Set<Option>> userAwnsersByQuestionIndex, String userId, double points, boolean useButtons){
-        super(l.clone(), useButtons);
+        super(l, useButtons);
         this.userAwnsersByQuestionIndex = userAwnsersByQuestionIndex;
         this.points = points;
         this.userId = userId;
@@ -90,17 +90,18 @@ public class Explain extends Viewer{
     @Override
 	public List<Emoji> getReactions(){
 		List<Emoji> emojis = new ArrayList<>();
-        if (hasPrevious()) emojis.add(Constants.EMOJIPREVQUESTION);
-        if (hasNext()) emojis.add(Constants.EMOJINEXTQUESTION);
+        if (hasPrevious()) emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
+        if (hasNext()) emojis.add(Emoji.fromFormatted(Constants.EMOJINEXTQUESTION));
 		return emojis;
 	}
     @Override
 	public Consumer<Message> postSendActionCurrent(){
         if (!fromActiveQuiz){
             return msg ->{
-                BotCore.viewerByMessageId.remove(getMessageId());
+                String oldId = this.getMessageId();
+                this.setMessage(msg);
+                BotCore.viewerByMessageId.remove(oldId);
                 BotCore.viewerByMessageId.put(msg.getId(), this);
-                BotCore.viewerByMessageId.get(msg.getId()).setMessage(msg);
             };
         }
         return  msg ->{};

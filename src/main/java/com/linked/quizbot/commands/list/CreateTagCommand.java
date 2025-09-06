@@ -1,9 +1,7 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.List;
-
 import java.util.ArrayList;
-import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.BotCommand.CommandCategory;
@@ -53,11 +51,10 @@ public class CreateTagCommand extends BotCommand{
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
         String tagNameInput=args.get(0), tagEmojiInput=args.get(1);
-        Emoji emoji = getEmojiFromArg(tagEmojiInput);
         String res;
         
         
-        if (Users.createTag(userId, tagNameInput, emoji)){
+        if (Users.createTag(userId, tagNameInput, tagEmojiInput)){
             res = "Tag has been created.";
         } else {
             res = "Tag already exists.";

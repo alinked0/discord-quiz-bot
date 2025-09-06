@@ -1,7 +1,7 @@
 package com.linked.quizbot.core;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -121,7 +121,7 @@ public class CommandLineInterface {
 		arguments = cmd.parseArguments(cmndLineArgs);
 
 		if (!Constants.isBugFree()) {
-			System.out.print("  $> "+content.replace("\n", "").replace("\t", ""));
+			System.out.print("[INFO] "+content.replace("\n", "").replace("\t", ""));
 			System.out.print(" ; arguments size="+arguments.size()+":");
 			for (int i=0; i<arguments.size(); i++) {
 				System.out.print(arguments.get(i).replace("\n", "").replace("\t", "")+":");

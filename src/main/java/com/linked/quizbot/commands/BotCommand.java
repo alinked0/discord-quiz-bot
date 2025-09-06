@@ -261,34 +261,33 @@ public abstract class BotCommand {
         if (attachment==null){
             return res;
         }
-		String tmpStr = "";
-		try {
-			URL website = new URL(attachment.getUrl());
-			String path = Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp";
-			File f = new File(path);
-			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-			FileOutputStream fos = new FileOutputStream(f);
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			if(!f.getParentFile().exists()) {
-				f.getParentFile().mkdirs();
-			}
-			BufferedReader fd = Files.newBufferedReader(f.toPath());
-
-			String k = "";
-			do {
-				tmpStr+= k;
-				k=fd.readLine();
-			}while(k!=null);
-			fd.close();
-			f.delete();
-			fos.close();
-			if (!tmpStr.isEmpty()){
-				res.addAll(BotCommand.splitJson(tmpStr));
-			}
-		} catch (IOException e) {
-			System.err.println(" $> An error occurred while taking an attachment.");
-			e.printStackTrace();
+	String tmpStr = "";
+	try {
+		URL website = new URL(attachment.getUrl());
+		String path = Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp"+Constants.SEPARATOR+System.currentTimeMillis();
+		File f = new File(path);
+		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+		FileOutputStream fos = new FileOutputStream(f);
+		fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+		if(!f.getParentFile().exists()) {
+			f.getParentFile().mkdirs();
 		}
+		BufferedReader fd = Files.newBufferedReader(f.toPath());
+		String k = "";
+		do {
+			tmpStr+= k;
+			k=fd.readLine();
+		}while(k!=null);
+		fd.close();
+		f.delete();
+		fos.close();
+		if (!tmpStr.isEmpty()){
+			res.addAll(BotCommand.splitJson(tmpStr));
+		}
+	} catch (IOException e) {
+		System.err.println("[ERROR] An error occurred while taking an attachment.");
+		e.printStackTrace();
+	}
         return res;
     }
 
@@ -336,7 +335,7 @@ public abstract class BotCommand {
         try {
             return Emoji.fromFormatted(arg);
         } catch (IllegalArgumentException e) {
-            System.err.println("Failed to parse emoji from argument: " + arg + " - " + e.getMessage());
+            System.err.println("[ERROR] Failed to parse emoji from argument: " + arg + " - " + e.getMessage());
             return null;
         }
     }
@@ -376,7 +375,7 @@ public abstract class BotCommand {
 				identifiers.addAll(List.of(userId, userName, userEffectiveName, userTag));
 
 				if (!Constants.isBugFree()) { // Debug logging
-					System.out.printf("   $> %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
+					System.out.printf("[INFO] %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
 				}
 
 				String lowerArg = arg.toLowerCase();
@@ -396,8 +395,8 @@ public abstract class BotCommand {
 			}
 		}
 		if (!Constants.isBugFree()) { // Debug logging
-			System.out.printf("    $> approxiUserId %s;\n", approxiUserId);
-			System.out.printf("   $> time getIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
+			System.out.printf("[INFO] approxiUserId %s;\n", approxiUserId);
+			System.out.printf("[INFO] time getIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
 		}
 
 		// If the arg itself is a raw ID of the correct length
@@ -405,18 +404,6 @@ public abstract class BotCommand {
 			return arg;
 		}
 		return approxiUserId;
-	}
-
-	/**
-	 * Retrieves a QuestionList by its ID.
-	 * It uses the Users class to get the QuestionList associated with the given ID.
-	 * @param id The ID of the QuestionList to retrieve.
-	 * @return The QuestionList associated with the given ID, or null if no such list exists.
-	 * @see Users#getQuestionListById(String)
-	 * @pure
-	 */
-	public static QuestionList getSelectedQuestionList(String id) {
-		return Users.getQuestionListById(id);
 	}
 
 	/**
@@ -478,29 +465,29 @@ public abstract class BotCommand {
 	}
 
 	/**
-	 * Returns a BotCommand object based on the provided emoji reaction.
-	 * It checks the reaction against predefined emojis and returns the corresponding command.
-	 * @param reaction The emoji reaction to check.
+	 * Returns a BotCommand object based on the provided emoji formattedEmoji.
+	 * It checks the formattedEmoji against predefined emojis and returns the corresponding command.
+	 * @param formattedEmoji The emoji formattedEmoji to check.
 	 * @return The BotCommand associated with the emoji, or null if no match is found.
 	 * @pure
 	 */
-	public static BotCommand getCommandFromEmoji(Emoji reaction){
-		if (reaction.equals(Constants.EMOJIMORETIME)){
+	public static BotCommand getCommandFromEmoji(String formattedEmoji){
+		if (formattedEmoji.equals(Constants.EMOJIMORETIME)){
 			return BotCommand.getCommandByName(UseAutoNextCommand.CMDNAME);
 		}
-		if (reaction.equals(Constants.EMOJISTOP)){
+		if (formattedEmoji.equals(Constants.EMOJISTOP)){
 			return BotCommand.getCommandByName(EndCommand.CMDNAME);
 		}
-		if(reaction.equals(Constants.EMOJINEXTQUESTION)){
+		if(formattedEmoji.equals(Constants.EMOJINEXTQUESTION)){
 			return BotCommand.getCommandByName(NextCommand.CMDNAME);
 		}
-		if(reaction.equals(Constants.EMOJIPREVQUESTION)){
+		if(formattedEmoji.equals(Constants.EMOJIPREVQUESTION)){
 			return BotCommand.getCommandByName(PreviousCommand.CMDNAME);
 		}
-		if(reaction.equals(Constants.EMOJIEXPLICATION)){
+		if(formattedEmoji.equals(Constants.EMOJIEXPLICATION)){
 			return BotCommand.getCommandByName(ExplainCommand.CMDNAME);
 		}
-		if(reaction.equals(Constants.EMOJIDEL)){
+		if(formattedEmoji.equals(Constants.EMOJIDEL)){
 			return BotCommand.getCommandByName(RemoveListCommand.CMDNAME);
 		}
 		return null;

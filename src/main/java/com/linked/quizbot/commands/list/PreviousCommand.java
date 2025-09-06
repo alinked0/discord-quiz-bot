@@ -1,12 +1,13 @@
 package com.linked.quizbot.commands.list;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -52,6 +53,9 @@ public class PreviousCommand extends BotCommand {
 		}
         Viewer q = BotCore.getViewer(args.get(0));
         if (q != null && q.isActive()){
+            if (q instanceof QuizBot && ((QuizBot)q).isExplaining()){
+                return q.current();
+            }
 			return q.previous();
         }
         return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));

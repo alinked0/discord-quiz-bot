@@ -32,9 +32,7 @@ public class TestQuestionLists {
         questionList1.add(new Question("What is the capital of France?", createSampleOptions("Paris", "London")));
 
         // Create a second QuestionList with the same attributes and questions (should be equal)
-        questionList2 = new QuestionList("author1", "Test Questions");
-        questionList2.add(new Question("What is H2O?", createSampleOptions("Water", "Carbon Dioxide")));
-        questionList2.add(new Question("What is the capital of France?", createSampleOptions("Paris", "London")));
+        questionList2 = new QuestionList.Builder().add(questionList1).build();
 
         // Create a third QuestionList with different attributes (should not be equal)
         questionList3 = new QuestionList("author2", "Different Questions");
@@ -111,15 +109,7 @@ public class TestQuestionLists {
             "Collection should contain a QuestionList that equals the one we're checking for");
         
         // Create a copy of questionList1 with the same content 
-        QuestionList questionList1Copy = new QuestionList(
-            questionList1.getAuthorId(), 
-            questionList1.getName()
-        );
-        
-        // Add the same questions
-        for (Question q : questionList1) {
-            questionList1Copy.add(q);  
-        }
+        QuestionList questionList1Copy = new QuestionList.Builder().add(questionList1).build();
         
         // Test that the collection contains the copy (via equality)
         assertTrue(newCollection.contains(questionList1Copy), 
@@ -129,15 +119,7 @@ public class TestQuestionLists {
     @Test
     public void testQuestionListModification() {
         // Create a copy of questionList1
-        QuestionList modifiedList = new QuestionList(
-            questionList1.getAuthorId(), 
-            questionList1.getName()
-        );
-        
-        // Add the same questions
-        for (Question q : questionList1) {
-            modifiedList.add(q);  
-        }
+        QuestionList modifiedList = new QuestionList.Builder().add(questionList1).build();
         
         // At this point, modifiedList should equal questionList1
         assertTrue(questionListCollection.contains(modifiedList), 
@@ -146,10 +128,8 @@ public class TestQuestionLists {
         // Modify the list by adding a new question
         modifiedList.add(new Question("What is the speed of light?", 
             createSampleOptions("299,792,458 m/s", "150,000,000 m/s")));
-        
         // After modification, the list should no longer be equal
         assertFalse(questionListCollection.contains(modifiedList), 
             "After modification, collection should not contain the modified QuestionList");
     }
 }
-

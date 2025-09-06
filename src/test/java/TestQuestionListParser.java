@@ -5,17 +5,20 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.QuestionListHash;
-import com.linked.quizbot.utils.QuestionListParser;
+import com.linked.quizbot.utils.QuestionList.Hasher;
+import com.linked.quizbot.utils.QuestionList.Parser;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +80,15 @@ public class TestQuestionListParser {
             "]" +
             "}";
 
+    @BeforeEach
+	void setUp() throws IOException {
+		QuestionList.Hasher.clearGeneratedCodes();
+	}
+	@AfterEach
+	void tearDown() throws IOException {
+		// Ensure static fields are reset for good measure, though @BeforeEach handles it too.
+		QuestionList.Hasher.clearGeneratedCodes();
+	}
     // --- Start of the new test case (from previous response) ---
     @Test
     @DisplayName("Test fromString with questions having missing/null optional fields")
@@ -114,7 +126,7 @@ public class TestQuestionListParser {
                 "]" +
                 "}";
 
-        QuestionList questionList = QuestionListParser.fromString(jsonContent);
+        QuestionList questionList = QuestionList.Parser.fromString(jsonContent).build();
 
         assertNotNull(questionList, "QuestionList should not be null.");
         assertEquals("user999", questionList.getAuthorId());
@@ -124,22 +136,22 @@ public class TestQuestionListParser {
         // Verify first question (missing explication, imageSrc, and option explication)
         Question q1 = questionList.get(0);
         assertEquals("First question with only required fields?", q1.getQuestion());
-        assertNull(q1.getExplication(), "Q1 explication should be null (missing field).");
+        assertEquals( Constants.NOEXPLICATION,q1.getExplication(), "Q1 explication should be null (missing field).");
         assertNull(q1.getImageSrc(), "Q1 imageSrc should be null (missing field).");
         assertEquals(1, q1.size());
         assertEquals("Option A", q1.get(0).getText());
         assertTrue(q1.get(0).isCorrect());
-        assertNull(q1.get(0).getExplication(), "Q1 Option explication should be null (missing field).");
+        assertEquals( Constants.NOEXPLICATION,q1.get(0).getExplication(), "Q1 Option explication should be null (missing field).");
 
         // Verify second question (explicit null explication, "null" string imageSrc, and option with explication)
         Question q2 = questionList.get(1);
         assertEquals("Second question with null explanation and imageSrc as 'null' string?", q2.getQuestion());
-        assertNull(q2.getExplication(), "Q2 explication should be null (explicit null).");
+        assertEquals( Constants.NOEXPLICATION,q2.getExplication(), "Q2 explication should be null (explicit null).");
         assertNull(q2.getImageSrc(), "Q2 imageSrc should be null ('null' string).");
         assertEquals(2, q2.size());
         assertEquals("Option B", q2.get(0).getText());
         assertFalse(q2.get(0).isCorrect());
-        assertNull(q2.get(0).getExplication(), "Q2 Option B explication should be null (missing field).");
+        assertEquals( Constants.NOEXPLICATION,q2.get(0).getExplication(), "Q2 Option B explication should be null (missing field).");
         assertEquals("Option C", q2.get(1).getText());
         assertTrue(q2.get(1).isCorrect());
         assertEquals("This is correct", q2.get(1).getExplication());
@@ -147,7 +159,7 @@ public class TestQuestionListParser {
         // Verify third question (missing explication, explicit null imageSrc)
         Question q3 = questionList.get(2);
         assertEquals("Third question with missing explanation and explicit null imageSrc?", q3.getQuestion());
-        assertNull(q3.getExplication(), "Q3 explication should be null (missing field).");
+        assertEquals( Constants.NOEXPLICATION,q3.getExplication(), "Q3 explication should be null (missing field).");
         assertNull(q3.getImageSrc(), "Q3 imageSrc should be null (explicit null).");
         assertEquals(1, q3.size());
         assertEquals("Option D", q3.get(0).getText());
@@ -165,7 +177,7 @@ public class TestQuestionListParser {
             writer.write(SAMPLE_JSON);
         }
 
-        QuestionList questionList = QuestionListParser.fromJsonFile(tempFile.getAbsolutePath());
+        QuestionList questionList = QuestionList.Parser.fromJsonFile(tempFile.getAbsolutePath()).build();
 
         assertNotNull(questionList);
         assertEquals("468026374557270017", questionList.getAuthorId());
@@ -177,7 +189,7 @@ public class TestQuestionListParser {
         assertNotNull(questionList.getTags());
         assertEquals(1, questionList.getTags().size());
         assertTrue(questionList.getTags().containsKey("trivia"));
-        assertEquals("📎", questionList.getTags().get("trivia").getFormatted());
+        assertEquals("📎", questionList.getTags().get("trivia"));
 
         // Test questions
         assertEquals(2, questionList.size()); // Inherited from LinkedList<Question>
@@ -205,13 +217,13 @@ public class TestQuestionListParser {
     @DisplayName("Test fromJsonFile with a non-existent file")
     void testFromJsonFile_NonExistentFile() throws IOException {
         String nonExistentPath = "path/to/non_existent_file_qlist.json";
-        assertNull(QuestionListParser.fromJsonFile(nonExistentPath)); // Should return null as per current implementation
+        assertNull(QuestionList.Parser.fromJsonFile(nonExistentPath)); // Should return null as per current implementation
     }
 
     @Test
     @DisplayName("Test fromString with a valid JSON string")
     void testFromString_ValidString() throws IOException {
-        QuestionList questionList = QuestionListParser.fromString(SAMPLE_JSON);
+        QuestionList questionList = QuestionList.Parser.fromString(SAMPLE_JSON).build();
 
         assertNotNull(questionList);
         assertEquals("468026374557270017", questionList.getAuthorId());
@@ -223,7 +235,7 @@ public class TestQuestionListParser {
         assertNotNull(questionList.getTags());
         assertEquals(1, questionList.getTags().size());
         assertTrue(questionList.getTags().containsKey("trivia"));
-        assertEquals("📎", questionList.getTags().get("trivia").getFormatted());
+        assertEquals("📎", questionList.getTags().get("trivia"));
 
         // Test questions
         assertEquals(2, questionList.size());
@@ -233,7 +245,7 @@ public class TestQuestionListParser {
     @DisplayName("Test parser with valid JsonParser input")
     void testParser_ValidInput() throws IOException {
         JsonParser jp = new JsonFactory().createParser(SAMPLE_JSON);
-        QuestionList questionList = QuestionListParser.parser(jp, SAMPLE_JSON);
+        QuestionList questionList = QuestionList.Parser.parser(jp, SAMPLE_JSON).build();
 
         assertNotNull(questionList);
         assertEquals("468026374557270017", questionList.getAuthorId());
@@ -253,10 +265,10 @@ public class TestQuestionListParser {
             JsonParser jps = new JsonFactory().createParser(invalidJson);
             // Assert that IOException is thrown for root token mismatch
             IOException thrown = assertThrows(IOException.class, () -> {
-                QuestionListParser.parser(jps, invalidJson);
+                QuestionList.Parser.parser(jps, invalidJson);
             }, "Expected IOException for JSON not starting with an object.");
 
-            assertTrue(thrown.getMessage().contains("Error QuestionListParser.parser, input is not a json:"));
+            assertTrue(thrown.getMessage().contains("Error QuestionList.Parser.parser, input is not a json:"));
             assertTrue(thrown.getMessage().contains(invalidJson));
             jp = jps;
         } catch (IOException e) {
@@ -267,7 +279,7 @@ public class TestQuestionListParser {
                 try {
                     jp.close();
                 } catch (IOException e) {
-                    System.err.println("Error closing JsonParser: " + e.getMessage());
+                    System.err.println("[ERROR] Error closing JsonParser: " + e.getMessage());
                 }
             }
         }
@@ -284,11 +296,11 @@ public class TestQuestionListParser {
         jp.nextToken(); // FIELD_NAME "tags"
         jp.nextToken(); // START_OBJECT of tags map (This is the token parseTags expects)
 
-        Map<String, Emoji> tags = QuestionListParser.parseTags(jp, jsonWithTags);
+        Map<String, String> tags = QuestionList.Parser.parseTags(jp, jsonWithTags);
         assertNotNull(tags);
         assertEquals(2, tags.size());
-        assertEquals("<:emojiA:123>", tags.get("tagA").getFormatted());
-        assertEquals("<:emojiB:456>", tags.get("tagB").getFormatted());
+        assertEquals("<:emojiA:123>", tags.get("tagA"));
+        assertEquals("<:emojiB:456>", tags.get("tagB"));
         jp.close();
     }
 
@@ -302,7 +314,7 @@ public class TestQuestionListParser {
         jp.nextToken(); // FIELD_NAME "tags"
         jp.nextToken(); // START_OBJECT of tags map (This is the token parseTags expects)
 
-        Map<String, Emoji> tags = QuestionListParser.parseTags(jp, jsonWithEmptyTags);
+        Map<String, String> tags = QuestionList.Parser.parseTags(jp, jsonWithEmptyTags);
         assertNotNull(tags);
         assertTrue(tags.isEmpty());
         jp.close();
@@ -321,10 +333,10 @@ public class TestQuestionListParser {
         jp.nextToken(); // VALUE_STRING "invalid" (This is the token parseTags will see)
 
         IOException thrown = assertThrows(IOException.class, () -> {
-            QuestionListParser.parseTags(jp, jsonInvalidTags);
+            QuestionList.Parser.parseTags(jp, jsonInvalidTags);
         }, "Expected IOException to be thrown when 'tags' field is not a START_OBJECT.");
 
-        assertTrue(thrown.getMessage().contains("Error QuestionListParser.parseTags, input is not a json:"));
+        assertTrue(thrown.getMessage().contains("Error QuestionList.Parser.parseTags, input is not a json:"));
         assertTrue(thrown.getMessage().contains(jsonInvalidTags));
 
         jp.close();
@@ -334,7 +346,7 @@ public class TestQuestionListParser {
     // In such cases, parseTags might not be called, or if called by a higher-level loop, it might lead to
     // an empty map, not necessarily an exception from parseTags itself.
     @Test
-    @DisplayName("Test QuestionListParser.parser when tags field is missing (should default to empty map)")
+    @DisplayName("Test QuestionList.Parser.parser when tags field is missing (should default to empty map)")
     void testQuestionListParser_MissingTagsField() throws IOException {
         String jsonWithoutTags = "{" +
                 "\"authorId\":\"userNoTags\", " +
@@ -344,7 +356,7 @@ public class TestQuestionListParser {
                 "\"questions\": []" +
                 "}";
 
-        QuestionList questionList = QuestionListParser.fromString(jsonWithoutTags);
+        QuestionList questionList = QuestionList.Parser.fromString(jsonWithoutTags).build();
         assertNotNull(questionList);
         assertNotNull(questionList.getTags());
         assertTrue(questionList.getTags().isEmpty(), "Tags map should be empty if 'tags' field is missing.");
@@ -365,7 +377,7 @@ public class TestQuestionListParser {
         JsonParser jp = new JsonFactory().createParser(jsonQuestion);
         jp.nextToken(); // START_OBJECT (This is the token parseQuestion expects)
 
-        Question question = QuestionListParser.parseQuestion(jp, jsonQuestion);
+        Question question = QuestionList.Parser.parseQuestion(jp, jsonQuestion);
         assertNotNull(question);
         assertEquals("Sample Q", question.getQuestion());
         assertEquals("Sample E", question.getExplication());
@@ -376,7 +388,7 @@ public class TestQuestionListParser {
         assertEquals("Opt1 Expl", question.get(0).getExplication());
         assertEquals("Opt2", question.get(1).getText());
         assertFalse(question.get(1).isCorrect());
-        assertNull(question.get(1).getExplication()); // "null" string should be parsed as actual null
+        assertEquals( Constants.NOEXPLICATION,question.get(1).getExplication()); // "null" string should be parsed as actual null
         jp.close();
     }
 
@@ -388,10 +400,10 @@ public class TestQuestionListParser {
         jp.nextToken(); // Moves to START_ARRAY (This is the token parseQuestion will see)
 
         IOException thrown = assertThrows(IOException.class, () -> {
-            QuestionListParser.parseQuestion(jp, invalidJson);
+            QuestionList.Parser.parseQuestion(jp, invalidJson);
         }, "Expected IOException when input for parseQuestion is not START_OBJECT.");
 
-        assertTrue(thrown.getMessage().contains("Error QuestionListParser.parseTags, input is not a json:")); // Note: The error message mistakenly says parseTags
+        assertTrue(thrown.getMessage().contains("Error QuestionList.Parser.parseTags, input is not a json:")); // Note: The error message mistakenly says parseTags
         assertTrue(thrown.getMessage().contains(invalidJson));
 
         jp.close();
@@ -409,15 +421,15 @@ public class TestQuestionListParser {
         JsonParser jp = new JsonFactory().createParser(jsonQuestion);
         jp.nextToken(); // START_OBJECT
 
-        Question question = QuestionListParser.parseQuestion(jp, jsonQuestion);
+        Question question = QuestionList.Parser.parseQuestion(jp, jsonQuestion);
         assertNotNull(question);
         assertEquals("Simple Q", question.getQuestion());
-        assertNull(question.getExplication());
+        assertEquals( Constants.NOEXPLICATION,question.getExplication());
         assertNull(question.getImageSrc());
         assertEquals(1, question.size());
         assertEquals("Opt1", question.get(0).getText());
         assertTrue(question.get(0).isCorrect());
-        assertNull(question.get(0).getExplication());
+        assertEquals( Constants.NOEXPLICATION,question.get(0).getExplication());
         jp.close();
     }
 
@@ -431,7 +443,7 @@ public class TestQuestionListParser {
         JsonParser jp = new JsonFactory().createParser(jsonOptionsArray);
         jp.nextToken(); // START_ARRAY (This is the token parseOptionList expects)
 
-        List<Option> options = QuestionListParser.parseOptionList(jp, jsonOptionsArray);
+        List<Option> options = QuestionList.Parser.parseOptionList(jp, jsonOptionsArray);
         assertNotNull(options);
         assertEquals(2, options.size());
         assertEquals("A", options.get(0).getText());
@@ -439,7 +451,7 @@ public class TestQuestionListParser {
         assertEquals("ExpA", options.get(0).getExplication());
         assertEquals("B", options.get(1).getText());
         assertFalse(options.get(1).isCorrect());
-        assertNull(options.get(1).getExplication());
+        assertEquals( Constants.NOEXPLICATION,options.get(1).getExplication());
         jp.close();
     }
 
@@ -451,10 +463,10 @@ public class TestQuestionListParser {
         jp.nextToken(); // Moves to START_OBJECT (This is the token parseOptionList will see)
 
         IOException thrown = assertThrows(IOException.class, () -> {
-            QuestionListParser.parseOptionList(jp, invalidJson);
+            QuestionList.Parser.parseOptionList(jp, invalidJson);
         }, "Expected IOException when input for parseOptionList is not START_ARRAY.");
 
-        assertTrue(thrown.getMessage().contains("Error QuestionListParser.parseOptionList, input is not a json:"));
+        assertTrue(thrown.getMessage().contains("Error QuestionList.Parser.parseOptionList, input is not a json:"));
         assertTrue(thrown.getMessage().contains(invalidJson));
 
         jp.close();
@@ -467,7 +479,7 @@ public class TestQuestionListParser {
         JsonParser jp = new JsonFactory().createParser(jsonOption);
         jp.nextToken(); // START_OBJECT (This is the token parseOption expects)
 
-        Option option = QuestionListParser.parseOption(jp, jsonOption);
+        Option option = QuestionList.Parser.parseOption(jp, jsonOption);
         assertNotNull(option);
         assertEquals("The Answer", option.getText());
         assertTrue(option.isCorrect());
@@ -483,10 +495,10 @@ public class TestQuestionListParser {
         jp.nextToken(); // Moves to START_ARRAY (This is the token parseOption will see)
 
         IOException thrown = assertThrows(IOException.class, () -> {
-            QuestionListParser.parseOption(jp, invalidJson);
+            QuestionList.Parser.parseOption(jp, invalidJson);
         }, "Expected IOException when input for parseOption is not START_OBJECT.");
 
-        assertTrue(thrown.getMessage().contains("Error QuestionListParser.parseOption, input is not a json:"));
+        assertTrue(thrown.getMessage().contains("Error QuestionList.Parser.parseOption, input is not a json:"));
         assertTrue(thrown.getMessage().contains(invalidJson));
 
         jp.close();
@@ -500,7 +512,7 @@ public class TestQuestionListParser {
         jp.nextToken(); // START_OBJECT
 
         // The current implementation returns null if optTxt or isCorr is null
-        Option option = QuestionListParser.parseOption(jp, jsonOption);
+        Option option = QuestionList.Parser.parseOption(jp, jsonOption);
         assertNull(option, "Option should be null if 'isCorrect' field is missing.");
         jp.close();
     }
@@ -512,9 +524,9 @@ public class TestQuestionListParser {
         JsonParser jp = new JsonFactory().createParser(jsonOption);
         jp.nextToken(); // START_OBJECT
 
-        Option option = QuestionListParser.parseOption(jp, jsonOption);
+        Option option = QuestionList.Parser.parseOption(jp, jsonOption);
         assertNotNull(option);
-        assertNull(option.getExplication()); // "null" string should be parsed as actual null
+        assertEquals( Constants.NOEXPLICATION,option.getExplication()); // "null" string should be parsed as actual null
         jp.close();
     }
 
@@ -528,7 +540,7 @@ public class TestQuestionListParser {
         JsonParser jp = new JsonFactory().createParser(jsonQuestionsArray);
         jp.nextToken(); // START_ARRAY (This is the token parseQuestionList expects)
 
-        List<Question> questions = QuestionListParser.parseQuestionList(jp, jsonQuestionsArray);
+        List<Question> questions = QuestionList.Parser.parseQuestionList(jp, jsonQuestionsArray);
         assertNotNull(questions);
         assertEquals(2, questions.size());
         assertEquals("Q1", questions.get(0).getQuestion());
@@ -547,7 +559,7 @@ public class TestQuestionListParser {
                              "\"tags\":{}," +
                              "\"questions\": []" +
                              "}";
-        QuestionList questionList = QuestionListParser.fromString(jsonContent);
+        QuestionList questionList = QuestionList.Parser.fromString(jsonContent).build();
 
         assertNotNull(questionList);
         assertEquals("user123", questionList.getAuthorId());
@@ -566,11 +578,11 @@ public class TestQuestionListParser {
                              "\"tags\":{}," +
                              "\"questions\": []" +
                              "}";
-        QuestionList questionList = QuestionListParser.fromString(jsonContent);
+        QuestionList questionList = QuestionList.Parser.fromString(jsonContent).build();
 
         assertNotNull(questionList);
         assertNotNull(questionList.getId());
-        assertTrue(questionList.getId().length()== QuestionListHash.DEFAULT_LENGTH);
+        assertTrue(questionList.getId().length()== QuestionList.Hasher.DEFAULT_LENGTH);
     }
 
     @Test
@@ -585,7 +597,7 @@ public class TestQuestionListParser {
                              "\"questions\": []" +
                              "}";
         long beforeParse = System.currentTimeMillis();
-        QuestionList questionList = QuestionListParser.fromString(jsonContent);
+        QuestionList questionList = QuestionList.Parser.fromString(jsonContent).build();
         long afterParse = System.currentTimeMillis();
 
         assertNotNull(questionList);

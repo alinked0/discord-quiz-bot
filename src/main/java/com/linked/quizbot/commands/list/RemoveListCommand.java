@@ -1,7 +1,7 @@
 package com.linked.quizbot.commands.list;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -50,15 +50,19 @@ public class RemoveListCommand extends BotCommand{
         CommandOutput.Builder output = new CommandOutput.Builder();
         String messageId = args.get(0);
         if (BotCore.toBeDeleted.get(messageId)==null){
-            output.addTextMessage(String.format("Couldn't guess your intention, nothing will change."));
+            output.addTextMessage(String.format("Couldn't guess your intentions, nothing will change."));
         } else {
             QuestionList l= BotCore.toBeDeleted.get(messageId);
             String listId = l.getId();
-            output.addTextMessage(String.format("**%s** is deleted form your collection\n", l.getName()))
-            .add(BotCommand.getCommandByName(RawListCommand.CMDNAME).execute(userId, List.of(listId)))
+            CommandOutput outRaw = BotCommand.getCommandByName(RawListCommand.CMDNAME).execute(userId, List.of(listId));
+            output.addAllFile(outRaw.getFiles())
             .setMessage(BotCore.deletionMessages.get(messageId))
             .sendInOriginalMessage(true);
-            Users.deleteList(l);
+            if (Users.deleteList(l)){
+                output.addTextMessage(String.format("`%s`**%s** is deleted form your collection\n", l.getId(), l.getName()));
+            } else {
+                output.addTextMessage(String.format("`%s`**%s** will be deleted form your collection\n", l.getId(), l.getName()));
+            }
         }
         BotCore.toBeDeleted.remove(messageId);
         BotCore.deletionMessages.remove(messageId);

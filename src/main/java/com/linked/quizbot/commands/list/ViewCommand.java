@@ -45,11 +45,10 @@ public class ViewCommand extends BotCommand{
     }
 	@Override
     public CommandOutput execute(String userId,  List<String> args){
-		QuestionList l = args.size()>0?getSelectedQuestionList(args.get(0)): null;
+		QuestionList l = args.size()>0?Users.getById(args.get(0)): null;
         if (l==null){
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        System.out.println(l.toJson());
         Viewer viewer = new Viewer(l, Users.get(userId).useButtons());
 		return viewer.start();
     }

@@ -6,6 +6,7 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
 import com.linked.quizbot.core.viewers.QuizBot;
+import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
@@ -33,8 +34,8 @@ public class ReactionListener extends ListenerAdapter {
 	@Override
 	public void onMessageReactionAdd(MessageReactionAddEvent event){
 		long start = System.nanoTime();
-		User sender = event.getUser();
 		GenericMessageReactionEvent f = (GenericMessageReactionEvent)event;
+		User sender = event.getUser();
 		if (sender == null || sender.isBot()) {
 			return;
 		}
@@ -55,32 +56,33 @@ public class ReactionListener extends ListenerAdapter {
 		Emoji reaction = f.getEmoji();
 		String messageId = event.getMessageId();
 		event.getChannel().retrieveMessageById(messageId).queue(message -> {
-			BotCommand cmd = BotCommand.getCommandFromEmoji(reaction);
+			BotCommand cmd = BotCommand.getCommandFromEmoji(reaction.getFormatted());
 			if(cmd!=null){
-				if (!Constants.isBugFree()) System.out.printf("  $> "+cmd.getName());
 				MessageSender.sendCommandOutput(
 					cmd.execute(userId, List.of(messageId)),
 					channel,
 					message 
 				);
-				if (!Constants.isBugFree()) System.out.printf("   $> time = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
+			if (!Constants.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
 				return;
 			}
-			QuizBot quizBot = (QuizBot)BotCore.getViewer(messageId);
-			if (quizBot!=null && quizBot.isActive() && quizBot.getReactions().contains(reaction)){
-				quizBot.addReaction(userId, reaction);
-				if (quizBot.getCurrentIndex()>=0&& quizBot.awnsersByUserIdByQuestionIndex.get(quizBot.getCurrentIndex()).size()==1){
-					MessageSender.sendCommandOutput(
-						new CommandOutput.Builder().add(quizBot.current()).sendInOriginalMessage(true).build(),
-						channel,
-						message 
-					);
-					ReactionListener.autoNext(userId, message, quizBot);
-					return;
-				}else{
-					quizBot.isExplaining(false);
+
+			Viewer viewer = BotCore.getViewer(messageId);
+			if (viewer!=null && viewer.isActive() && viewer.getReactions().contains(reaction)){
+				viewer.addReaction(userId, reaction);
+				if (viewer instanceof QuizBot && viewer.getCurrentIndex()>=0){
+					QuizBot quizBot = (QuizBot)BotCore.getViewer(messageId);
+					if (quizBot.getPlayers().size()==1){
+						ReactionListener.autoNext(userId, message, quizBot);
+						return;
+					}
 				}
 			}
+			MessageSender.sendCommandOutput(
+				new CommandOutput.Builder().add(viewer.current()).sendInOriginalMessage(true).build(),
+				channel,
+				message 
+			);
 		});
 	}
 

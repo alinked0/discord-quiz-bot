@@ -3,19 +3,31 @@ package com.linked.quizbot.utils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
@@ -25,7 +37,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.utils.TimeFormat;
 
 /**
- * The QuestionList class is a specialized extension of the ArrayList class, designed to manage a collection
+ * The QuestionList is a class designed to manage a collection
  * of {@link Question} objects. It includes additional metadata such as author ID, and name, and provides
  * utility methods for importing and exporting the list in JSON format.
  *
@@ -55,41 +67,41 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  *
  * @see Question
  * @see Option
- * @see ArrayList
  * @author alinked0
  * @version 1.0
  * @since 2025-02-01
  */
-public class QuestionList extends ArrayList<Question> {
+public class QuestionList implements Iterable<Question>{
 	private String authorId;
-	private Map<String,Emoji> tags;
+	private Map<String,String> tags;
+	private List<Question> questions = new LinkedList<>();
 	private String name;
 	public static double pointsForCorrect = 1.00;
 	public static double pointsForIncorrect = -0.25;
 	private long timeCreatedMillis;
-	private String id;
+	private String id; //TODO the id should be made final
 
 	static {
 		getExampleQuestionList().exportListQuestionAsJson();
 	}
 
 	public static class Builder {
-		private final List<Question> list= new ArrayList<>();
-		private final Map<String,Emoji> tags= new HashMap<>();
-		private String authorId= null;
-		private String name= null;
-		private String id= null;
-		private long timeCreatedMillis= 0L;
+		public final List<Question> list= new ArrayList<>();
+		public final Map<String,String> tags= new HashMap<>();
+		public String authorId= null;
+		public String name= null;
+		public String id= null;
+		public long timeCreatedMillis= 0L;
 
 		public  Builder authorId(String authorId){
 			this.authorId = authorId;
 			return this;
 		}
-		public  Builder addTag(String tagName, Emoji emoji){
+		public  Builder addTag(String tagName, String emoji){
 			this.tags.put(tagName, emoji);
 			return this;
 		}
-		public  Builder addTags(Map<String,Emoji> tags){
+		public  Builder addTags(Map<String,String> tags){
 			this.tags.putAll(tags);
 			return this;
 		}
@@ -113,13 +125,14 @@ public class QuestionList extends ArrayList<Question> {
 			for (Question q : questions){
 				this.add(q.clone());
 			}
-			return this.id(questions.getId())
-				.name(questions.getName())
-				.authorId(questions.getAuthorId())
-				.addTags(questions.getTags())
-				.timeCreatedMillis(questions.getTimeCreatedMillis());
+			this.addTags(questions.getTags());
+			if (id == null)this.id(questions.getId());
+			if (name==null)this.name(questions.getName());
+			if (authorId==null)this.authorId(questions.getAuthorId());
+			if (timeCreatedMillis==0L || questions.getTimeCreatedMillis()<timeCreatedMillis) this.timeCreatedMillis(questions.getTimeCreatedMillis());
+			return this;
 		}
-		public Builder addAll(List<Question> c){
+		public Builder addAll(List<? extends Question> c){
 			list.addAll(c);
 			return this;
 		}
@@ -127,12 +140,322 @@ public class QuestionList extends ArrayList<Question> {
 			return new QuestionList(this);
 		}
 	}
+	
+	/**
+	 * QuestionList.Hasher is a utility class for generating unique, short, alphanumeric codes
+	 * based on an input string and a timestamp. It uses SHA-256 hashing and Base-36 encoding
+	 * to create a code that is guaranteed to be unique for the same input and timestamp.
+	 * 
+	 * Most of this code was written by chatgpt
+	 */
+	public static class Hasher {
+
+		public static final char[] BASE36_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
+		public static final int DEFAULT_LENGTH = 7;
+		public static final Set<String> generatedCodes = new HashSet<>();
+
+		public static void addGeneratedCode(String code){
+			Hasher.generatedCodes.add(code);
+		}
+		public static void clearGeneratedCodes(){
+			generatedCodes.clear();
+		}
+		public static String generate(String input, long timestamp) {
+			String code;
+			int attempts = 0;
+
+			do {
+				String randomComponent = UUID.randomUUID().toString();
+				String combined = input + "|" + timestamp + "|" + randomComponent;
+				code = createCode(combined);
+				attempts++;
+
+				// Just in case something goes wrong
+				if (attempts > 10_000) {
+					throw new RuntimeException("Too many hash collisions. Aborting.");
+				}
+			} while (generatedCodes.contains(code));
+
+			Hasher.addGeneratedCode(code);
+			return code;
+		}
+
+		public static String generate(QuestionList l) {
+			String code, input = l.getAuthorId() + l.getName();
+			long timestamp = l.getTimeCreatedMillis();
+			int attempts = 0;
+
+			do {
+				String randomComponent = UUID.randomUUID().toString();
+				String combined = input + "|" + timestamp + "|" + randomComponent;
+				code = createCode(combined);
+				attempts++;
+
+				// Just in case something goes wrong
+				if (attempts > 10_000) {
+					throw new RuntimeException("Too many hash collisions. Aborting.");
+				}
+			} while (generatedCodes.contains(code));
+
+			Hasher.addGeneratedCode(code);
+			return code;
+		}
+		private static String createCode(String combinedInput) {
+			try {
+				// SHA-256 hashing
+				MessageDigest digest = MessageDigest.getInstance("SHA-256");
+				byte[] hashBytes = digest.digest(combinedInput.getBytes(StandardCharsets.UTF_8));
+				BigInteger hashInt = new BigInteger(1, hashBytes);
+
+				// Base-36 encoding
+				String base36 = toBase36(hashInt);
+
+				// Ensure it starts with a letter
+				if (base36.length() > 0 && Character.isDigit(base36.charAt(0))) {
+					base36 = "a" + base36;
+				}
+
+				// Truncate or pad the code
+				return base36.length() >= DEFAULT_LENGTH ? base36.substring(0, DEFAULT_LENGTH) : padToLength(base36, DEFAULT_LENGTH);
+
+			} catch (NoSuchAlgorithmException e) {
+				throw new RuntimeException("SHA-256 not available", e);
+			}
+		}
+		private static String toBase36(BigInteger value) {
+			StringBuilder sb = new StringBuilder();
+			BigInteger base = BigInteger.valueOf(36);
+
+			while (value.compareTo(BigInteger.ZERO) > 0) {
+				BigInteger[] divmod = value.divideAndRemainder(base);
+				sb.insert(0, BASE36_ALPHABET[divmod[1].intValue()]);
+				value = divmod[0];
+			}
+
+			return sb.toString();
+		}
+		private static String padToLength(String input, int length) {
+			StringBuilder sb = new StringBuilder(input);
+			while (sb.length() < length) {
+				sb.append('a');
+			}
+			return sb.toString();
+		}
+		public static boolean isAlreadyInUse(String id){
+			return Hasher.generatedCodes.contains(id);
+		}
+	}
+
+	public static class Parser {
+		public static QuestionList.Builder fromJsonFile(String filePathToJson) throws IOException{
+			File f = new File(filePathToJson);
+			if (!f.exists()){
+				System.err.println("[ERROR] File not found"+ f.getAbsoluteFile());
+				return null;
+			}
+			JsonParser jp =  new JsonFactory().createParser(new File(filePathToJson));
+			return parser(jp, filePathToJson);
+		}
+
+		public static QuestionList.Builder fromString(String arg)throws IOException{
+			JsonParser jp =  new JsonFactory().createParser(arg);
+			return parser(jp, arg);
+		}
+
+		public static QuestionList.Builder parser(JsonParser jp, String arg) throws IOException{
+			QuestionList.Builder outputBuilder = new QuestionList.Builder();
+			String fieldName;
+			/*Check if outputBuilder file is a json */
+			if (jp.nextToken() != JsonToken.START_OBJECT) {
+				throw new IOException(String.format("Error QuestionList.Parser.parser, input is not a json: \n\t%s\n", arg));
+			}
+			/* first layer the ListQuestion 
+			* iterating over ListQuestion attributes
+			*/
+			do{
+				if (jp.currentToken() == JsonToken.FIELD_NAME) {
+					fieldName = jp.currentName().toLowerCase();
+					jp.nextToken();
+					switch (fieldName){
+						case "authorid","userid","user" -> {
+							outputBuilder.authorId(jp.getText());
+						}
+						case "tags" -> {
+							outputBuilder.addTags(parseTags(jp, arg));
+						}
+						case "name" -> {
+							outputBuilder.name(jp.getText());
+						}
+						case "timecreatedmillis" -> {
+							outputBuilder.timeCreatedMillis(jp.getValueAsLong());
+						}
+						case "id","listid" -> {
+							outputBuilder.id(jp.getText());
+						}
+						case "questions" -> {
+							outputBuilder.addAll(parseQuestionList(jp, arg));
+						}
+					}
+				} else {
+					jp.nextToken();
+				}
+			}while (!jp.isClosed());
+
+			return outputBuilder;
+		}
+
+		public static Map<String, String> parseTags(JsonParser jp, String arg) throws IOException {
+			Map<String, String> m = new HashMap<>();
+			String tagName, emojiCode;
+			if(jp.currentToken() != JsonToken.START_OBJECT){
+				throw new IOException(String.format("Error QuestionList.Parser.parseTags, input is not a json: \n\t%s\n", arg));
+			}
+			while (!jp.isClosed()) {
+				jp.nextToken();
+				if (jp.currentToken() == JsonToken.FIELD_NAME) {
+					tagName = jp.currentName();
+					jp.nextToken();
+					emojiCode = jp.getText();
+					m.put(tagName, emojiCode);
+				}
+				if(jp.currentToken() == JsonToken.END_OBJECT) {
+					jp.nextToken();
+					break;
+				}
+			}
+			return m;
+		}
+
+		public static Question parseQuestion(JsonParser jp, String arg) throws IOException {
+			Question outputBuilder = null;
+			String q = null;
+			String expl = null;
+			String imgSrc= null, fieldName;
+			List <Option>opts = null;
+			if(jp.currentToken() != JsonToken.START_OBJECT) {
+				throw new IOException(String.format("Error QuestionList.Parser.parseTags, input is not a json: \n\t%s\n", arg));
+			}
+			while(!jp.isClosed()){
+				if(jp.currentToken() == JsonToken.FIELD_NAME) {
+					fieldName = jp.currentName().toLowerCase();
+					jp.nextToken();
+					switch (fieldName){
+						case "question" -> {q = jp.getText();}
+						case "explication" -> {
+							expl = jp.getText();
+							if (expl!=null && expl.equals("null")){
+								expl = null;
+							}
+						}
+						case "img_src","imagesrc" -> {
+							imgSrc = jp.getText().equals("null")?null:jp.getText();
+						}
+						case "options" -> opts = parseOptionList(jp, arg);
+					}
+				} else if (jp.currentToken() == JsonToken.END_OBJECT) {
+					jp.nextToken();
+					break;
+				} else {
+					jp.nextToken();
+				}
+			};
+			if (q==null){
+				return null;
+			}
+			outputBuilder = new Question(q, opts);
+			outputBuilder.setExplication(expl);
+			outputBuilder.setImageSrc(imgSrc);
+			return outputBuilder;
+		}
+		public static List<Option> parseOptionList(JsonParser jp, String arg) throws IOException {
+			LinkedList<Option> opts = new LinkedList<>();
+			if(jp.currentToken() != JsonToken.START_ARRAY){
+				throw new IOException(String.format("Error QuestionList.Parser.parseOptionList, input is not a json: \n\t%s\n", arg));
+			}
+			jp.nextToken();
+			while(!jp.isClosed()){
+				if (jp.currentToken() == JsonToken.START_OBJECT){
+					opts.add(parseOption(jp, arg));
+				} else if (jp.currentToken() == JsonToken.END_ARRAY){
+					jp.nextToken();
+					break;
+				} else {
+					jp.nextToken();
+				}
+			};
+			return opts;
+		}
+		public static Option parseOption(JsonParser jp, String arg) throws IOException {
+			String optTxt = null;
+			String optExpl = null, fieldName;
+			Boolean isCorr = null;
+			Option res=null;
+			if(jp.currentToken() != JsonToken.START_OBJECT){
+				throw new IOException(String.format("Error QuestionList.Parser.parseOption, input is not a json: \n\t%s\n", arg));
+			}
+			while(!jp.isClosed()){
+				jp.nextToken();
+				if (jp.currentToken() == JsonToken.FIELD_NAME) {
+					fieldName = jp.currentName().toLowerCase();
+					jp.nextToken();
+					switch(fieldName){
+						case "text" -> optTxt = jp.getValueAsString();
+						case "explication" -> {
+							optExpl = jp.getText();
+							if (optExpl!=null && optExpl.equals("null")){
+								optExpl = null;
+							}
+						}
+						case "iscorrect" -> {
+							isCorr = jp.getBooleanValue();
+						}
+					}
+				} else if(jp.currentToken() != JsonToken.END_ARRAY){
+					jp.nextToken();
+					break;
+				}
+			};
+			if (optTxt!=null && isCorr!= null){
+				if (optExpl!=null){
+					res = new Option(optTxt, isCorr, optExpl);
+				} else {
+					res = new Option(optTxt, isCorr);
+				}
+			}
+			return res;
+		}
+
+		public static List<Question> parseQuestionList(JsonParser jp, String arg) throws IOException {
+			List<Question> outputBuilder = new LinkedList<>();
+			/* iterating over every Question attributes then Options*/
+			if(jp.currentToken() != JsonToken.START_ARRAY) {
+				return null;
+			}
+			while (!jp.isClosed()) {
+				if(jp.currentToken() == JsonToken.START_OBJECT) {
+					outputBuilder.add(parseQuestion(jp, arg));
+				} else if(jp.currentToken() == JsonToken.END_ARRAY) {
+					break;
+				}else {
+					jp.nextToken();
+				}
+			}
+			return outputBuilder;
+		}
+	}
+
 	/**
 	 * Default constructor for QuestionList.
 	 * Initializes the list with default values for authorId, name, and tags.
 	 */
 	public QuestionList(Builder builder) {
-		super(builder.list);
+		if (builder.timeCreatedMillis==0L){
+			builder.timeCreatedMillis = System.currentTimeMillis();
+		}
+		if (!(builder.id!=null && !builder.id.isEmpty()&& builder.id.length()>=QuestionList.Hasher.DEFAULT_LENGTH)){
+			builder.id = QuestionList.Hasher.generate(builder.authorId+builder.name, builder.timeCreatedMillis);
+		}
+		this.questions.addAll(builder.list);
 		this.authorId = builder.authorId;
 		this.name = builder.name;
 		this.tags = builder.tags;
@@ -145,12 +468,10 @@ public class QuestionList extends ArrayList<Question> {
 	 *
 	 * @param authorId the ID of the author of this question list
 	 * @param name the name of this question list
-	 * @param c the initial collection of questions to populate the list
+	 * @param c the initial List of questions to populate the list
 	 */
-	public QuestionList(String authorId, String name, Collection<? extends Question> c) {
-		this(new QuestionList.Builder().authorId(authorId).name(name));
-		this.timeCreatedMillis = System.currentTimeMillis();
-		this.id = QuestionListHash.generate(authorId+name, timeCreatedMillis);
+	public QuestionList(String authorId, String name, List<? extends Question> c) {
+		this(new QuestionList.Builder().authorId(authorId).name(name).addAll(c));
 	}
 
 	/**
@@ -161,8 +482,6 @@ public class QuestionList extends ArrayList<Question> {
 	 */
 	public QuestionList(String authorId, String name){
 		this(new QuestionList.Builder().authorId(authorId).name(name));
-		this.timeCreatedMillis = System.currentTimeMillis();
-		this.id = QuestionListHash.generate(authorId+name, timeCreatedMillis);
 	}
 
 	/**
@@ -171,7 +490,7 @@ public class QuestionList extends ArrayList<Question> {
 	 * @param filePath the file path of the JSON file to import the list from
 	 */
 	public QuestionList(String filePath) throws IOException {
-		this(new QuestionList.Builder().add(QuestionListParser.fromJsonFile(filePath)));
+		this(QuestionList.Parser.fromJsonFile(filePath));
 	}
 
 	/**
@@ -181,7 +500,71 @@ public class QuestionList extends ArrayList<Question> {
 	 * @return a new QuestionList instance populated with data from the JSON file
 	 */
 	public static QuestionList importListQuestionFromJson(String filePath) throws IOException{
-		return new QuestionList(filePath);
+		return QuestionList.Parser.fromJsonFile(filePath).build();
+	}
+	
+	/** TODO */
+	public Question get(int index) {
+		return questions.get(index);
+	}
+	
+	/** TODO */
+	public boolean addAll(List<? extends Question> c) {
+		for (Question e : c) {
+			if(!contains(e)) {
+				add(e);
+			}
+		}
+		return true;
+	}
+	
+	/** TODO */
+	public Iterator<Question> iterator(){
+		return questions.iterator();
+	}
+	
+	/** TODO */
+	public boolean addAll(QuestionList q) {
+		return addAll(q.getQuestions());
+	}
+	
+	/** TODO */
+	public List<Question> getQuestions(){
+		List<Question> res = new LinkedList<>(questions);
+		return res;
+	}
+	
+	/** TODO */
+	public boolean add(Question e) {
+		if (contains(e)) {
+			return true;
+		}
+		questions.add(e);
+
+		return true;
+	}
+	
+	/** TODO */
+	public void add(int index, Question element) {
+		if (contains(element)) {
+			return ;
+		}
+		questions.add(index, element);
+	}
+	
+	/** TODO */
+	public boolean contains(Object o) {
+		return questions.contains(o);
+	}
+	
+	/** TODO */
+	public boolean isEmpty(){
+		return questions.isEmpty();
+	}
+
+	/** TODO */
+	public int size(){
+		return questions.size();
 	}
 
 	/**
@@ -202,14 +585,6 @@ public class QuestionList extends ArrayList<Question> {
 	 */
 	public void setName(String name) {
 		this.name= name;
-	}
-
-	/**
-	 * Sets the creation time for this QuestionList.
-	 * @param timeMillis the new time created in milliseconds
-	 */
-	public void setTimeCreatedMillis(long timeMillis){
-		this.timeCreatedMillis = timeMillis;
 	}
 
 	/**
@@ -261,19 +636,19 @@ public class QuestionList extends ArrayList<Question> {
 	 *
 	 * @return an instance of tags
 	 */
-	public HashMap<String,Emoji> getTags() {
-		HashMap<String, Emoji> res = new HashMap<>(tags);
+	public HashMap<String,String> getTags() {
+		HashMap<String, String> res = new HashMap<>(tags);
 		return res;
 	}
 
-	public Emoji getEmojiByTag(String tagName) {
+	public String getEmojiByTag(String tagName) {
 		return getTags().getOrDefault(tagName, null);
 	}
 
-	public void addTag(String tagName, Emoji emoji) {
+	public void addTag(String tagName, String emoji) {
 		tags.put(tagName, emoji);
 	}
-	public void setTags(Map<? extends String,? extends Emoji> m) {
+	public void setTags(Map<? extends String,? extends String> m) {
 		tags = new HashMap<>(m);
 	}
 
@@ -313,7 +688,8 @@ public class QuestionList extends ArrayList<Question> {
 	public void exportListQuestionAsJson(){
 		exportListQuestionAsJson(getPathToList());
 	}
-
+	
+	/** TODO */
 	public void exportListQuestionAsJson(String destFilePath){
 		try {
 			File myJson = new File(destFilePath);
@@ -322,64 +698,32 @@ public class QuestionList extends ArrayList<Question> {
 				folder.mkdirs();
 			}
 			BufferedWriter buff = Files.newBufferedWriter(Paths.get(destFilePath));
-			buff.write(this.toString());
+			buff.write(this.toJson());
 			buff.close();
 		} catch (IOException e) {
-			System.err.println("$> An error occurred while exporting a List of questions.");
+			System.err.println("[ERROR] An error occurred while exporting a List of questions.");
 			e.printStackTrace();
 		}
 	}
+	
+	/** TODO */
 	public void removeTag(String tagName) {
 		if (tags.containsKey(tagName)) {
 			tags.remove(tagName);
 		}
 	}
-	public static QuestionList mergeQuestionLists(QuestionList e, QuestionList f) {
-		if (e==null || f == null) {
-			return null;
-		}
-		if (!e.equals(f)) {
-			return null;
-		}
-		QuestionList res = new QuestionList(e.getAuthorId(),e.getName());
-		res.addAll(e);
-		res.addAll(f);
-		return res;
-	}
-	@Override
-	public boolean addAll(Collection<? extends Question> c) {
-		for (Question e : c) {
-			if(!contains(e)) {
-				add(e);
-			}
-		}
-		return true;
-	}
-	@Override
-	public boolean add(Question e) {
-		if (contains(e)) {
-			return true;
-		}
-		super.add(e);
-
-		return true;
-	}
-	@Override
-	public void add(int index, Question element) {
-		if (contains(element)) {
-			return ;
-		}
-		super.add(index, element);
-	}
-
+	
+	/** TODO */
 	public static Comparator<? super QuestionList> comparatorByDate() {
         return (e, f)->(Long.compare(e.getTimeCreatedMillis(),f.getTimeCreatedMillis()));
     }
-
+	
+	/** TODO */
 	public static Comparator<? super QuestionList> comparatorByName() {
         return (e, f)->(e.getName().compareTo(f.getName()));
     }
-
+	
+	/** TODO */
 	public static Comparator<? super QuestionList> comparatorById() {
         return (e, f)->(e.getId().compareTo(f.getId()));
     }
@@ -393,12 +737,14 @@ public class QuestionList extends ArrayList<Question> {
 	public String toString() {
 		return toJson().replace("\n", "").replace("\t", "");
 	}
+	
+	/** TODO */
 	public String toJsonUsingMapper() throws JsonProcessingException{
 		String res="", 
 			tab="",
-			tab1 = "\t",
-			tab2 = "\t\t",
-			tab3 = "\t\t\t",
+			spc1 = "  ",
+			spc2 = spc1+spc1,
+			spc3 = spc2+spc1,
 		seperatorParamOpt = "\n";
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -411,11 +757,11 @@ public class QuestionList extends ArrayList<Question> {
 		res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
 
 		res += tab + "\"tags\":{";
-		Iterator<Entry<String, Emoji>> iter = tags.entrySet().iterator();
-		Entry<String, Emoji> entry;
+		Iterator<Entry<String, String>> iter = tags.entrySet().iterator();
+		Entry<String, String> entry;
 		while (iter.hasNext()) {
 			entry = iter.next();
-			res += "\""+entry.getKey()+"\" : \""+entry.getValue().getFormatted()+"\"";
+			res += "\""+entry.getKey()+"\" : \""+entry.getValue()+"\"";
 			if(iter.hasNext()){
 				res += ", ";
 			}
@@ -428,55 +774,58 @@ public class QuestionList extends ArrayList<Question> {
 		while (iterQuestion.hasNext()){
 			Question q = iterQuestion.next();
 			tab = "\t\t";
-			res += "\t{\n" + tab2 + "\"question\":"+mapper.writeValueAsString(q.getQuestion())+",\n";
-			res += tab2 + "\"explication\":";
+			res += "\t{\n" + spc2 + "\"question\":"+mapper.writeValueAsString(q.getQuestion())+",\n";
+			res += spc2 + "\"explication\":";
 			if(q.getExplication()==null || q.getExplication().equals("null") || q.getExplication().equals(Constants.NOEXPLICATION)){
 				res +=null;
 			}else {
 				res += mapper.writeValueAsString(q.getExplication());
 			}
 			res += ",\n";
-			res +=tab2 + "\"imageSrc\":"+(q.getImageSrc()==null?null:mapper.writeValueAsString(q.getImageSrc()))+",\n";
-			res +=tab2 + "\"options\": [\n";
+			res +=spc2 + "\"imageSrc\":"+(q.getImageSrc()==null?null:mapper.writeValueAsString(q.getImageSrc()))+",\n";
+			res +=spc2 + "\"options\": [\n";
 			List<Option> opts = q.getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
 			Iterator<Option> iterOpt = opts.iterator();
 			while (iterOpt.hasNext()){
 				Option opt = iterOpt.next();
-				res += tab2+"{\n";
-				res += tab3+"\"text\":"+mapper.writeValueAsString(opt.getText())+","+seperatorParamOpt;
-				res += tab3+"\"isCorrect\":"+opt.isCorrect()+","+seperatorParamOpt;
-				res += tab3+"\"explication\":";
+				res += spc2+"{\n";
+				res += spc3+"\"text\":"+mapper.writeValueAsString(opt.getText())+","+seperatorParamOpt;
+				res += spc3+"\"isCorrect\":"+opt.isCorrect()+","+seperatorParamOpt;
+				res += spc3+"\"explication\":";
 				if(opt.getExplication()==null || opt.getExplication().equals("null") || opt.getExplication().equals(Constants.NOEXPLICATION)){
 					res +=null+seperatorParamOpt;
 				}else {
 					res += mapper.writeValueAsString(opt.getExplication())+seperatorParamOpt;
 				}
-				res += tab2+"}";
+				res += spc2+"}";
 				if (iterOpt.hasNext()){
 					res += ",";
 				}
 				res += "\n";
 			}
-			res += tab2+"]\n";
-			res += tab1+"}";
+			res += spc2+"]\n";
+			res += spc1+"}";
 			if(iterQuestion.hasNext()) {
 				res+= ",";
 			}
 			res += "\n";
 		}
-		res += tab1+"]\n";
+		res += spc1+"]\n";
 		res +="}";
 		return res;
 	}
+	
+	/** TODO */
 	public String toJson(){
 		String res=null;
 		try {
 			res = toJsonUsingMapper();
 		} catch (Exception e){
-			System.err.println("[toJsonUsingMapper() failed]"+e.getMessage());
+			System.err.println("[ERROR] [toJsonUsingMapper() failed]"+e.getMessage());
 		}
 		return res;
 	}
+
 	/**
 	 * Returns the hash code for this QuestionList.
 	 *
@@ -497,12 +846,15 @@ public class QuestionList extends ArrayList<Question> {
 	 */
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof QuestionList l)) return false;
-		if (!super.equals(l)) return false;
-		
-		return areStringsEqual(getAuthorId(), l.getAuthorId()) && areStringsEqual(getName(),l.getName());
+		if (!(o instanceof QuestionList)) return false;
+		QuestionList l = (QuestionList) o;
+		return this.getId().equals(l.getId()) && this.getTimeCreatedMillis() == l.getTimeCreatedMillis()
+			&& areStringsEqual(getAuthorId(), l.getAuthorId()) && areStringsEqual(getName(),l.getName()) 
+			&& Set.copyOf(this.getQuestions()).equals(Set.copyOf(l.getQuestions()));
 	}
-	private boolean areStringsEqual(String s1, String s2) {
+	
+	/** TODO */
+	public static boolean areStringsEqual(String s1, String s2) {
 		if (s1 == s2){ 
 			return true;
 		}
@@ -511,28 +863,38 @@ public class QuestionList extends ArrayList<Question> {
 		}
 		return s1.equals(s2);
 	}
+	
+	/** TODO */
 	public QuestionList rearrageQuestions(){
 		Random r = BotCore.getRandom();
-		sort((a,b)->r.nextBoolean()?-1:1);
+		questions.sort((a,b)->r.nextBoolean()?-1:1);
 		return this;
 	}
+	
+	/** TODO */
 	public QuestionList rearrageOptions(){
 		Random r = BotCore.getRandom();
 		return rearrageOptions((a,b)->r.nextBoolean()?-1:1);
 	}
+	
+	/** TODO */
 	public QuestionList rearrageOptions(Comparator<? super Option> comp){
 		Question q;
 		for (int i=0; i<size(); ++i){
 			q = get(i).rearrageOptions(comp);
-			this.set(i, q);
+			questions.set(i, q);
 		}
 		return this;
 	}
+	
+	/** TODO */
 	public String header(){
 		String res = String.format("**Name:** **%s**\n**Author:** <@%s>\n**nb of questions:** `%d`\n**Date created:** %s\n", 
 			getName(), getAuthorId(),size(), TimeFormat.DATE_TIME_LONG.atTimestamp(getTimeCreatedMillis()));
 		return res;
 	}
+	
+	/** TODO */
 	public String getFormated (int index) {
 		Question q = get(index);
 		String questionText = "### "+(index+1)+"/"+size()+" "+q.getQuestion()+"\n";
@@ -542,13 +904,15 @@ public class QuestionList extends ArrayList<Question> {
 		}
 		return questionText + options;
 	}
+	
+	/** TODO */
 	public Pair<Double, String> getFormatedCorrection (int index, Collection<Option> opts, double pointsForCorrect, double pointsForIncorrect) {
 		double points = 0.00;
 		Question q = get(index);
 		int numberOfTrueOptions = q.getTrueOptions().size();
 		String optsString = "";
 		Option opt;
-		Emoji emoji;
+		String emoji;
 		for (int i = 0; i < q.size(); i++){
 			opt = q.get(i);
 			optsString += String.format("> %d. %s\n", i + 1, opt.getText());
@@ -558,46 +922,56 @@ public class QuestionList extends ArrayList<Question> {
 			} else {
 				emoji = (opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT);
 			}
-			optsString += String.format("> %s*%s*\n",emoji.getFormatted(),opt.getExplicationFriendly());
+			optsString += String.format("> %s*%s*\n",emoji,opt.getExplication());
 		}
 		String text = String.format("`%s` `%d` **%s**\n",getId(), size(), getName());
 		text += String.format("### %d. %s", index+1, q.getQuestion());
 		if (opts!=null && pointsForCorrect != 0.0){
 			text += String.format(" `%s/%s`", points,pointsForCorrect);
 		}
-		text += String.format("\n%s> \n> **%s**\n", optsString, q.getExplicationFriendly());
+		text += String.format("\n%s> \n> **%s**\n", optsString, q.getExplication());
 		return new Pair<Double, String>(points, text);
 	}
+	
+	/** TODO */
 	public Pair<Double, String> getFormatedCorrection (int index, Collection<Option> opts) {
 		return getFormatedCorrection (index, opts, pointsForCorrect, pointsForIncorrect);
 	}
+	
+	/** TODO */
 	public String getFormatedCorrection (int index) {
 		return getFormatedCorrection (index, null, 0.0, 0.0).getSecond();
 	}
-	public QuestionList clone(){
-		return new QuestionList.Builder().add(this).build();
-	}
+	
+	/** TODO */
 	public static QuestionList getExampleQuestionList(){
 		return new QuestionList.Builder()
 		.authorId("Examplary Author")
 		.name("Example of a QuestionList")
 		.id("abcdefg")
 		.add(Question.getExampleQuestion())
-		.addTag("Science", Emoji.fromUnicode("U+1F52D"))
+		.addTag("Science", Emoji.fromUnicode("U+1F52D").getFormatted())
 		.build();
 	}
-
+	
+	/** TODO */
 	public static int myBinarySearchIndexOf(List<QuestionList> tab, int start, int end, String listName){
 		QuestionList searched = new QuestionList.Builder().name(listName).build();
 		return Users.myBinarySearchIndexOf(tab, 0, end, searched, QuestionList.comparatorByName());
 	}
+	
+	/** TODO */
 	public static int myBinarySearchIndexOf(List<QuestionList> tab, String listName){
 		return myBinarySearchIndexOf(tab, 0, tab.size()-1, listName);
 	}
-	public static QuestionList getQuestionListById(String id) {
-		return Users.getQuestionListById(id);
+	
+	/** TODO */
+	public static QuestionList getById(String id) {
+		return Users.getById(id);
 	}
-	public static QuestionList getQuestionListByName(String listName) {
-		return Users.getQuestionListByName(listName);
+	
+	/** TODO */
+	public static QuestionList getByName(String listName) {
+		return Users.getByName(listName);
 	}
 }

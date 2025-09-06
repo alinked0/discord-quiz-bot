@@ -8,7 +8,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 
 import net.dv8tion.jda.api.entities.Message;
@@ -17,6 +20,9 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.utils.AttachedFile;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -50,42 +56,11 @@ import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 public class MessageSender {
 	// A ScheduledExecutorService for handling delayed messages without blocking the main thread.
 	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-	public static void sendCommandOutput(CommandOutput output, ButtonInteractionEvent event) {
-		if (output == null) {
-			// No output to send, or command returned null
-			System.out.println("   $> Warning: Command output was null, nothing to send.");
-			return;
-		}
-
-        MessageChannel channel = event.getChannel();
-        Message message = event.getMessage();
-		String content = "";
-		for (String s : output.getTextMessages()){
-			if (!s.isEmpty()){
-				content += s+"\n";
-			}
-		}
-		MessageEditBuilder newMessage = new MessageEditBuilder()
-			.setContent(content)
-			.setAttachments(output.getFiles().stream().map(f->AttachedFile.fromData(f)).toList())
-		.setEmbeds(output.getEmbeds());
-		if (output.useButtons() || !channel.getType().isGuild() && !channel.getType().isThread()){
-			newMessage.setComponents(output.getActionRows());
-		}
-		event.editMessage(newMessage.build()).queue(
-			sentMessage -> { // Execute post-send actions for embeds too
-				for (Consumer<Message> action : output.getPostSendActions()) {
-					action.accept(message);
-				}
-				if (!output.useButtons()  && channel.getType().isGuild()) addReactions(message, output.getReactions().iterator());
-			},
-			failure -> System.err.println("   $> Failed to edit Message : " + failure.getMessage()) // Log failure
-		);
-	}
+	
 	public static void sendCommandOutput(CommandOutput output, MessageChannel channel, Message originalMessage) {
 		if (output == null) {
 			// No output to send, or command returned null
-			System.out.println("   $> Warning: Command output was null, nothing to send.");
+			System.out.println("[INFO] Warning: Command output was null, nothing to send.");
 			return;
 		}
 		if (output.getMessage()!=null){
@@ -99,6 +74,7 @@ public class MessageSender {
 			treatDelay(output, channel, originalMessage);
 		}
 	}
+
 	private static void treatDelay(CommandOutput output, MessageChannel channel, Message originalMessage){
 		 if (output.getDelayMillis() > 0) {
 			scheduler.schedule(() -> sendConditions(output, channel, originalMessage),
@@ -107,6 +83,7 @@ public class MessageSender {
 			sendConditions(output, channel, originalMessage);
 		}
 	}
+
 	private static void sendConditions(CommandOutput output, MessageChannel channel, Message originalMessage) {
 		// output will be limite by the dicord char limit
 		if (output.sendInOriginalMessage()){
@@ -130,7 +107,7 @@ public class MessageSender {
 					}
 					if (!output.useButtons()  && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
 				},
-				failure -> System.err.println("   $> Failed to edit Message : " + failure.getMessage()) // Log failure
+				failure -> System.err.println("[ERROR] Failed to edit Message : " + failure.getMessage()) // Log failure
 			);
 			return;
 		} 
@@ -173,15 +150,12 @@ public class MessageSender {
 				messagesToSend.addAll(trimMessage(text));
 			}
 			// Pass the postSendActions to the recursive helper
-			sendActions.addAll(recursive_send_text(messagesToSend.iterator(), originalMessage, channel, output.shouldReplyToSender(), output.getPostSendActions()));
+			sendActions.addAll(recursive_send_text(messagesToSend.iterator(), originalMessage, channel, output.shouldReplyToSender(), List.of()));
 		}
 		// Then send embeds
 		if (!output.getEmbeds().isEmpty()) {
 			for (MessageEmbed embed : output.getEmbeds()) {
 				MessageCreateAction sendAction = channel.sendMessageEmbeds(embed);
-				if (output.shouldReplyToSender() && originalMessage != null) {
-					sendAction.setMessageReference(originalMessage);
-				}
 				// Handle ephemeral if this was a slash command interaction and output.isEphemeral() is true
 				// Note: For actual slash commands, you'd use event.deferReply().setEphemeral(true).queue()
 				// or event.getHook().sendMessage(...).setEphemeral(true).queue()
@@ -190,18 +164,19 @@ public class MessageSender {
 			}
 		}
 		if (!output.getFiles().isEmpty()){
-			MessageCreateAction  sendAction = channel.sendFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
-			if (output.shouldReplyToSender() && originalMessage != null) {
-				sendAction.setMessageReference(originalMessage);
+			if (!sendActions.isEmpty()){
+				MessageCreateAction sendAction = sendActions.getLast().addFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
+				sendActions.set(sendActions.size()-1, sendAction);
+			}else{
+				MessageCreateAction  sendAction = channel.sendFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
+				sendActions.add(sendAction);
 			}
-			sendActions.add(sendAction);
 		}
 		if (output.useButtons()  || !channel.getType().isGuild()){
-			for (MessageCreateAction sendAction : sendActions){
-				sendAction.setComponents(output.getActionRows());
+			if (!sendActions.isEmpty()){
+				sendActions.getLast().setComponents(output.getActionRows());
 			}
 		}
-		System.out.println("Normal send list of sendActions: "+sendActions);
 		for (MessageCreateAction sendAction : sendActions){
 			sendAction.queue(
 				sentMessage -> { // Execute post-send actions for embeds too
@@ -210,14 +185,94 @@ public class MessageSender {
 					}
 					if (!output.useButtons()  && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
 				},
-				failure -> System.err.println("Failed to send embed: " + failure.getMessage()) // Log failure
+				failure -> System.err.println("[ERROR] Failed to send embed: " + failure.getMessage()) // Log failure
 			);
 		}
 	}
+
+	public static void sendCommandOutput(CommandOutput output, ButtonInteractionEvent event) {
+		if (output == null) {
+			// No output to send, or command returned null
+			System.out.println("[INFO] Warning: Command output was null, nothing to send.");
+			return;
+		}
+
+        MessageChannel channel = event.getChannel();
+        Message message = event.getMessage();
+		String content = "";
+		for (String s : output.getTextMessages()){
+			if (!s.isEmpty()){
+				content += s+"\n";
+			}
+		}
+		MessageEditBuilder newMessage = new MessageEditBuilder()
+			.setContent(content)
+			.setAttachments(output.getFiles().stream().map(f->AttachedFile.fromData(f)).toList())
+		.setEmbeds(output.getEmbeds());
+		if (output.useButtons() || !channel.getType().isGuild() && !channel.getType().isThread()){
+			newMessage.setComponents(output.getActionRows());
+		}
+		event.editMessage(newMessage.build()).queue(
+			sentMessage -> { // Execute post-send actions for embeds too
+				for (Consumer<Message> action : output.getPostSendActions()) {
+					action.accept(message);
+				}
+				if (!output.useButtons()  && channel.getType().isGuild()) addReactions(message, output.getReactions().iterator());
+			},
+			failure -> System.err.println("[ERROR] Failed to edit Message : " + failure.getMessage()) // Log failure
+		);
+	}
+
+	public static void addReactions(Message message, Iterator<Emoji> iter, @Nullable Consumer<? super Message> success) {
+		if(!iter.hasNext()){
+			if (success!=null) success.accept(message);return;
+		}
+		message.addReaction(iter.next()).queue( v -> addReactions(message, iter, success));
+    }
+
 	public static void addReactions(Message message, Iterator<Emoji> iter) {
-		if(iter.hasNext()){
-			message.addReaction(iter.next()).queue( msg -> addReactions(message, iter));
-        }
+		message.addReaction(iter.next()).queue( v -> addReactions(message, iter, null));
+    }
+	public static List<ActionRow> actionRowsFromEmojis(List<Emoji> l) {
+		int nbOptions = 0;
+		List<Button> row= new ArrayList<>();
+		List<ActionRow> newActionRows = new ArrayList<>();
+		int i=0;
+		Emoji e;
+		for (; nbOptions<l.size(); ++nbOptions){
+			e = Emoji.fromUnicode("U+3"+(nbOptions+1)+"U+fe0fU+20e3");
+			if (l.get(nbOptions).equals(e)){
+				row.add(Button.of(ButtonStyle.PRIMARY, String.format("%s", (nbOptions+1)), e.getFormatted())); //ReactionListener.getCommandFromEmoji(e).getName()
+				if(row.size()==5){
+					newActionRows.add(ActionRow.of(row));
+					row = new ArrayList<>();
+				}
+			} else {
+				break;
+			}
+		}
+		if (!row.isEmpty())newActionRows.add(ActionRow.of(row));
+		row = new ArrayList<>();
+		for (i=nbOptions; i<l.size(); ++i){
+			e = l.get(i);
+			BotCommand cmd = BotCommand.getCommandFromEmoji(e.getFormatted());
+			if (cmd!=null){
+				String id = cmd.getName();
+				row.add(Button.of(ButtonStyle.PRIMARY, id, e.getFormatted()));
+				if(row.size()==5){
+					newActionRows.add(ActionRow.of(row));
+					row = new ArrayList<>();
+				}
+			}
+		}
+		if (!row.isEmpty())newActionRows.add(ActionRow.of(row));
+		return newActionRows;
+	}
+	public static void addButtons(Message message, List<Emoji> l, @Nullable Consumer<? super Message> success) {
+		message.editMessageComponents(MessageSender.actionRowsFromEmojis(l)).queue(success);;
+    }
+	public static void addButtons(Message message, List<Emoji> l) {
+		MessageSender.addButtons(message, l, null);
     }
 	private static List<MessageCreateAction> recursive_send_text(Iterator<String> iter, Message originalMessage, MessageChannel channel, boolean shouldReply, List<Consumer<Message>> postSendActions) {
 		List<MessageCreateAction> sendActions = new ArrayList<>();

@@ -56,7 +56,7 @@ public class TagListCommand extends BotCommand{
         }
         String tagNameInput=args.get(0);
         User user = Users.get(userId);
-        Emoji emoji = user.getEmojiFomTagName(tagNameInput);
+        String emoji = user.getEmojiFomTagName(tagNameInput);
         String res = "";
         String taggedStr = "Taged";
         String notOwnedStr = "You are not the owner of";

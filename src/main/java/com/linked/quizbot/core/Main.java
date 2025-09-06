@@ -3,7 +3,14 @@ package com.linked.quizbot.core;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.core.viewers.QuizBot;
+import com.linked.quizbot.core.viewers.Viewer;
+import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 
 /**
@@ -60,6 +67,16 @@ public class Main {
 		}
 		BotCore.jda= null;
 		Users.loadAllUsers();
+		/*User user = Users.get("468026374557270017");
+		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+		try {
+			String json = ow.writeValueAsString(user);
+			System.out.println(json);
+			System.out.println(user.toJson());
+			
+		}catch(JsonProcessingException e){
+			e.printStackTrace();
+		}*/
 		if(Constants.isBugFree() || Constants.AUTHORID.isEmpty()){
 			BotCore.startJDA();
 		}else {

@@ -1,7 +1,7 @@
 package com.linked.quizbot.events;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -83,19 +83,19 @@ public class MessageListener extends ListenerAdapter {
 				arguments.addAll(BotCommand.getArgFromAttachments(userId, message.getAttachments()));
 			}
 		}
-		if (!Constants.isBugFree()) {
-			System.out.print("  $> ("+cmd.getName()+") "+content.replace("\n", "").replace("\t", ""));
+		/*if (!Constants.isBugFree()) {
+			System.out.print("[INFO] ("+cmd.getName()+") "+content.replace("\n", "").replace("\t", ""));
 			System.out.print(" ; arguments :");
 			for (int i=0; i<arguments.size(); i++) { 
 				System.out.print(arguments.get(i).replace("\n", "").replace("\t", "")+":");
 			}
-		}
+		}*/
 		MessageSender.sendCommandOutput(
 			cmd.execute(userId, arguments),
 			channel,
 			message
 		);
-		if (!Constants.isBugFree()) System.out.printf("   $> time = `%.3f ms`\n", (System.nanoTime() - start) / 1000000.00);
+		if (!Constants.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`, Number of Args: %s\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
 	}
 }
 

@@ -1,7 +1,7 @@
 package com.linked.quizbot.commands.list;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;

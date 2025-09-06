@@ -1,16 +1,21 @@
 package com.linked.quizbot.events;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.MessageSender;
+import com.linked.quizbot.utils.QuestionList;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.dv8tion.jda.api.utils.AttachedFile;
 
 public class ReadyEventListener extends ListenerAdapter {
 	@Override
@@ -46,9 +51,13 @@ public class ReadyEventListener extends ListenerAdapter {
 		event.getGuild().updateCommands().addCommands(commandData).queue();
 		if (!Constants.isBugFree()){
 			if (event.getGuild().getId().equals(Constants.DEBUGGUILDID)){
-				event.getGuild().getTextChannelById(Constants.DEBUGCHANNELID).sendMessage("Bot is ready for testing.").queue(msg -> 
+				QuestionList q = new QuestionList.Builder().add(QuestionList.getExampleQuestionList()).id("abcdefh").build();
+				q.exportListQuestionAsJson();
+				event.getGuild().getTextChannelById(Constants.DEBUGCHANNELID).sendMessage("Bot is ready for testing.")
+				.addFiles(AttachedFile.fromData(new File(q.getPathToList())))
+				.queue(msg -> 
 				{
-					List<Emoji> emojis = List.of(
+					List<String> emojis = List.of(
 						Constants.EMOJIDEL,
 						Constants.EMOJITRUE,
 						Constants.EMOJIFALSE,
@@ -61,7 +70,15 @@ public class ReadyEventListener extends ListenerAdapter {
 						Constants.EMOJIEXPLICATION,
 						Constants.EMOJIWHITESQUARE
 					);
-					MessageSender.addReactions(msg, emojis.iterator());
+					List<Emoji> l = new ArrayList<>();
+					for (String e : emojis){l.add(Emoji.fromFormatted(e));}
+
+					MessageSender.addButtons(msg, l, mess -> MessageSender.addReactions(mess, l.iterator()));
+					MessageSender.sendCommandOutput(
+						new CommandOutput.Builder().addFile(QuestionList.getExampleQuestionList().getPathToList()).build(),
+						msg.getChannel(),
+						msg 
+					);
 				});
 			}
 		}

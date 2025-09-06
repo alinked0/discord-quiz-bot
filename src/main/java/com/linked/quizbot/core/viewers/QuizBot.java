@@ -139,7 +139,6 @@ public class QuizBot extends Viewer {
 			if (emoji.equals(getReactionForAnswer(i))) {
 				userAwnser = currQuestion.get(i-1);
 				if (userAwnser != null) {
-					//System.out.printf("  $> awnser %s, %s ;\n", userAwnser.isCorrect(), userAwnser.getText());
 					this.userAnswersForCurrQuestion.get(userId).add(userAwnser);
 					// If it's the correct answer, increase their score
 					double point = (userAwnser.isCorrect()?QuestionList.pointsForCorrect:QuestionList.pointsForIncorrect)/currQuestion.getTrueOptions().size();
@@ -181,16 +180,18 @@ public class QuizBot extends Viewer {
     @Override
     public Consumer<Message> postSendActionCurrent(){
         return msg ->{
-                BotCore.viewerByMessageId.put(msg.getId(), this);
-                BotCore.explicationRequest.add(getMessageId());
-            };
+			String oldId = msg.getId();
+			BotCore.viewerByMessageId.put(msg.getId(), this);
+			BotCore.explicationRequest.remove(oldId);
+			BotCore.explicationRequest.add(getMessageId());
+		};
     }
     @Override
 	public List<Emoji> getReactions(){
 		List<Emoji> emojis = new ArrayList<>();
 		if (-1<getCurrentIndex()) emojis.addAll(getReactionsForOptions());
 		emojis.addAll(super.getReactions());
-		if (-1<getCurrentIndex()) emojis.add(Constants.EMOJIEXPLICATION);
+		if (-1<getCurrentIndex()) emojis.add(Emoji.fromFormatted(Constants.EMOJIEXPLICATION));
 		return emojis;
 	}
     @Override
@@ -233,7 +234,7 @@ public class QuizBot extends Viewer {
 				String u = awnsersByUserId.getKey();
 				score = userScoreExact.getOrDefault( u, 0.00);
 				for (Option opt : awnsersByUserId.getValue()) {
-					if (!Constants.isBugFree()) System.out.printf("   $> lb %s, %s\n", opt.isCorrect(), opt.getText());
+					if (!Constants.isBugFree()) System.out.printf("[INFO] lb %s, %s\n", opt.isCorrect(), opt.getText());
 					point = (opt.isCorrect()?QuestionList.pointsForCorrect/numberOfTrueOptions:QuestionList.pointsForIncorrect);
 					score += point;
 				}

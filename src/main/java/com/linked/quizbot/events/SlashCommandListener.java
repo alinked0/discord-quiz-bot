@@ -1,7 +1,7 @@
 package com.linked.quizbot.events;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -24,6 +24,7 @@ public class SlashCommandListener extends ListenerAdapter {
 	
 	@Override
 	public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+		long start = System.nanoTime();
 		User sender = event.getUser();
 		// Ignorer les messages des bots
 		if (sender.isBot()) return;
@@ -74,5 +75,6 @@ public class SlashCommandListener extends ListenerAdapter {
 			channel,
 			null 
 		);
+		if (!Constants.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
 	}
 }

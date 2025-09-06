@@ -16,13 +16,14 @@ import com.linked.quizbot.core.BotCore;
  * A question includes the text of the question, a number of correct options,
  * an optional explanation, and a list of possible answers, called options.
  */
-public class Question extends LinkedList<Option>{
+public class Question{
 	private final String question;
 	private String explication;
+	private List<Option> options = new LinkedList<>();
 
 	private String imageSrc = null;// TODO pour l'intant pas encore implementer
 	public static class Builder {
-		private final List<Option> list= new ArrayList<>();
+		private final List<Option> list= new LinkedList<>();
 		private  String question = null;
 		private String explication= null;
 		private String imageSrc = null;
@@ -46,7 +47,7 @@ public class Question extends LinkedList<Option>{
 			return this;
 		}
 		public Builder add(Question question){
-			return this.question(question.getQuestion()).explication(question.getExplication()).imageSrc(question.getImageSrc()).addAll(question);
+			return this.question(question.getQuestion()).explication(question.getExplication()).imageSrc(question.getImageSrc()).addAll(question.getOptions());
 		}
 		public Builder addAll(List<Option> c){
 			list.addAll(c);
@@ -58,7 +59,7 @@ public class Question extends LinkedList<Option>{
 		}
 	}
 	public Question(Builder builder){
-        super(builder.list);
+        this.options = builder.list;
         this.question = builder.question;
         this.explication = builder.explication;
 		this.imageSrc = builder.imageSrc;
@@ -74,10 +75,8 @@ public class Question extends LinkedList<Option>{
 	 * @ensures getOptions().get(1).equals("False")
 	 */
 	public Question(String question){
-        super();
         this.question = question;
         explication = null;
-
         add(new Option("True", true));
         add(new Option("False", false));
 	}
@@ -91,7 +90,7 @@ public class Question extends LinkedList<Option>{
 	 * @ensures getQuestion().equals(question)
 	 */
 	public Question(String question, Collection<? extends Option> optionsForAnswer) {
-        super(optionsForAnswer);
+        this.options.addAll(optionsForAnswer);
         this.question = question;
 	}
 
@@ -113,6 +112,7 @@ public class Question extends LinkedList<Option>{
 		int i = 1;
 		for (String s : optionsForAnswer){
 			add(new Option(s, ((i++)<=numberTrue)));
+			get(0);
 		}
 		this.question = question;
 	}
@@ -122,6 +122,32 @@ public class Question extends LinkedList<Option>{
 			add(option);
 		}
 	}
+	public boolean add(Option opt) {
+		options.add(opt);
+		return true;
+	}
+	public boolean addAll(Collection<? extends Option> opt) {
+		options.addAll(opt);
+		return true;
+	}
+	public boolean contains(Object o) {
+		return options.contains(o);
+	}
+	public int size(){
+		return options.size();
+	}
+
+	/**
+	 * Returns the option at the specified index.
+	 *
+	 * @param index the index of the option
+	 * @return the option at the specified index
+	 * @throws IndexOutOfBoundsException - if the index is out of range (index < 0 || index >= size())
+	 */
+	public Option get(int index){
+		return options.get(index);
+	}
+
 	/**
 	 * Returns the number of correct options.
 	 *
@@ -142,14 +168,14 @@ public class Question extends LinkedList<Option>{
 	 *
 	 * @return the explanation, or null if none is defined
 	 */
-	public String getExplication() { return explication;}
-	public String getExplicationFriendly() {
+	public String getExplication() { 
 		List<String> censored = List.of("null", "nope");
-		if (getExplication()==null || censored.contains(getExplication())){
+		if (explication==null || censored.contains(explication)){
 			return Constants.NOEXPLICATION;
 		};
-		return getExplication();
+		return explication;
 	}
+	
 	public void setExplication(String explication) { this.explication = explication;}
 	
 	/**
@@ -158,7 +184,7 @@ public class Question extends LinkedList<Option>{
 	 * @return a list of options in natural order
 	 */
 	public List<Option> getOptions() {
-		List<Option> res = new LinkedList<>(this);
+		List<Option> res = new LinkedList<>(options);
 		return res;
 	}
 
@@ -178,7 +204,7 @@ public class Question extends LinkedList<Option>{
 		return rearrageOptions((a,b)->r.nextBoolean()?-1:1);
 	}
 	public Question rearrageOptions(Comparator<? super Option> comp){
-		sort(comp);
+		options.sort(comp);
 		return this;
 	}
 	public String getImageSrc (){ return imageSrc;}
@@ -190,19 +216,7 @@ public class Question extends LinkedList<Option>{
 	 */
 	public String getQuestion() { return question;}
 
-	/**
-	 * Returns the option at the specified index.
-	 *
-	 * @param index the index of the option
-	 * @return the option at the specified index, or null if the index is out of bounds
-	 */
-	@Override
-	public Option get(int index) {
-		if(index<0 || index>= size()) {
-			return null;
-		}
-		return getOptions().get(index);
-	}
+	
 
 	/**
 	 * Returns the list of correct options.
@@ -288,7 +302,7 @@ public class Question extends LinkedList<Option>{
 			}
 			Question q = (Question) o;
 			return getQuestion().equals(q.getQuestion())
-					&& getOptions().equals(q.getOptions());
+					&& getOptions().containsAll(q.getOptions());
 	}
 	
 	public static Question getExampleQuestion(){

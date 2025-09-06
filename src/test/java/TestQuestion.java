@@ -32,7 +32,7 @@ public class TestQuestion {
         assertTrue(q.get(0).isCorrect());
         assertEquals("False", q.get(1).getText());
         assertFalse(q.get(1).isCorrect());
-        assertNull(q.getExplication()); // No explanation by default
+        assertEquals(Constants.NOEXPLICATION, q.getExplication()); // No explanation by default
     }
 
     @Test
@@ -103,35 +103,22 @@ public class TestQuestion {
     }
 
     @Test
-    @DisplayName("Test getExplication and setExplication methods")
+    @DisplayName("Test getExplication method")
     void testExplicationMethods() {
-        Question q = new Question("Test explication");
-        assertNull(q.getExplication()); // Initially null
-
-        q.setExplication("This is an explanation for the question.");
-        assertEquals("This is an explanation for the question.", q.getExplication());
-
-        q.setExplication(null);
-        assertNull(q.getExplication());
-    }
-
-    @Test
-    @DisplayName("Test getExplicationFriendly method")
-    void testGetExplicationFriendly() {
         Question q1 = new Question("Question with no explication");
-        assertEquals(Constants.NOEXPLICATION, q1.getExplicationFriendly());
+        assertEquals(Constants.NOEXPLICATION, q1.getExplication());
 
         Question q2 = new Question("Question with explication");
         q2.setExplication("Detailed explanation.");
-        assertEquals("Detailed explanation.", q2.getExplicationFriendly());
+        assertEquals("Detailed explanation.", q2.getExplication());
 
         Question q3 = new Question("Question with 'null' string explication");
         q3.setExplication("null");
-        assertEquals(Constants.NOEXPLICATION, q3.getExplicationFriendly());
+        assertEquals(Constants.NOEXPLICATION, q3.getExplication());
 
         Question q4 = new Question("Question with Constants.NOEXPLICATION string explication");
         q4.setExplication(Constants.NOEXPLICATION);
-        assertEquals(Constants.NOEXPLICATION, q4.getExplicationFriendly());
+        assertEquals(Constants.NOEXPLICATION, q4.getExplication());
     }
 
     @Test
@@ -172,8 +159,8 @@ public class TestQuestion {
 
         assertEquals(opt1, q.get(0));
         assertEquals(opt2, q.get(1));
-        assertNull(q.get(-1)); // Out of bounds
-        assertNull(q.get(2));  // Out of bounds
+        assertThrows(IndexOutOfBoundsException.class, () -> q.get(-1)); // Out of bounds
+        assertThrows(IndexOutOfBoundsException.class, () -> q.get(2));  // Out of bounds
     }
 
     @Test

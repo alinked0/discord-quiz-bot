@@ -13,6 +13,7 @@ import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
@@ -52,30 +53,27 @@ public class DeleteListCommand extends BotCommand{
 	}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
-		String res,ownerId;
+		String ownerId;
 		QuestionList l;
-		Consumer<Message> success;
 		if (args.size()<getOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		l = getSelectedQuestionList(args.get(0));
+		CommandOutput.Builder output = new CommandOutput.Builder();
+		l = Users.getById(args.get(0));
 		ownerId = l.getAuthorId(); 
 		if (ownerId.equals(userId)){
-			res = String.format("Are you sure you want to delete :\n**%s**?", l.getName());
-			success = message ->{
+			output.addTextMessage(String.format("Are you sure you want to delete :`%s`**%s**?",l.getId(), l.getName()))
+				.addReaction(Emoji.fromFormatted(Constants.EMOJIDEL))
+			.addPostSendAction(
+				message ->{
 				String messageId = message.getId();
 				BotCore.toBeDeleted.put(messageId, l);
 				BotCore.deletionMessages.put(messageId, message);
-			};
+			});
 		}else {
-			res = String.format("You are not the owner of the list:\n**%s**?", l.getName());
-			success = null;
+			output.addTextMessage(String.format("You do not own the list:`%s`**%s**",l.getId(), l.getName()));
 		}
-		return new CommandOutput.Builder()
-				.addTextMessage(res)
-				.addReaction(Constants.EMOJIDEL)
-				.addPostSendAction(success)
-				.build();
+		return output.build();
 	}
 
 }

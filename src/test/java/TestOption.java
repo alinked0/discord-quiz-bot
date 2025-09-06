@@ -17,7 +17,7 @@ public class TestOption {
         assertNotNull(option);
         assertEquals("Test Option 1", option.getText());
         assertTrue(option.isCorrect());
-        assertNull(option.getExplication()); // Should be null by default
+        assertEquals(option.getExplication(), Constants.NOEXPLICATION); // Should be null by default
     }
 
     @Test
@@ -62,34 +62,9 @@ public class TestOption {
     @DisplayName("Test getExplication method - without explanation")
     void testGetExplication_NoExplanation() {
         Option option = new Option("Option without Expl.", true);
-        assertNull(option.getExplication());
+        assertEquals(option.getExplication(), Constants.NOEXPLICATION); 
     }
-
-    @Test
-    @DisplayName("Test getExplicationFriendly method - with explanation")
-    void testGetExplicationFriendly_WithExplanation() {
-        Option option = new Option("Option with Expl.", false, "Detail for option.");
-        assertEquals("Detail for option.", option.getExplicationFriendly());
-    }
-
-    @Test
-    @DisplayName("Test getExplicationFriendly method - without explanation (null)")
-    void testGetExplicationFriendly_NoExplanationNull() {
-        // Constants.NOEXPLICATION needs to be available for this test or mocked.
-        // Assuming Constants.NOEXPLICATION is defined as "No explanation provided." or similar.
-        // For the purpose of this test, we'll assert against the default behavior if Constants.java is not linked.
-        // If Constants.java is compiled with the project, this test will pass based on its value.
-        Option option = new Option("Option without Expl.", true);
-        assertEquals(Constants.NOEXPLICATION, option.getExplicationFriendly());
-    }
-
-    @Test
-    @DisplayName("Test getExplicationFriendly method - with 'null' string explanation")
-    void testGetExplicationFriendly_NullStringExplanation() {
-        Option option = new Option("Option with Null String Expl.", true, "null");
-        assertEquals(Constants.NOEXPLICATION, option.getExplicationFriendly());
-    }
-
+    
     @Test
     @DisplayName("Test comparator - correct option comes before incorrect")
     void testComparator_CorrectBeforeIncorrect() {

@@ -31,18 +31,18 @@ public class Constants {
 		INCRTIMESEC = 5,
 		DISCORDIDLENMIN= 17,
 		DISCORDIDLENMAX= 18;
-	public static final Emoji
-		EMOJIDEL = Emoji.fromUnicode("🔥"),
-		EMOJITRUE = Emoji.fromUnicode("✅"), //✅
-		EMOJIFALSE = Emoji.fromUnicode("❌"), //❌
-		EMOJICORRECT = Emoji.fromUnicode("✔️"),//✔️
-		EMOJIINCORRECT = Emoji.fromUnicode("✖️"),//✖️
-		EMOJIMORETIME = Emoji.fromUnicode("⏰"), //	⏰
-		EMOJINEXTQUESTION = Emoji.fromUnicode("U+23ED U+FE0F"),
-		EMOJIPREVQUESTION = Emoji.fromUnicode("U+23EE U+FE0F"),
-		EMOJISTOP = Emoji.fromUnicode("⏹️"),//⏹️
-		EMOJIWHITESQUARE = Emoji.fromUnicode("U+2B1C"),
-		EMOJIEXPLICATION = Emoji.fromUnicode("❓");//❓
+	public static final String
+		EMOJIDEL = Emoji.fromUnicode("🔥").getFormatted(),
+		EMOJITRUE = Emoji.fromUnicode("✅").getFormatted(), //✅
+		EMOJIFALSE = Emoji.fromUnicode("❌").getFormatted(), //❌
+		EMOJICORRECT = Emoji.fromUnicode("✔️").getFormatted(),//✔️
+		EMOJIINCORRECT = Emoji.fromUnicode("✖️").getFormatted(),//✖️
+		EMOJIMORETIME = Emoji.fromUnicode("⏰").getFormatted(), //	⏰
+		EMOJINEXTQUESTION = Emoji.fromUnicode("U+23ED U+FE0F").getFormatted(),
+		EMOJIPREVQUESTION = Emoji.fromUnicode("U+23EE U+FE0F").getFormatted(),
+		EMOJISTOP = Emoji.fromUnicode("⏹️").getFormatted(),//⏹️
+		EMOJIWHITESQUARE = Emoji.fromUnicode("U+2B1C").getFormatted(),
+		EMOJIEXPLICATION = Emoji.fromUnicode("❓").getFormatted();//❓
 	public static boolean isBugFree(){
 		return !AREWETESTING;
 	}

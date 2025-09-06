@@ -6,13 +6,14 @@ import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code EndCommand} class provides functionality to end an ongoing quiz game.
+ * The {@code EndCommand} class provides functionality to end an ongoing {@link Viewer}.
  * It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
  * <p>
  * This command allows users to terminate a currently active quiz, which can be useful
@@ -25,7 +26,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  */
 public class EndCommand extends BotCommand {
     public static final String CMDNAME = "end";
-    private String cmdDesrciption = "ending an already ongoing quiz.";
+    private String cmdDesrciption = "ending an already ongoing viewer, quiz, or explanation.";
 
 	@Override
 	public BotCommand.CommandCategory getCategory(){
@@ -49,8 +50,13 @@ public class EndCommand extends BotCommand {
         if (q == null) {
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-        q.end();
-        CommandOutput output = BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME).execute(userId, args);
+        CommandOutput output;
+        if (q instanceof QuizBot){
+            q.end();
+            output = BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME).execute(userId, args);
+        } else {
+            output = q.start();
+        }
         return output;
     }
 }

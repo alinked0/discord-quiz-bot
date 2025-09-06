@@ -1,5 +1,6 @@
 package com.linked.quizbot.commands.list;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import java.io.File;
@@ -8,7 +9,9 @@ import java.io.IOException;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.Users;
 
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
@@ -40,7 +43,9 @@ public class RawListCommand extends BotCommand{
     public String getDescription(){ return cmdDesrciption;}
 	@Override
     public List<OptionData> getOptionData(){
-        List<OptionData> res = BotCommand.getCommandByName(StartCommand.CMDNAME).getOptionData();
+        List<OptionData> res = new ArrayList<>();
+        res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME, true)
+        .setRequiredLength(QuestionList.Hasher.DEFAULT_LENGTH, QuestionList.Hasher.DEFAULT_LENGTH));
         return res;
     }
 	@Override
@@ -48,17 +53,13 @@ public class RawListCommand extends BotCommand{
         if (args.size()<getOptionData().size()){
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
-		QuestionList l = args.size()>0?getSelectedQuestionList(args.get(0)): null;
+		QuestionList l = args.size()>0?Users.getById(args.get(0)): null;
         if (l==null){
             return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }
         CommandOutput.Builder outputBuilder = new CommandOutput.Builder();
-        try{
-            outputBuilder.addFile(new File(l.getPathToList()));
-        } catch(IOException e){
-            e.printStackTrace();
-        }
-		return outputBuilder.build();
+        l.exportListQuestionAsJson();
+		return outputBuilder.addTextMessage(String.format("`%s`**%s** Raw JSON\n", l.getId(), l.getName())).addFile(l.getPathToList()).build();
     }
 
 }

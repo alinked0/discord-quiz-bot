@@ -1,10 +1,13 @@
 package com.linked.quizbot.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.linked.quizbot.Constants;
 
@@ -38,7 +41,7 @@ public class Users {
 	}
 	public static void reset() {
         allUsers.clear();
-        QuestionListHash.clearGeneratedCodes();
+        QuestionList.Hasher.clearGeneratedCodes();
     }
 	public static void addUser(User user){
 		int index = myBinarySearchIndexOf(Users.allUsers, user, User.comparatorByUserId());
@@ -52,13 +55,6 @@ public class Users {
 	public static void update(User user){
 		addUser(user);
 	}
-	public static String getCodeForQuestionListId(QuestionList l){
-		String id = l.getId();
-		if (id==null || id.length()<Constants.DISCORDIDLENMIN){
-			id = QuestionListHash.generate(l);
-		}
-		return id;
-	}
 	public static User getUser(String userId){
 		int index = User.myBinarySearchUserId(Users.allUsers, userId);
 		if (index >=0){
@@ -71,7 +67,7 @@ public class Users {
 		}
 		return null;
 	}
-	public static QuestionList getQuestionListById(String id) {
+	public static QuestionList getById(String id) {
 		QuestionList l=null;
 		for (User u : Users.allUsers){
 			l = u.getById(id);
@@ -81,7 +77,7 @@ public class Users {
 		}
 		return l;
 	}
-	public static QuestionList getQuestionListByName(String listName){
+	public static QuestionList getByName(String listName){
 		QuestionList res = null;
 		for (User u : Users.allUsers){
 			res = u.getByName(listName);
@@ -92,9 +88,11 @@ public class Users {
 		return res;
 	}
 	public static void addListToUser(String userId, QuestionList l) {
-		getUser(userId).addList(l);
+		User u = getUser(userId);
+		u.addList(l);
+		update(u);
 	}
-	public static boolean createTag(String userId, String tagName, Emoji emoji) {
+	public static boolean createTag(String userId, String tagName, String emoji) {
 		User user = Users.get(userId);
 		return user.createTag(tagName, emoji);
 	}
@@ -112,14 +110,15 @@ public class Users {
 		return false;
 	}
 	public static boolean removeTagFromList(String id, String tagName) {
-		QuestionList l = Users.getQuestionListById(id);
+		QuestionList l = Users.getById(id);
 		User u = Users.get(l.getAuthorId());
 		return u.removeTagFromList(l, tagName);
 	}
-	public static void deleteList(QuestionList l){
+	public static boolean deleteList(QuestionList l){
 		User user = Users.get(l.getAuthorId());
-		user.deleteList(l);
+		boolean b = user.deleteList(l);
 		Users.update(user);
+		return b;
 	}
 	public static <T> int myBinarySearchIndexOf(List<T> tab, int start, int end, T q, Comparator<? super T> compare){
 		if (start > end){
@@ -142,15 +141,31 @@ public class Users {
 	public Iterator<User> iterator(){
 		return Users.allUsers.iterator();
 	}
-	public static List<QuestionList> importUserLists(String userId) {
-		return new User.Builder().id(userId).build().importUserLists();
+	
+	public static Map<String, QuestionList> importLists(String userId) {
+		Map<String, QuestionList> res = new HashMap<>();
+		File folder = new File(Constants.LISTSPATH+Constants.SEPARATOR+ userId+Constants.SEPARATOR);
+		File[] listOfFiles = folder.listFiles();
+		if(listOfFiles != null) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				String listId = listOfFiles[i].getName();
+				if (List.of("tmp").contains(listOfFiles[i].getName())) continue;
+				try{
+					QuestionList l = QuestionList.Parser.fromJsonFile(listOfFiles[i].getAbsolutePath()).build();
+					res.put(listId, l);
+				}catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return res;
 	}
 	public static void exportAllUserLists() {
 		User user;
 		for (int i=0; i<Users.allUsers.size(); i++) {
 			user = Users.allUsers.get(i);
 			user.exportUserLists();
-			System.out.println("  $> exported UserLists ("+(i+1)+"/"+Users.allUsers.size()+"); ");
+			System.out.println("[INFO] exported UserLists ("+(i+1)+"/"+Users.allUsers.size()+"); ");
 		}
 	}
 	public static void loadAllUsers(){
@@ -173,7 +188,7 @@ public class Users {
 		for (int i=0; i<Users.allUsers.size(); i++) {
 			user = Users.allUsers.get(i);
 			user.exportUserData();
-			System.out.println("  $> exported UserData ("+(i+1)+"/"+Users.allUsers.size()+"); ");
+			System.out.println("[INFO] exported UserData ("+(i+1)+"/"+Users.allUsers.size()+"); ");
 		}
 	}
 }

@@ -10,6 +10,7 @@ import java.util.List;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.BotCommand.CommandCategory;
+import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
@@ -58,11 +59,20 @@ public class CollectionCommand extends BotCommand {
     }
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
+		User user = null;
+		if (getOptionData().size()<= args.size()){
+			String id = BotCommand.getIdFromArg(args.get(0), BotCore.getJDA());
+			if (id!=null){
+				user = Users.get(id);
+				if (user==null) return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+				userId = id;
+			} else {return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));}
+		}
+		if (user==null) user = Users.get(userId);
 		List<String> res = new ArrayList<>();
+
 		String tmp = "Collection of ";
 		tmp += String.format("<@%s>\n",userId);
-
-		User user = Users.get(userId);
 		List<QuestionList> list = user.getLists();
 		QuestionList example = QuestionList.getExampleQuestionList();
 		list.sort(QuestionList.comparatorByDate().reversed());
@@ -71,16 +81,16 @@ public class CollectionCommand extends BotCommand {
 		for (QuestionList l : list){
 			maxTags = Math.max(maxTags, l.getTags().size());
 		}
-		Collection<Emoji> emojis;
+		Collection<String> emojis;
 		String emojiStr = "";
 		for (QuestionList l : list){
 			emojiStr = "";
 			emojis = l.getTags().values();
 			if (emojis.size()<maxTags){
-				emojiStr += Constants.EMOJIWHITESQUARE.getAsReactionCode().repeat(maxTags-emojis.size());
+				emojiStr += Constants.EMOJIWHITESQUARE.repeat(maxTags-emojis.size());
 			}
-			for (Emoji e: emojis){
-				emojiStr +=e.getAsReactionCode();
+			for (String e: emojis){
+				emojiStr +=e;
 			}
 			tmp += String.format("`%s`%s%s\n", l.getId(),emojiStr,l.getName());
 			if (tmp.length()>Constants.CHARSENDLIM - 400) {

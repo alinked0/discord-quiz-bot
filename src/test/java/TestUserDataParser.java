@@ -20,13 +20,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class TestUserDataParser {
 	// Mock Emoji object that will be returned by Emoji.fromFormatted
-	private Emoji emoji;
+	private String emoji;
 	private String tagName;
 
 	@BeforeEach
 	void setUp() {
 		// Initialize a  Emoji object before each test
-		emoji = Emoji.fromFormatted("<:mocked_emoji:123456789>");
+		emoji = "<:mocked_emoji:123456789>";
 	   tagName = "mocked_emoji";
 	}
 
@@ -61,8 +61,8 @@ public class TestUserDataParser {
 		assertEquals(2, user.getTagEmojiPerTagName().size());
 		assertTrue(user.getTagEmojiPerTagName().containsKey("tagA"));
 		assertTrue(user.getTagEmojiPerTagName().containsKey("tagB"));
-		assertEquals(Emoji.fromFormatted("<:emojiA:12345>"), user.getTagEmojiPerTagName().get("tagA"));
-		assertEquals(Emoji.fromFormatted("<:emojiB:67890>"), user.getTagEmojiPerTagName().get("tagB"));
+		assertEquals("<:emojiA:12345>", user.getTagEmojiPerTagName().get("tagA"));
+		assertEquals("<:emojiB:67890>", user.getTagEmojiPerTagName().get("tagB"));
 	}
 
 	@Test
@@ -92,7 +92,7 @@ public class TestUserDataParser {
 		assertNotNull(user.getTagEmojiPerTagName());
 		assertEquals(1, user.getTagEmojiPerTagName().size());
 		assertTrue(user.getTagEmojiPerTagName().containsKey("quiz"));
-		assertEquals(Emoji.fromFormatted("<:quiz_emoji:111222>"), user.getTagEmojiPerTagName().get("quiz"));
+		assertEquals("<:quiz_emoji:111222>", user.getTagEmojiPerTagName().get("quiz"));
 	}
 
 	@Test
@@ -145,8 +145,8 @@ public class TestUserDataParser {
 		assertEquals(8, user.getNumberOfGamesPlayed());
 		assertNotNull(user.getTagEmojiPerTagName());
 		assertEquals(2, user.getTagEmojiPerTagName().size());
-		assertEquals(Emoji.fromFormatted("<:dev_emoji:333444>"), user.getTagEmojiPerTagName().get("dev"));
-		assertEquals(Emoji.fromFormatted("<:test_emoji:555666>"), user.getTagEmojiPerTagName().get("testing"));
+		assertEquals("<:dev_emoji:333444>", user.getTagEmojiPerTagName().get("dev"));
+		assertEquals("<:test_emoji:555666>", user.getTagEmojiPerTagName().get("testing"));
 		jp.close();
 	}
 
@@ -174,12 +174,12 @@ public class TestUserDataParser {
 		jp.nextToken(); // FIELD_NAME: "tagEmojiPerTagName"
 		jp.nextToken(); // START_OBJECT of the map
 
-		Map<String, Emoji> result = UserDataParser.parseEmojiPerTagName(jp);
+		Map<String, String> result = UserDataParser.parseEmojiPerTagName(jp);
 
 		assertNotNull(result);
 		assertEquals(2, result.size());
-		assertEquals(Emoji.fromFormatted("<:laugh:123>"), result.get("funny"));
-		assertEquals(Emoji.fromFormatted("<:think:456>"), result.get("serious"));
+		assertEquals("<:laugh:123>", result.get("funny"));
+		assertEquals("<:think:456>", result.get("serious"));
 		jp.close();
 	}
 
@@ -193,7 +193,7 @@ public class TestUserDataParser {
 		jp.nextToken(); // FIELD_NAME: "tagEmojiPerTagName"
 		jp.nextToken(); // START_OBJECT of the map
 
-		Map<String, Emoji> result = UserDataParser.parseEmojiPerTagName(jp);
+		Map<String, String> result = UserDataParser.parseEmojiPerTagName(jp);
 
 		assertNotNull(result);
 		assertTrue(result.isEmpty());
@@ -219,7 +219,7 @@ public class TestUserDataParser {
 		jp.nextToken(); // FIELD_NAME "tagEmojiPerTagName"
 		jp.nextToken(); // START_OBJECT of "tagEmojiPerTagName"
 
-		Map<String, Emoji> result = UserDataParser.parseEmojiPerTagName(jp);
+		Map<String, String> result = UserDataParser.parseEmojiPerTagName(jp);
 
 		assertNotNull(result);
 		assertTrue(result.isEmpty());

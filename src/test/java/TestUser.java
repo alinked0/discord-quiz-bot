@@ -54,7 +54,7 @@ public class TestUser {
 
 		// Reset all static stubs for each test
 		Users.reset();
-		QuestionListHash.clearGeneratedCodes();
+		QuestionList.Hasher.clearGeneratedCodes();
 	}
 
 	@AfterEach
@@ -62,11 +62,11 @@ public class TestUser {
 		// No explicit cleanup needed for @TempDir, JUnit handles it.
 		// Ensure static fields are reset for good measure, though @BeforeEach handles it too.
 		Users.reset();
-		QuestionListHash.clearGeneratedCodes();
+		QuestionList.Hasher.clearGeneratedCodes();
 	}
 
 	// Helper to create a dummy user data JSON file
-	private void createUserDataFile(String userId, String prefix, double points, int games, Map<String, Emoji> tags) throws IOException {
+	private void createUserDataFile(String userId, String prefix, double points, int games, Map<String, String> tags) throws IOException {
 		Path userDir = tempUserDataPath.resolve(userId);
 		Files.createDirectories(userDir);
 		Path userFile = userDir.resolve("user-data.json");
@@ -75,10 +75,10 @@ public class TestUser {
 		sb.append("{\n");
 		sb.append("\t\"userId\":\"").append(userId).append("\",\n");
 		sb.append("\t\"tagEmojiPerTagName\":{");
-		Iterator<Entry<String, Emoji>> iter = tags.entrySet().iterator();
+		Iterator<Entry<String, String>> iter = tags.entrySet().iterator();
 		while (iter.hasNext()) {
-			Entry<String, Emoji> entry = iter.next();
-			sb.append("\"").append(entry.getKey()).append("\":\"").append(entry.getValue().getFormatted()).append("\"");
+			Entry<String, String> entry = iter.next();
+			sb.append("\"").append(entry.getKey()).append("\":\"").append(entry.getValue()).append("\"");
 			if(iter.hasNext()){
 				sb.append(", ");
 			}
@@ -109,12 +109,10 @@ public class TestUser {
 	@Test
 	@DisplayName("Test User.Builder and constructor with Builder")
 	void testUserBuilderAndConstructor() {
-		Map<String, Emoji> tags = new HashMap<>();
-		tags.put("fun", Emoji.fromFormatted("😊"));
+		Map<String, String> tags = new HashMap<>();
+		tags.put("fun", "😊");
 		List<QuestionList> preloadedLists = new ArrayList<>();
 		QuestionList l = new QuestionList("builderUser", "ListA");
-		l.setId("idA");
-		l.setTimeCreatedMillis(1L);
 		preloadedLists.add(l);
 
 		User user = new User.Builder()
@@ -123,7 +121,7 @@ public class TestUser {
 				.numberOfGamesPlayed(10)
 				.totalPointsEverGained(100.5)
 				.tagEmojiPerTagName(tags)
-				.listsSortedById(preloadedLists)
+				.lists(preloadedLists)
 				.build();
 
 		assertNotNull(user);
@@ -133,40 +131,40 @@ public class TestUser {
 		assertEquals(100.5, user.getTotalPointsEverGained());
 		assertEquals(tags, user.getTagEmojiPerTagName());
 		assertEquals(1, user.getLists().size());
-		assertEquals("idA", user.getLists().get(0).getId());
+		assertEquals(l.getId(), user.getLists().get(0).getId());
 	}
 
 	@Test
 	@DisplayName("Test User(String userId) constructor - existing user data and lists")
 	void testUserConstructor_ExistingDataAndLists() throws IOException {
-		String userId = "user1";
+		String userId = "user100";
 		String expectedPrefix = "$";
 		double expectedPoints = 200.0;
 		int expectedGames = 20;
-		Map<String, Emoji> expectedTags = new HashMap<>();
-		expectedTags.put("science", Emoji.fromFormatted("🧪"));
-		expectedTags.put("history", Emoji.fromFormatted("📜"));
+		Map<String, String> expectedTags = new HashMap<>();
+		expectedTags.put("science", "🧪");
+		expectedTags.put("history", "📜");
 
 		// Pre-create user-data.json
 		createUserDataFile(userId, expectedPrefix, expectedPoints, expectedGames, expectedTags);
 
 		// Pre-create some question lists for the user
-		String id1 = QuestionListHash.generate("My Math Quiz"+userId, 1000L);
+		String id1 = QuestionList.Hasher.generate("My Math Quiz"+userId, 1000L);
 		QuestionList list1 = new QuestionList.Builder()
 			.authorId(userId)
 			.name("My Math Quiz")
 			.id(id1)
 			.timeCreatedMillis(1000L)
-			.addTag("science", Emoji.fromFormatted("🧪"))
+			.addTag("science", "🧪")
 			.build();
 		list1.exportListQuestionAsJson(); // Writes to tempListsPath
-		String id2 = QuestionListHash.generate("World History"+userId, 2000L);
+		String id2 = QuestionList.Hasher.generate("World History"+userId, 2000L);
 		QuestionList list2 = new QuestionList.Builder()
 			.authorId(userId)
 			.name("World History")
 			.id(id2)
 			.timeCreatedMillis(2000L)
-			.addTag("history", Emoji.fromFormatted("📜"))
+			.addTag("history", "📜")
 			.build();
 		list2.exportListQuestionAsJson(); // Writes to tempListsPath
 
@@ -190,7 +188,7 @@ public class TestUser {
 		assertEquals(expectedPoints, user.getTotalPointsEverGained());
 		assertEquals(expectedGames, user.getNumberOfGamesPlayed());
 		assertEquals(expectedTags.size(), user.getTagEmojiPerTagName().size());
-		assertEquals(expectedTags.get("science").getFormatted(), user.getTagEmojiPerTagName().get("science").getFormatted());
+		assertEquals(expectedTags.get("science"), user.getTagEmojiPerTagName().get("science"));
 
 		// Verify loaded lists
 		List<QuestionList> userLists = user.getLists();
@@ -276,11 +274,11 @@ public class TestUser {
 	@DisplayName("Test getLists and iterator")
 	void testGetListsAndIterator() {
 		String userId = "listUser";
-		QuestionList list1 = new QuestionList.Builder().authorId(userId).name("L1").id("id1").timeCreatedMillis(1L).build();
-		QuestionList list2 = new QuestionList.Builder().authorId(userId).name("L2").id("id2").timeCreatedMillis(2L).build();
+		QuestionList list1 = new QuestionList.Builder().authorId(userId).name("L1").id("id10000").timeCreatedMillis(1L).build();
+		QuestionList list2 = new QuestionList.Builder().authorId(userId).name("L2").id("id20000").timeCreatedMillis(2L).build();
 		User user = new User.Builder()
 				.id(userId)
-				.listsSortedById(new ArrayList<>(Arrays.asList(list1, list2)))
+				.lists(new ArrayList<>(Arrays.asList(list1, list2)))
 				.build();
 		Users.addUser(user);
 
@@ -304,12 +302,12 @@ public class TestUser {
 		User user = new User.Builder().id(userId).build();
 		Users.addUser(user);
 
-		Emoji emoji = Emoji.fromFormatted("✅");
+		String emoji ="✅";
 		assertTrue(user.createTag("verified", emoji));
 
 		// Verify internal state
 		assertTrue(user.getTagEmojiPerTagName().containsKey("verified"));
-		assertEquals(emoji.getFormatted(), user.getTagEmojiPerTagName().get("verified").getFormatted());
+		assertEquals(emoji, user.getTagEmojiPerTagName().get("verified"));
 		assertTrue(user.getQuestionListPerTags().containsKey("verified"));
 		assertTrue(user.getQuestionListPerTags().get("verified").isEmpty());
 
@@ -324,12 +322,12 @@ public class TestUser {
 	void testCreateTag_AlreadyExists() throws IOException {
 		String userId = "tagUser2";
 		User user = new User.Builder().id(userId).build();
-		user.createTag("duplicate", Emoji.fromFormatted("❌")); // Initial creation
+		user.createTag("duplicate", "❌"); // Initial creation
 		Users.addUser(user);
 
-		assertFalse(user.createTag("duplicate", Emoji.fromFormatted("✅"))); // Attempt to re-create
+		assertFalse(user.createTag("duplicate", "✅")); // Attempt to re-create
 		// Ensure emoji hasn't changed
-		assertEquals("❌", user.getTagEmojiPerTagName().get("duplicate").getFormatted());
+		assertEquals("❌", user.getTagEmojiPerTagName().get("duplicate"));
 	}
 
 	@Test
@@ -337,8 +335,8 @@ public class TestUser {
 	void testDeleteTag_Success() throws IOException {
 		String userId = "tagUser3";
 		User user = new User.Builder().id(userId).build();
-		user.createTag("toDelete", Emoji.fromFormatted("🗑️"));
-		user.createTag("keep", Emoji.fromFormatted("👍"));
+		user.createTag("toDelete", "🗑️");
+		user.createTag("keep", "👍");
 		Users.addUser(user);
 
 		assertTrue(user.deleteTag("toDelete"));
@@ -388,7 +386,7 @@ public class TestUser {
 		Path listFile = tempListsPath.resolve(userId).resolve(newList.getId() + ".json");
 		assertTrue(Files.exists(listFile));
 		String fileContent = readFileContent(listFile);
-		//System.out.println("fileContent: "+fileContent);
+		
 		assertTrue(fileContent.contains("\"name\":\"New List\""));
 	}
 
@@ -406,10 +404,11 @@ public class TestUser {
 
 		User user = new User.Builder()
 			.id(userId)
-			.listsSortedById(new ArrayList<>(Collections.singletonList(existingList)))
+			.lists(new ArrayList<>(Collections.singletonList(existingList)))
 			.build();
 		Users.addUser(user);
 
+		
 		// A "new" list with the same name, but new content
 		QuestionList updatedList = new QuestionList.Builder()
 			.authorId(userId).name("Existing List")
@@ -418,13 +417,13 @@ public class TestUser {
 			.add(new Question("New Q", new Option("Y", true)))
 		.build();
 		user.addList(updatedList);
-
+		
 		assertEquals(1, user.getLists().size()); // Should still be one list, updated
 		QuestionList retrieved = user.getLists().get(0);
 		assertEquals("Existing List", retrieved.getName());
 		assertEquals(2, retrieved.size()); // Should now have both old Q and new Q
-		assertTrue(retrieved.stream().anyMatch(q -> q.getQuestion().equals("Old Q")));
-		assertTrue(retrieved.stream().anyMatch(q -> q.getQuestion().equals("New Q")));
+		assertTrue(retrieved.getQuestions().stream().anyMatch(q -> q.getQuestion().equals("Old Q")));
+		assertTrue(retrieved.getQuestions().stream().anyMatch(q -> q.getQuestion().equals("New Q")));
 
 		// Verify the file was updated
 		Path listFile = tempListsPath.resolve(userId).resolve(existingList.getId() + ".json");
@@ -437,7 +436,7 @@ public class TestUser {
 	@DisplayName("Test getUserQuestionListById - found")
 	void testGetUserQuestionListById_Found() throws IOException {
 		String userId = "110110110110110110";
-		String id = QuestionListHash.generate(userId+"Test Quiz", 1L);
+		String id = QuestionList.Hasher.generate(userId+"Test Quiz", 1L);
 		QuestionList list1 = new QuestionList.Builder()
 			.authorId(userId)
 			.name("Test Quiz")
@@ -470,7 +469,7 @@ public class TestUser {
 		QuestionList list1 = new QuestionList.Builder()
 			.authorId(userId)
 			.name("Unique Name Quiz")
-			.id("uq1")
+			.id("uq10000")
 			.timeCreatedMillis(1L)
 			.build();
 		list1.exportListQuestionAsJson();
@@ -495,22 +494,22 @@ public class TestUser {
 	@DisplayName("Test getEmojiFomTagName methods")
 	void testGetEmojiFomTagName() throws IOException {
 		String userId = "emojiUser";
-		Map<String, Emoji> tags = new HashMap<>();
-		tags.put("mood", Emoji.fromFormatted("😊"));
-		tags.put("food", Emoji.fromFormatted("🍕"));
+		Map<String, String> tags = new HashMap<>();
+		tags.put("mood", "😊");
+		tags.put("food", "🍕");
 		
 		User user = new User.Builder().id(userId).tagEmojiPerTagName(tags).build();
 		Users.addUser(user);
 
 		// Test instance method
-		Emoji moodEmoji = user.getEmojiFomTagName("mood");
+		String moodEmoji = user.getEmojiFomTagName("mood");
 		assertNotNull(moodEmoji);
-		assertEquals("😊", moodEmoji.getFormatted());
+		assertEquals("😊", moodEmoji);
 
 		// Test static method
-		Emoji foodEmoji = User.getEmojiFomTagName(userId, "food");
+		String foodEmoji = User.getEmojiFomTagName(userId, "food");
 		assertNotNull(foodEmoji);
-		assertEquals("🍕", foodEmoji.getFormatted());
+		assertEquals("🍕", foodEmoji);
 
 		// Test non-existent tag
 		assertNull(user.getEmojiFomTagName("nonexistent"));
@@ -520,20 +519,21 @@ public class TestUser {
 	@Test
 	@DisplayName("Test myBinarySearchIndexOf for lists")
 	void testMyBinarySearchIndexOf_QuestionList() {
+		QuestionList listb = new QuestionList.Builder().authorId("b").name("B").id("idB0000").timeCreatedMillis(2L).build();
 		List<QuestionList> lists = new ArrayList<>();
-		lists.add(new QuestionList.Builder().authorId("a").name("A").id("idA").timeCreatedMillis(1L).build());
-		lists.add(new QuestionList.Builder().authorId("b").name("B").id("idB").timeCreatedMillis(2L).build());
-		lists.add(new QuestionList.Builder().authorId("c").name("C").id("idC").timeCreatedMillis(3L).build());
+		lists.add(new QuestionList.Builder().authorId("a").name("A").id("idA0000").timeCreatedMillis(1L).build());
+		lists.add(listb);
+		lists.add(new QuestionList.Builder().authorId("c").name("C").id("idC0000").timeCreatedMillis(3L).build());
 
 		// Test found
-		QuestionList searchB = new QuestionList.Builder().id("idB").build();
+		QuestionList searchB = new QuestionList.Builder().add(listb).build();
 		assertEquals(1, User.myBinarySearchIndexOf(lists, searchB, QuestionList.comparatorById()));
 
 		// Test not found (insertion point)
-		QuestionList searchX = new QuestionList.Builder().id("idx").build();
+		QuestionList searchX = new QuestionList.Builder().id("idx0000").build();
 		assertEquals(-4, User.myBinarySearchIndexOf(lists, searchX, QuestionList.comparatorById()));
 
-		QuestionList searchBeforeA = new QuestionList.Builder().id("id0").build();
+		QuestionList searchBeforeA = new QuestionList.Builder().id("id00000").build();
 		assertEquals(-1, User.myBinarySearchIndexOf(lists, searchBeforeA, QuestionList.comparatorById()));
 	}
 
@@ -541,23 +541,23 @@ public class TestUser {
 	@DisplayName("Test myBinarySearchUserId for Users")
 	void testMyBinarySearchUserId() {
 		List<User> users = new ArrayList<>();
-		users.add(new User.Builder().id("user1").build());
-		users.add(new User.Builder().id("user3").build());
-		users.add(new User.Builder().id("user5").build());
+		users.add(new User.Builder().id("user100").build());
+		users.add(new User.Builder().id("user300").build());
+		users.add(new User.Builder().id("user500").build());
 		
 		// Ensure the list is sorted for binary search
 		users.sort(User.comparatorByUserId());
 
 		// Test found
-		assertEquals(0, User.myBinarySearchUserId(users, "user1"));
-		assertEquals(1, User.myBinarySearchUserId(users, "user3"));
-		assertEquals(2, User.myBinarySearchUserId(users, "user5"));
+		assertEquals(0, User.myBinarySearchUserId(users, "user100"));
+		assertEquals(1, User.myBinarySearchUserId(users, "user300"));
+		assertEquals(2, User.myBinarySearchUserId(users, "user500"));
 
 		// Test not found (insertion point)
-		assertEquals(-1, User.myBinarySearchUserId(users, "user0"));
-		assertEquals(-2, User.myBinarySearchUserId(users, "user2"));
-		assertEquals(-3, User.myBinarySearchUserId(users, "user4"));
-		assertEquals(-4, User.myBinarySearchUserId(users, "user6"));
+		assertEquals(-1, User.myBinarySearchUserId(users, "user000"));
+		assertEquals(-2, User.myBinarySearchUserId(users, "user200"));
+		assertEquals(-3, User.myBinarySearchUserId(users, "user400"));
+		assertEquals(-4, User.myBinarySearchUserId(users, "user600"));
 	}
 
 	@Test
@@ -567,9 +567,9 @@ public class TestUser {
 		String prefix = ">>";
 		double points = 300.75;
 		int games = 30;
-		Map<String, Emoji> tags = new HashMap<>();
-		tags.put("sport", Emoji.fromFormatted("⚽"));
-		tags.put("art", Emoji.fromFormatted("🎨"));
+		Map<String, String> tags = new HashMap<>();
+		tags.put("sport", "⚽");
+		tags.put("art", "🎨");
 
 		User user = new User.Builder()
 				.id(userId)
@@ -579,21 +579,20 @@ public class TestUser {
 				.tagEmojiPerTagName(tags)
 				.build();
 		
-		String expectedJsonPart1 = "{\n\t\"userId\":\"stringUser\"";
+		String expectedJsonPart1 = "{\n  \"userId\":\"stringUser\"";
 		// Order of tags in map can vary, so check for both permutations
-		String expectedTag1 = "\"sport\":\"⚽\", \"art\":\"🎨\"";
-		String expectedTag2 = "\"art\":\"🎨\", \"sport\":\"⚽\"";
+		String expectedTag1 = "\"sport\":\"⚽\", \n    \"art\":\"🎨\"";
+		String expectedTag2 = "\"art\":\"🎨\", \n    \"sport\":\"⚽\"";
 
 		String expectedJsonPart2 = "},\n" +
-								   "\t\"prefixe\":\">>\",\n" +
-								   "\t\"useButtons\":true,\n" +
-								   "\t\"useAutoNext\":false,\n" +
-								   "\t\"totalPointsEverGained\":300.75,\n" +
-								   "\t\"numberOfGamesPlayed\":30\n" +
+								   "  \"prefixe\":\">>\",\n" +
+								   "  \"useButtons\":true,\n" +
+								   "  \"useAutoNext\":false,\n" +
+								   "  \"totalPointsEverGained\":300.75,\n" +
+								   "  \"numberOfGamesPlayed\":30\n" +
 								   "}";
 		
 		String result = user.toJson();
-		//System.out.println(String.format("result:%s\npart1:%s\npart2:%s\n", result, expectedJsonPart1, expectedJsonPart2));
 		assertTrue(result.startsWith(expectedJsonPart1));
 		assertTrue(result.endsWith(expectedJsonPart2));
 		assertTrue(result.contains(expectedTag1) || result.contains(expectedTag2));
@@ -602,26 +601,26 @@ public class TestUser {
 	@Test
 	@DisplayName("Test equals method for User objects")
 	void testEquals_UserObjects() {
-		User user1 = new User.Builder().id("u1").build();
-		User user2 = new User.Builder().id("u1").build(); // Same ID, different instance
-		User user3 = new User.Builder().id("u2").build(); // Different ID
+		User user100 = new User.Builder().id("u100000").build();
+		User user200 = new User.Builder().id("u100000").build(); // Same ID, different instance
+		User user300 = new User.Builder().id("u200000").build(); // Different ID
 
-		assertTrue(user1.equals(user1)); // Self equality
-		assertTrue(user1.equals(user2)); // Same userId
-		assertFalse(user1.equals(user3)); // Different userId
-		assertFalse(user1.equals(null)); // Null
-		assertFalse(user1.equals(new Object())); // Different class
+		assertTrue(user100.equals(user100)); // Self equality
+		assertTrue(user100.equals(user200)); // Same userId
+		assertFalse(user100.equals(user300)); // Different userId
+		assertFalse(user100.equals(null)); // Null
+		assertFalse(user100.equals(new Object())); // Different class
 	}
 
 	@Test
 	@DisplayName("Test equals method for User and String")
 	void testEquals_UserAndString() {
-		User user = new User.Builder().id("u123").build();
+		User user = new User.Builder().id("u123456").build();
 
-		assertTrue(user.equals("u123"));
+		assertTrue(user.equals("u123456"));
 
-		User userNumericId = new User.Builder().id("12345").build();
-		assertTrue(userNumericId.equals("12345"));
+		User userNumericId = new User.Builder().id("1234567").build();
+		assertTrue(userNumericId.equals("1234567"));
 
 		// Test with original logic: if userId is "alpha123"
 		User userAlphaNumericId = new User.Builder().id("alpha123").build();

@@ -34,7 +34,6 @@ public class UserDataParser {
 		User.Builder userBuilder = new User.Builder();
 		String fieldName;
 		while (!jp.isClosed()){
-			//System.out.println("("+jp.currentName() +":"+jp.getText()+") "+jp.currentToken());
 			if (jp.currentToken() == JsonToken.FIELD_NAME) {
 				fieldName = jp.currentName();
 				jp.nextToken();
@@ -67,21 +66,19 @@ public class UserDataParser {
 		}
 		return userBuilder;
 	}
-	public static Map<String, Emoji> parseEmojiPerTagName(JsonParser jp) throws IOException {
+	public static Map<String, String> parseEmojiPerTagName(JsonParser jp) throws IOException {
 		String tagName;
 		String emoji;
-		Map<String, Emoji> m = new HashMap<>();
+		Map<String, String> m = new HashMap<>();
 		if (jp.currentToken() == JsonToken.FIELD_NAME && "getTagEmojiPerTagName".equals(jp.currentName())) {
 			jp.nextToken();
 		}
 		while (jp.nextToken() != JsonToken.END_OBJECT && !jp.isClosed()) {
-			//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
 			if (jp.currentToken() == JsonToken.FIELD_NAME) {
 				tagName = jp.currentName();
 				jp.nextToken();
 				emoji = jp.getText();
-				m.put(tagName, Emoji.fromFormatted(emoji));
-				//System.out.print("("+jp.currentName() +":"+jp.getText()+") ");
+				m.put(tagName, emoji);
 			}
 		}
 		jp.nextToken();

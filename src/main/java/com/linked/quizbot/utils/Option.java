@@ -1,8 +1,8 @@
 package com.linked.quizbot.utils;
 
 import java.util.Comparator;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,14 +66,11 @@ public class Option {
 	 * @return the explanation of the option, or null if none is defined
 	 */
 	public String getExplication() {
-		return explication;
-	}
-	public String getExplicationFriendly() {
 		List<String> censored = List.of("null", "nope");
-		if (getExplication()==null || censored.contains(getExplication())){
+		if (explication==null || censored.contains(explication)){
 			return Constants.NOEXPLICATION;
 		};
-		return getExplication();
+		return explication;
 	}
 	
 	public static Comparator<? super Option> comparator() {
@@ -101,7 +98,7 @@ public class Option {
 			s+="\n}";
 			return s;
 		} catch (Exception e){
-			System.err.println("[toJson() failed]"+e.getMessage());
+			System.err.println("[ERROR] [toJson() failed]"+e.getMessage());
 		}
 		String s = "{\n\t\"text\":\""+getText()+"\"";
 		s+= ",\n\t\"isCorrect\":"+isCorrect();

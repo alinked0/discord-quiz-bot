@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.QuestionListHash;
+import com.linked.quizbot.utils.QuestionList.Hasher;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
@@ -50,12 +50,12 @@ public class StartCommand extends BotCommand{
     public List<OptionData> getOptionData(){
         List<OptionData> res = new ArrayList<OptionData>();
         res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME, true)
-        .setRequiredLength(QuestionListHash.DEFAULT_LENGTH, QuestionListHash.DEFAULT_LENGTH));
+        .setRequiredLength(QuestionList.Hasher.DEFAULT_LENGTH, QuestionList.Hasher.DEFAULT_LENGTH));
         return res;
     }
     @Override
     public CommandOutput execute(String userId,  List<String> args){
-		QuestionList questions = args.size()>0?getSelectedQuestionList(args.get(0)): null;
+		QuestionList questions = args.size()>0?Users.getById(args.get(0)): null;
         if (questions==null){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
         }

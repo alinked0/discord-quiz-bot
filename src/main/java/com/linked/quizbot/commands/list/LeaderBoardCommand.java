@@ -11,6 +11,7 @@ import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.viewers.QuizBot;
 
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
@@ -49,7 +50,7 @@ public class LeaderBoardCommand extends BotCommand {
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
         String messageId = args.get(0);
-		QuizBot q =(QuizBot) BotCore.viewerByMessageId.get(messageId);
+		QuizBot q =(QuizBot) BotCore.getViewer(messageId);
 		if(q == null) {
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
@@ -66,7 +67,7 @@ public class LeaderBoardCommand extends BotCommand {
 					BotCore.explicationRequest.remove(sentMessage.getId());
 				},
 				clearFailure -> {
-					System.err.println("Failed to clear reactions for message " + sentMessage.getId() + ": " + clearFailure.getMessage());
+					System.err.println("[ERROR] Failed to clear reactions for message " + sentMessage.getId() + ": " + clearFailure.getMessage());
 					BotCore.explicationRequest.remove(sentMessage.getId()); // Still try to remove from tracking
 				}
 			);
@@ -75,7 +76,7 @@ public class LeaderBoardCommand extends BotCommand {
 		// Build and return the CommandOutput
 		return outputBuilder
 			.clearReactions(true)
-			.addReaction(Constants.EMOJIEXPLICATION)
+			.addReaction(Emoji.fromFormatted(Constants.EMOJIEXPLICATION))
 			.addPostSendAction(leaderboardPostSendAction)
 			.sendInOriginalMessage(true)
 			.useButtons(q.useButtons())

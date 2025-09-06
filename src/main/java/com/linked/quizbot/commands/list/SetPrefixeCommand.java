@@ -1,9 +1,7 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.List;
-
 import java.util.ArrayList;
-import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;

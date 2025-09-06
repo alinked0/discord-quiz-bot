@@ -3,16 +3,16 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.QuestionListHash;
-import com.linked.quizbot.utils.QuestionListParser;
+import com.linked.quizbot.utils.QuestionList.Hasher;
+import com.linked.quizbot.utils.QuestionList.Parser;
 import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -64,24 +64,18 @@ public class CreateListCommand extends BotCommand {
 		}
         int n = args.size();
         List<String> res = new ArrayList<>();
-        String s;
         for (int i = 0; i<n; i++) {
             try {
-                QuestionList l = QuestionListParser.fromString(args.get(i));
-                if (l!=null) {
-                    l.setAuthorId(userId);
-                    if (l.getName()!=null) {
-                        if(Users.get(userId).getByName(l.getName())==null) {
-                            res.add("Failed, list of name : \""+l.getName()+"\" already exists.\n");
-                        } else {
-                            String id = QuestionListHash.generate(l);
-                            l.setId(id);
-                            Users.addListToUser(l.getAuthorId(), l);
-                            res.add("Success, list of name : \""+l.getName()+"\", has been created, \nuse `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+id+"` command to verife.\n");
-                        }
-                    }else {
-                        res.add("Failed to import ```"+args.get(i)+"```, no \"name\" found\n");
+                QuestionList l = QuestionList.Parser.fromString(args.get(i)).authorId(userId).build();
+                if (l.getName()!=null) {
+                    if(Users.get(userId).getByName(l.getName())!=null) {
+                        res.add("Failed, list of name : \""+l.getName()+"\" already exists in your collection.\n");
+                    } else {
+                        Users.addListToUser(l.getAuthorId(), l);
+                        res.add("Success, list of name : \""+l.getName()+"\", has been created, \nuse `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getId()+"` command to verife.\n");
                     }
+                }else {
+                    res.add("Failed to import ```"+args.get(i)+"```, no \"name\" found\n");
                 }
             }catch (IOException e){
                 res.add(String.format("**Failed to import** ```js\n%s```\n",args.get(i) ));

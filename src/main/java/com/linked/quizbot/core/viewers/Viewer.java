@@ -1,7 +1,7 @@
 package com.linked.quizbot.core.viewers;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
@@ -128,8 +128,9 @@ public class Viewer {
      */
 	public Consumer<Message> postSendActionStart(){
 		return msg ->{
-			BotCore.viewerByMessageId.put(msg.getId(), this);
-			BotCore.viewerByMessageId.get(msg.getId()).setMessage(msg);
+			String oldId = msg.getId();
+			this.setMessage(msg);
+			BotCore.viewerByMessageId.put(oldId, this);
 		};
 	}
 
@@ -141,9 +142,10 @@ public class Viewer {
      */
 	public Consumer<Message> postSendActionCurrent(){
 		return msg ->{
-			BotCore.viewerByMessageId.remove(getMessageId());
+			String oldId = msg.getId();
+			this.setMessage(msg);
+			BotCore.viewerByMessageId.remove(oldId);
 			BotCore.viewerByMessageId.put(msg.getId(), this);
-			BotCore.viewerByMessageId.get(msg.getId()).setMessage(msg);
 		};
 	}
 
@@ -201,8 +203,8 @@ public class Viewer {
      */
 	public List<Emoji> getReactions(){
 		List<Emoji> emojis = new ArrayList<>();
-		if (hasPrevious())emojis.add(Constants.EMOJIPREVQUESTION);
-		emojis.add(hasNext()?Constants.EMOJINEXTQUESTION:Constants.EMOJISTOP);
+		if (hasPrevious())emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
+		emojis.add(Emoji.fromFormatted(hasNext()?Constants.EMOJINEXTQUESTION:Constants.EMOJISTOP));
 		return emojis;
 	}
 
@@ -231,6 +233,9 @@ public class Viewer {
 			throw new NoSuchElementException();
 		}
 		currIndex--;
+		if (getCurrentIndex() == -1){
+			return start();
+		}
 		return current();
 	}
 

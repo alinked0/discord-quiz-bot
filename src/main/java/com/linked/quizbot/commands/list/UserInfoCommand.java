@@ -1,14 +1,10 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.List;
-
-import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;

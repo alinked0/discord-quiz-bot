@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 
-import net.dv8tion.jda.api.entities.emoji.Emoji;
+ import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 /**
  * A stateful utility class that manages all data and preferences for a single bot user.
@@ -37,13 +37,13 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
  * @version 1.0
  * @since 2025-02-01
  * @see QuestionList
- * @see QuestionListHash
+ * @see QuestionList.Hasher
  * @see Users
  */
 public class User implements Iterable<QuestionList>{
 	private final String userId;
 	private final List<QuestionList> listsSortedById= new ArrayList<>();
-	private  final Map<String, Emoji> tagEmojiPerTagName= new HashMap<>();
+	private  final Map<String, String> tagEmojiPerTagName= new HashMap<>();
 	private final Map<String, List<QuestionList>> questionListPerTags= new HashMap<>();
 	private String prefixe;
 	private int numberOfGamesPlayed;
@@ -59,7 +59,7 @@ public class User implements Iterable<QuestionList>{
 		private boolean useAutoNext = false;
         private int numberOfGamesPlayed=0;
         private double totalPointsEverGained=0;
-        private Map<String, Emoji> tagEmojiPerTagName= new HashMap<>();
+        private Map<String, String> tagEmojiPerTagName= new HashMap<>();
         private Map<String, List<QuestionList>> questionListPerTags= new HashMap<>();
 		public Builder id(String userId){ 
 			if (userId == null){
@@ -88,23 +88,24 @@ public class User implements Iterable<QuestionList>{
             this.totalPointsEverGained = points;
             return this;
         }
-		public Builder tagEmojiPerTagName(Map<String, Emoji> tagEmojiPerTagName){
+		public Builder tagEmojiPerTagName(Map<String, String> tagEmojiPerTagName){
             this.tagEmojiPerTagName = tagEmojiPerTagName;
             return this;
         }
-		public  Builder addTag(String tagName, Emoji emoji){
+		public  Builder addTag(String tagName, String emoji){
 			this.tagEmojiPerTagName.put(tagName, emoji);
 			return this;
 		}
-		public  Builder addTags(Map<String,Emoji> tags){
+		public  Builder addTags(Map<String,String> tags){
 			this.tagEmojiPerTagName.putAll(tags);
 			return this;
 		}
+
 		public Builder questionListPerTags(Map<String, List<QuestionList>> questionListPerTags){
             this.questionListPerTags = questionListPerTags;
             return this;
         }
-		public Builder listsSortedById(List<QuestionList> listsSortedById){
+		public Builder lists(List<QuestionList> listsSortedById){
             this.list = new ArrayList<>(listsSortedById);
             return this;
         }
@@ -134,13 +135,14 @@ public class User implements Iterable<QuestionList>{
 		this.listsSortedById.addAll(builder.list);
 		this.useButtons = builder.useButtons;
 		this.useAutoNext = builder.useAutoNext;
+		syncWithLocal();
 	}
 	public void syncWithLocal() {
-		Map<String, Emoji> tags;
-		for(QuestionList l: listsSortedById){
-			QuestionListHash.addGeneratedCode(l.getId());
-		}
+		Map<String, String> tags;
 		listsSortedById.sort(QuestionList.comparatorById());
+		for(QuestionList l: listsSortedById){
+			QuestionList.Hasher.addGeneratedCode(l.getId());
+		}
 		if (new File(getPathToUserData()).exists()){
 			try {
 				User.Builder builder = UserDataParser.fromJsonFile(getPathToUserData());
@@ -155,6 +157,9 @@ public class User implements Iterable<QuestionList>{
 				e.printStackTrace();
 			}
 		}
+		for(QuestionList l: importLists().values()){
+			addList(l);
+		}
 		for(QuestionList l: listsSortedById){
 			tags = l.getTags();
 			tagEmojiPerTagName.putAll(tags);
@@ -168,8 +173,6 @@ public class User implements Iterable<QuestionList>{
 	}
 	public User(@NotNull String userId){
 		this(new User.Builder().id(userId));
-		listsSortedById.addAll(importUserLists());
-		syncWithLocal();
 	}
 	public boolean useButtons(){return useButtons;}
 	public void useButtons(boolean b){ useButtons = b;}
@@ -197,13 +200,6 @@ public class User implements Iterable<QuestionList>{
 	public QuestionList get(int index) {
 		return listsSortedById.get(index);
 	}
-	public static String getCodeForQuestionListId(QuestionList l){
-		String id = l.getId();
-		if (id==null || id.length()<Constants.DISCORDIDLENMIN){
-			id = QuestionListHash.generate(l);
-		}
-		return id;
-	}
 	public double getTotalPointsEverGained(){
 		return totalPointsEverGained;
 	}
@@ -218,7 +214,7 @@ public class User implements Iterable<QuestionList>{
 		numberOfGamesPlayed+=1;
 		this.exportUserData();
 	}
-	public Map<String, Emoji> getTagEmojiPerTagName() {
+	public Map<String, String> getTagEmojiPerTagName() {
 		return new HashMap<>(tagEmojiPerTagName);
 	}
 	public Map<String, List<QuestionList>> getQuestionListPerTags() {
@@ -243,18 +239,15 @@ public class User implements Iterable<QuestionList>{
 		return new ArrayList<>(res);
 	}
 	public QuestionList getById(String id) {
-		QuestionList res;
 		if (QuestionList.getExampleQuestionList().getId().equals(id)){
-			res =  QuestionList.getExampleQuestionList();
-			return res.clone();
+			return QuestionList.getExampleQuestionList();
 		} else {
 			QuestionList searched = new QuestionList.Builder().id(id).build();
 			int i=-1;
 			List<QuestionList> l=getLists();
 			i = Users.myBinarySearchIndexOf(l, searched, QuestionList.comparatorById());
 			if (i>=0){
-				res = l.get(i);
-				return res.clone();
+				return l.get(i);
 			}
 		}
 		return null;
@@ -264,15 +257,12 @@ public class User implements Iterable<QuestionList>{
 		listsSortedByName.sort(QuestionList.comparatorByName());
 		int index = QuestionList.myBinarySearchIndexOf(listsSortedByName, listName);
 		if (index<0) return null;
-		return listsSortedByName.get(index).clone();
+		return listsSortedByName.get(index);
 	}
-	public static QuestionList getQuestionListByName(String listName){
-		return Users.getQuestionListByName(listName);
-	}
-	public Emoji getEmojiFomTagName(String tagName){
+	public String getEmojiFomTagName(String tagName){
 		return tagEmojiPerTagName.getOrDefault(tagName, null);
 	}
-	public static Emoji getEmojiFomTagName(String userId, String tagName){
+	public static String getEmojiFomTagName(String userId, String tagName){
 		return Users.getUser(userId).getEmojiFomTagName(tagName);
 	}
 	public static void addListToUser(String userId, QuestionList l) {
@@ -281,14 +271,17 @@ public class User implements Iterable<QuestionList>{
 	public boolean addList(@NotNull QuestionList l){
 		int index;
 		QuestionList k = getById(l.getId());
+		
 		if (k==null){
 			k = getByName(l.getId());
 			if (k==null){
 				k = l;
 			} 
 		}
+		
 		k.addAll(l);
 		k.rearrageOptions((e, f) -> e.isCorrect()?-1:1);
+		
 		index = myBinarySearchIndexOf(listsSortedById, k, QuestionList.comparatorById());
 		if (index>=0) {
 			listsSortedById.set(index, k);
@@ -299,7 +292,7 @@ public class User implements Iterable<QuestionList>{
 		Users.update(this);
 		return true;
 	}
-	public boolean createTag(@NotNull String tagName, @NotNull Emoji emoji) {
+	public boolean createTag(@NotNull String tagName, @NotNull String emoji) {
 		if (tagEmojiPerTagName.containsKey(tagName)) {
 			return false; // Tag already exists
 		}
@@ -308,7 +301,7 @@ public class User implements Iterable<QuestionList>{
 		exportUserData();
 		return true;
 	}
-	public boolean addTagToQuestionList(String tagName, Emoji emoji, String id) {
+	public boolean addTagToQuestionList(String tagName, String emoji, String id) {
 		if (!tagEmojiPerTagName.containsKey(tagName)) {
 			return false; // Tag hasnt been created
 		}
@@ -317,7 +310,7 @@ public class User implements Iterable<QuestionList>{
 		Users.update(this);
 		return true;
 	}
-	public static boolean createTag(String userId, String tagName, Emoji emoji) {
+	public static boolean createTag(String userId, String tagName, String emoji) {
 		return Users.createTag(userId, tagName, emoji);
 	}
 	public boolean deleteTag(String tagName) {
@@ -344,7 +337,7 @@ public class User implements Iterable<QuestionList>{
 	}
 	public boolean addTagToList(QuestionList l, String tagName) {
 		int index = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorById());
-		Emoji emoji;
+		String emoji;
 		List<QuestionList> listsTagged;
 		if (index >= 0) {
 			emoji = tagEmojiPerTagName.getOrDefault(tagName,null);
@@ -383,13 +376,29 @@ public class User implements Iterable<QuestionList>{
 	public static boolean removeTagFromList(String id, String tagName) {
 		return Users.removeTagFromList(id, tagName);
 	}
-	public void deleteList(QuestionList l){
-		if(l.getAuthorId()!= getId()){
-			return;
-		}
+	public boolean deleteList(QuestionList l){ // TODO one deletion really shouldnt be O(n^2) operation
 		this.listsSortedById.remove(l);
+		tagEmojiPerTagName.clear();
+		questionListPerTags.clear();
+		for(QuestionList l1: listsSortedById){
+			Map<String, String> tags = l1.getTags();
+			tagEmojiPerTagName.putAll(l1.getTags());
+			for (String tagName : tags.keySet()){
+				if (questionListPerTags.get(tagName)==null){
+					questionListPerTags.put(tagName, new ArrayList<QuestionList>());
+				}
+				questionListPerTags.get(tagName).add(l1);
+			}
+		}
 		File f = new File(l.getPathToList());
-		f.delete();
+		File dest = new File(f.getParentFile().getAbsolutePath()+Constants.SEPARATOR+"tmp"+Constants.SEPARATOR+f.getName());
+		System.out.println("f:"+f+", dest:"+dest);
+		System.out.println("f:"+f.getAbsolutePath()+", dest:"+dest.getAbsolutePath());
+		dest.mkdirs();
+		f.renameTo(dest);
+		int t = 0;
+		while(!f.delete()){if (++t>20){return false;}};
+		return true;
 	}
 	public static <T> int myBinarySearchIndexOf(List<T> tab, int start, int end, T q, Comparator<? super T> compare){
 		if (start > end){
@@ -432,22 +441,8 @@ public class User implements Iterable<QuestionList>{
 	public static Comparator<? super User> comparatorByUserId() {
 		return (e, f)->(e.getId().compareTo(f.getId()));
 	}
-	public List<QuestionList> importUserLists() {
-		List<QuestionList> res = new ArrayList<>();
-		File folder = new File(Constants.LISTSPATH+Constants.SEPARATOR+ userId+Constants.SEPARATOR);
-		File[] listOfFiles = folder.listFiles();
-		if(listOfFiles != null) {
-			for (int i = 0; i < listOfFiles.length; i++) {
-				if (List.of("tmp").contains(listOfFiles[i].getName())) continue;
-				try{
-					QuestionList l = QuestionList.importListQuestionFromJson(listOfFiles[i].getAbsolutePath());
-					res.add(l);
-				}catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return res;
+	public Map<String, QuestionList> importLists() {
+		return Users.importLists(getId());
 	}
 	public void exportUserLists() {
 		List<QuestionList> listsSortedById = getLists();
@@ -472,37 +467,34 @@ public class User implements Iterable<QuestionList>{
 		}
 		return false;
 	}
-	public String toJsonUsingMapper() throws JsonProcessingException{
-		String res="", 
-			tab1 = "\t";
-			res += "{\n";
+	public String toJsonUsingMapper(boolean oneLine) throws JsonProcessingException{
+		String nextLine = oneLine?"":"\n";
+		String res="", spc = oneLine?" ":"  ";
+		res += "{"+nextLine;
 		ObjectMapper mapper = new ObjectMapper();
-		res += tab1+mapper.writeValueAsString("userId")+":"+mapper.writeValueAsString(getId())+",\n";
-		res +=tab1+"\"tagEmojiPerTagName\":{";
-		Iterator<Entry<String, Emoji>> iter = tagEmojiPerTagName.entrySet().iterator();
-		Entry<String, Emoji> entry2;
+		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("userId"), mapper.writeValueAsString(getId()), ","+nextLine);
+		res += String.format("%s:%s%s",spc+mapper.writeValueAsString("tagEmojiPerTagName"), "{", nextLine);
+		Iterator<Entry<String, String>> iter = tagEmojiPerTagName.entrySet().iterator();
+		Entry<String, String> entry2;
 		while (iter.hasNext()) {
 			entry2 = iter.next();
-			res += mapper.writeValueAsString(entry2.getKey())+":"+mapper.writeValueAsString(entry2.getValue().getFormatted());
-			if(iter.hasNext()){
-				res += ", ";
-			}
+			res += String.format("%s:%s%s", spc+spc+mapper.writeValueAsString(entry2.getKey()), mapper.writeValueAsString(entry2.getValue()), (iter.hasNext()?", ":"")+nextLine);
 		}
-		res += "},\n";
-		res += tab1+mapper.writeValueAsString("prefixe")+":"+mapper.writeValueAsString(getPrefix())+",\n";
-		res += tab1+mapper.writeValueAsString("useButtons")+":"+useButtons()+",\n";
-		res += tab1+mapper.writeValueAsString("useAutoNext")+":"+useAutoNext()+",\n";
-		res += tab1+mapper.writeValueAsString("totalPointsEverGained")+":"+getTotalPointsEverGained()+",\n";
-		res += tab1+mapper.writeValueAsString("numberOfGamesPlayed")+":"+getNumberOfGamesPlayed()+"\n";
+		res += spc+"},"+nextLine;
+		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("prefixe"), mapper.writeValueAsString(getPrefix()), ","+nextLine);
+		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("useButtons"), useButtons(), ","+nextLine);
+		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("useAutoNext"), useAutoNext(), ","+nextLine);
+		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("totalPointsEverGained"), getTotalPointsEverGained(), ","+nextLine);
+		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("numberOfGamesPlayed"), getNumberOfGamesPlayed(), nextLine);
 		res +="}";
 		return res;
 	}
 	public String toJson(){
 		String res=null;
 		try {
-			res = toJsonUsingMapper();
+			res = toJsonUsingMapper(false);
 		} catch (Exception e){
-			System.err.println("[toJsonUsingMapper() failed]"+e.getMessage());
+			System.err.println("[ERROR] [toJsonUsingMapper() failed]"+e.getMessage());
 		}
 		return res;
 	}
@@ -515,16 +507,21 @@ public class User implements Iterable<QuestionList>{
 				folder.mkdirs();
 			}
 			BufferedWriter buff = Files.newBufferedWriter(Paths.get(destFilePath));
-			buff.write(this.toString());
+			buff.write(this.toJson());
 			buff.close();
 		} catch (IOException e) {
-			System.err.println("$> An error occurred while exporting UserData."+destFilePath);
+			System.err.println("[ERROR] An error occurred while exporting UserData."+destFilePath);
 			e.printStackTrace();
 		}
 	}
 	@Override
 	public String toString() {
-		String res = toJson().replace("\n", "").replace("\t", "");
+		String res=null;
+		try {
+			res = toJsonUsingMapper(true);
+		} catch (Exception e){
+			System.err.println("[ERROR] [toJsonUsingMapper() failed]"+e.getMessage());
+		}
 		return res;
 	}
 }

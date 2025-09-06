@@ -16,6 +16,7 @@ import java.util.Scanner;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.core.MessageSender;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -206,7 +207,8 @@ public class CommandOutput {
 			return this;
 		}
 		public CommandOutput build(){
-			return new CommandOutput(this);
+			CommandOutput res = new CommandOutput(this);
+			return res;
 		}
 	}
 	private CommandOutput(Builder builder){
@@ -233,40 +235,7 @@ public class CommandOutput {
 	}
 	public boolean useButtons(){ return useButtons;}
 	public List<ActionRow> getActionRows(){
-		int nbOptions = 0;
-		List<Emoji> l = getReactions();
-		List<Button> row= new ArrayList<>();
-		List<ActionRow> newActionRows = new ArrayList<>();
-		int i=0;
-		Emoji e;
-		for (; nbOptions<l.size(); ++nbOptions){
-			e = Emoji.fromUnicode("U+3"+(nbOptions+1)+"U+fe0fU+20e3");
-			if (l.get(nbOptions).equals(e)){
-				row.add(Button.of(ButtonStyle.PRIMARY, String.format("%s", (nbOptions+1)), e.getFormatted())); //ReactionListener.getCommandFromEmoji(e).getName()
-				if(row.size()==5){
-					newActionRows.add(ActionRow.of(row));
-					row = new ArrayList<>();
-				}
-			} else {
-				break;
-			}
-		}
-		if (!row.isEmpty())newActionRows.add(ActionRow.of(row));
-		row = new ArrayList<>();
-		for (i=nbOptions; i<l.size(); ++i){
-			e = l.get(i);
-			BotCommand cmd = BotCommand.getCommandFromEmoji(e);
-			if (cmd!=null){
-				String id = cmd.getName();
-				row.add(Button.of(ButtonStyle.PRIMARY, id, e.getFormatted()));
-				if(row.size()==5){
-					newActionRows.add(ActionRow.of(row));
-					row = new ArrayList<>();
-				}
-			}
-		}
-		if (!row.isEmpty())newActionRows.add(ActionRow.of(row));
-		return newActionRows;
+		return MessageSender.actionRowsFromEmojis(getReactions());
 	}
 	public Message getMessage(){
 		return message;
