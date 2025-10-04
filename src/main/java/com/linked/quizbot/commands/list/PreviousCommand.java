@@ -53,8 +53,11 @@ public class PreviousCommand extends BotCommand {
 		}
         Viewer q = BotCore.getViewer(args.get(0));
         if (q != null && q.isActive()){
-            if (q instanceof QuizBot && ((QuizBot)q).isExplaining()){
-                return q.current();
+            if (q instanceof QuizBot){
+                ((QuizBot)q).addPlayer(userId);
+                if (((QuizBot)q).isExplaining()){
+                    return q.current();
+                }
             }
 			return q.previous();
         }

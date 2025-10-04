@@ -3,9 +3,6 @@ package com.linked.quizbot.core;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -21,27 +18,39 @@ import com.linked.quizbot.utils.Users;
 public class CommandLineInterface {
 	public static String getStatus(){
 		String s = "";
-		s+= String.format("isBugFree:%s\n", Constants.isBugFree());
+		s+= String.format("isBugFree:%s\n", BotCore.isBugFree());
 		s+= String.format("Prefixe:%s\n", Constants.CMDPREFIXE);
+		s+= String.format("IsOnline:%s\n", BotCore.isOnline());
 		s+= String.format("NumberOfUsers:%s\n", Users.allUsers.size());
-		s+= String.format("IsOnline:%s\n", BotCore.jda!=null);
 		return s;
 	}
-	public static String usage(){
-		String s="";
-		s+= "Usage: \n\t[COMMAND]\n";
-		s+= String.format("\t%s\t%s\n", "status","gets the bot status");
-		s+= String.format("\t%s\t%s\n", "stop, shutdown","stops the bots");
-		s+= String.format("\t%s\t%s\n", "exit","stops the bot, kills this process");
-		s+= String.format("\t%s\t%s\n", "start"," starts the bot and connects it to discord");
-		s+= String.format("\t%s\t%s\n", "q![BotCommand] [Argumments]","executes a command and returns a text output");
-		s+= "Example: \n";
+
+	/**
+     * Provides a detailed usage message for the command-line interface.
+     * @return The usage string.
+     */
+    public static String usage(){
+        String s="";
+        s+= "Usage: \n\t[COMMAND]\n";
+        s+= String.format("\t%s\t%s\n", "status, stat","gets the bot status");
+        s+= String.format("\t%s\t%s\n", "stop, shutdown, disconnectjda","stops the bot and disconnects from Discord");
+        s+= String.format("\t%s\t%s\n", "exit","stops the bot, disconnects, and kills this process");
+        s+= String.format("\t%s\t%s\n", "start, connectjda, connect","starts the bot and connects it to Discord");
+        s+= String.format("\t%s\t%s\n", "private","sets the bot to private/testing mode");
+        s+= String.format("\t%s\t%s\n", "public","sets the bot to public mode");
+        s+= String.format("\t%s\t%s\n", "load, reload","reloads all user data from disk");
+        s+= String.format("\t%s\t%s\n", "help","displays this usage message");
+        s+= String.format("\t%s\t%s\n", "q![BotCommand] [Argumments]","executes a bot command (e.g., q!help)");
+        
+        s+= "\nExample: \n";
         s+= "\tstatus\n";
+        s+= "\tstart\n";
         s+= "\tq!collection\n";
         s+= "\tq!help\n";
-		return s;
-	}
-	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        s+= "\texit\n";
+        return s;
+    }
+	
 	public static void execute (Scanner scanner) {
 		boolean exiting = false;
 		while (!exiting) {
@@ -52,21 +61,28 @@ public class CommandLineInterface {
 					BotCore.shutDown();
 					scanner.close();
 					exiting = true;
-					if (BotCore.getJDA()!=null){
-						BotCore.getJDA().shutdown();
-					}
 					System.out.println("[INFO] Exited.");
 					return;
 				}
-				case "shutdown", "stop" -> {
+				case "shutdown", "stop", "disconnectjda", "disconnect" -> {
 					BotCore.shutDown();
 					BotCore.SHUTINGDOWN = false;
+					System.out.println(String.format("[INFO] Bot nolonger online.", BotCore.isBugFree()?"privately":"publicly"));
 				}
-				case "startjda", "start" -> {
+				case "public" -> {
+					BotCore.areWeTesting = false;
+					System.out.println(String.format("[INFO] Bot is %s %s.", BotCore.isBugFree()?"privately":"publicly", BotCore.isOnline()?"online":"offline"));
+				}
+				case "private" -> {
+					BotCore.areWeTesting = true;
+					System.out.println(String.format("[INFO] Bot is %s %s.", BotCore.isBugFree()?"privately":"publicly", BotCore.isOnline()?"online":"offline"));
+				}
+				case "connectjda", "connect", "startjda", "start" -> {
 					if (BotCore.jda == null){
                         BotCore.startJDA();
+                        System.out.println(String.format("[INFO] Bot is %s online.", BotCore.isBugFree()?"publicly":"privately"));
 					} else {
-                        System.out.println("Bot is already online. Use the command stop, to put an end it.");
+                        System.out.println(String.format("[INFO] Bot is already %s online.", BotCore.isBugFree()?"publicly":"privately"));
                     }
 				}
 				case "status", "stat"-> {
@@ -81,19 +97,10 @@ public class CommandLineInterface {
 				}
 				default -> {
 					try {
-						/*Future<?> future = scheduler.submit(() -> {*/
-							List<String> out = execute(input, Constants.AUTHORID).getAsText();
-							for (String s: out){
-								System.out.println(s);
-							}
-						/*}); 
-						while(!future.isDone()){
-							if (BotCore.isShutingDown()){
-								future.resultNow();
-								future.cancel(true);
-								break;
-							}
-						}*/
+						List<String> out = execute(input, Constants.ADMINID).getAsText();
+						for (String s: out){
+							System.out.println(s);
+						}
 					}catch(Exception e){
 						System.err.printf("[ERROR] %s\n",e.getMessage());
 					}
@@ -131,7 +138,7 @@ public class CommandLineInterface {
 		arguments = cmd.parseArguments(cmndLineArgs);
 
 		System.out.printf("[INFO] cmd=%s, Time_elapsed=`%.3f ms`, Argc-1=%d;\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
-		if (!Constants.isBugFree()) {
+		if (!BotCore.isBugFree()) {
 			for (int i=0; i<arguments.size(); i++) {
 				System.out.print(arguments.get(i).replace("[\\n \\t]", ""));
 				if (i!=arguments.size()-1){System.out.print("::");}

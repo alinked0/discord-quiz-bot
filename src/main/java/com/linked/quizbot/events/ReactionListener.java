@@ -41,11 +41,11 @@ public class ReactionListener extends ListenerAdapter {
 		}
 		
 		if (event.isFromGuild() || event.isFromThread()){
-			if (!Constants.canIRunThisHere(event.getGuild().getId())){
-				return;
-			}
+				if (!BotCore.canIRunThisHere(event.getGuild().getId()) || !BotCore.canIRunThisHere(event.getChannel().getId())){
+					return;
+				}
 		} else if (event.isFromType(ChannelType.PRIVATE)){
-			if (Constants.AREWETESTING && !Constants.AUTHORID.equals(sender.getId())){
+			if (!BotCore.canIRunThisHere(sender.getId())){
 				return;
 			}
 		}
@@ -63,7 +63,7 @@ public class ReactionListener extends ListenerAdapter {
 					channel,
 					message 
 				);
-			if (!Constants.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
+			if (!BotCore.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
 				return;
 			}
 
@@ -111,11 +111,11 @@ public class ReactionListener extends ListenerAdapter {
 		}
 		
 		if (event.isFromGuild() || event.isFromThread()){
-			if (!Constants.canIRunThisHere(event.getGuild().getId())){
+			if (!BotCore.canIRunThisHere(event.getGuild().getId())){
 				return;
 			}
 		} else if (event.isFromType(ChannelType.PRIVATE)){
-			if (Constants.AREWETESTING && !Constants.AUTHORID.equals(sender.getId())){
+			if (BotCore.areWeTesting && !Constants.ADMINID.equals(sender.getId())){
 				return;
 			}
 		}

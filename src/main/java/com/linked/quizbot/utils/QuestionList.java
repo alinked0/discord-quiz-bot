@@ -902,70 +902,76 @@ public class QuestionList implements Iterable<Question>{
 	}
 	
 	/** TODO */
-	public String getFormated(int index, @Nullable Map<String, Set<Option>> respondents,  @Nullable Set<String> players) {
+	public String getFormated(int index, @Nullable Boolean correct, @Nullable Map<String, Set<Option>> respondents, @Nullable Set<String> players) {
 		Question q = get(index);
-		String questionText = String.format("### %d/%d/%s\n", index+1, q.size(), q.getQuestion());
-		String options = "",box="", users="";
+		double points = 0.00;
+		String options = "",box="", users="", emoji, pointStr = "", correctionStr, expl;
+		Iterator<Set<Option>> iter;
 		Set<Option>awnsers;
-		for (String u : players){
-			users += BotCore.getEffectiveNameFromId(u).substring(0, 1);
-		}
-		users = "\n";
+		Option opt;
 		for (int i = 0; i < q.size(); i++) {
-			if (players==null || respondents==null){
-				box="";
+			opt = q.get(i);
+			correctionStr="";
+			emoji="";
+			if (players!=null && respondents!=null){
+				box=">";
 				if (!players.isEmpty()){
+					box="";
 					for (String u : players){
 						awnsers = respondents.get(u);
-						box += (awnsers==null||awnsers.isEmpty())?Constants.EMOJIBOX:(awnsers.contains(q.get(i))?Constants.EMOJICHECKEDBOX:Constants.EMOJIBOX);
+						box += (awnsers==null||awnsers.isEmpty())?Constants.EMOJIBOX:(awnsers.contains(opt)?Constants.EMOJICHECKEDBOX:Constants.EMOJIBOX);
 					}
-				} else {
-					box = Constants.EMOJIBOX;
 				}
 				box += " ";
 			}
-			options += String.format("%s%d. %s\n", box, i + 1, q.get(i).getText());
-		}
-		return String.format("%s%s%s%s", header(), questionText, users, options);
-	}
-	
-	/** TODO */
-	public Pair<Double, String> getFormatedCorrection (int index, Collection<Option> opts, double pointsForCorrect, double pointsForIncorrect) {
-		double points = 0.00;
-		Question q = get(index);
-		int numberOfTrueOptions = q.getTrueOptions().size();
-		String optsString = "";
-		Option opt;
-		String emoji;
-		for (int i = 0; i < q.size(); i++){
-			opt = q.get(i);
-			optsString += String.format("> %d. %s\n", i + 1, opt.getText());
-			if (opts != null && opts.contains(opt)) {
-				points += opt.isCorrect() ? pointsForCorrect / numberOfTrueOptions : pointsForIncorrect;
-				emoji = (opt.isCorrect() ? Constants.EMOJITRUE : Constants.EMOJIFALSE);
-			} else {
-				emoji = (opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT);
+			if (correct != null && correct){
+				if (respondents!=null){
+					iter = respondents.values().iterator();
+					awnsers = iter.hasNext()?iter.next():null;
+				} else {
+					awnsers = null;
+				}
+				if (awnsers != null && awnsers.contains(opt)) {
+					points += opt.isCorrect() ? pointsForCorrect / q.getTrueOptions().size() : pointsForIncorrect;
+					emoji = (opt.isCorrect() ? Constants.EMOJITRUE : Constants.EMOJIFALSE);
+				} else {
+					emoji = (opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT);
+				}
+				expl = opt.getExplication();
+				if (expl ==null){
+					expl = Constants.NOEXPLICATION;
+				}
+				correctionStr = String.format("> %s%s\n",emoji,expl);
 			}
-			optsString += String.format("> %s%s\n",emoji,opt.getExplication());
+			options += String.format("%s%d. %s\n%s", box, i + 1, q.get(i).getText(), correctionStr);
 		}
-		String text = header();
-		text += String.format("### %d. %s", index+1, q.getQuestion());
-		if (opts!=null && pointsForCorrect != 0.0){
-			text += String.format(" `%s/%s`", points,pointsForCorrect);
+		if (correct != null && correct){
+			pointStr = String.format("`%s/%s`", points, pointsForCorrect);
 		}
-		text += String.format("\n%s> \n> **%s**\n", optsString, q.getExplication());
-		return new Pair<Double, String>(points, text);
-	}
-	
+		if (players!=null){
+			Iterator<String> iterp = players.iterator();
+			while (iterp.hasNext()){
+				users += BotCore.getEffectiveNameFromId(iterp.next()).substring(0, 1);
+				if (!iterp.hasNext())users += "\n";
+			}
+		}
+		String questionText = String.format("### %d. %s %s\n", index+1, q.getQuestion(), pointStr);
+		return String.format("%s%s%s%s", header(), questionText, users, options).replace("\\$([^\\$]*)\\$", "`$1`");
+	}	
 
 	/** TODO */
-	public Pair<Double, String> getFormatedCorrection (int index, Collection<Option> opts) {
-		return getFormatedCorrection (index, opts, pointsForCorrect, pointsForIncorrect);
+	public String getFormatedCorrection (int index, Collection<Option> opts) {
+		Map<String, Set<Option>> m = null;
+		if (opts!=null){
+			m=new HashMap<>();
+			m.put("unkown", new HashSet<>(opts));
+		}
+		return getFormated (index,true, m, null);
 	}
 	
 	/** TODO */
 	public String getFormatedCorrection (int index) {
-		return getFormatedCorrection (index, null, 0.0, 0.0).getSecond();
+		return getFormated(index, true, null, null);
 	}
 	
 	/** TODO */

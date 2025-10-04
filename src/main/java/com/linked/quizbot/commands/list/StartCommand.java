@@ -10,7 +10,9 @@ import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.viewers.QuizBot;
+import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.Question;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -71,6 +73,7 @@ public class StartCommand extends BotCommand{
             }
         }
         QuizBot quizBot = new QuizBot(questions, user.useButtons(), autoNext);
+		quizBot.addPlayer(userId);
         return quizBot.start();
     }
 }

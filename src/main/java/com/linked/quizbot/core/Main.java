@@ -30,8 +30,8 @@ public class Main {
 			return;
 		}
 		Constants.TOKEN = args[0];
-		Constants.AUTHORID = args[1];		
-		if(args.length >3){
+		Constants.ADMINID = args[1];		
+		if(args.length == 4){
 			Constants.DEBUGCHANNELID = args[2];
 			Constants.DEBUGGUILDID = args[3];
 		} else {

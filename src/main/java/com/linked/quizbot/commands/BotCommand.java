@@ -376,7 +376,7 @@ public abstract class BotCommand {
 				String userTag = u.getAsTag().toLowerCase(); // Username#Discriminator (if not new system)
 				identifiers.addAll(List.of(userId, userName, userEffectiveName, userTag));
 
-				if (!Constants.isBugFree()) { // Debug logging
+				if (!BotCore.isBugFree()) { // Debug logging
 					System.out.printf("[INFO] %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
 				}
 
@@ -396,7 +396,7 @@ public abstract class BotCommand {
 				}
 			}
 		}
-		if (!Constants.isBugFree()) { // Debug logging
+		if (!BotCore.isBugFree()) { // Debug logging
 			System.out.printf("[INFO] approxiUserId %s;\n", approxiUserId);
 			System.out.printf("[INFO] time getIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
 		}

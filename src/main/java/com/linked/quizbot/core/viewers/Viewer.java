@@ -288,7 +288,7 @@ public class Viewer {
 			output.add(getHeader());
 		} else {
 			output.add(getFormatedQuestion());
-			if (!Constants.isBugFree())output.add(String.format("```txt\n%s\n```\n",getFormatedQuestion()));
+			if (!BotCore.isBugFree())output.add(String.format("```txt\n%s\n```\n",getFormatedQuestion()));
 		}
 		inBetweenProccessorCurrent();
 		return output.sendInOriginalMessage(sendInOriginalMessage)

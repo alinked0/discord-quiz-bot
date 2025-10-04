@@ -85,7 +85,7 @@ public class Explain extends Viewer{
     }
     @Override
     public String getFormatedQuestion(){
-        return getQuestionList().getFormatedCorrection(getCurrentIndex(), userAwnsersByQuestionIndex.get(getCurrentIndex())).getSecond();
+        return getQuestionList().getFormatedCorrection(getCurrentIndex(), userAwnsersByQuestionIndex.get(getCurrentIndex()));
     }
     @Override
 	public List<Emoji> getReactions(){

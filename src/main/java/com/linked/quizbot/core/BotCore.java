@@ -33,6 +33,8 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
  */
 public class BotCore {
 	public static boolean SHUTINGDOWN = false;
+	public static boolean areWeTesting = true;
+	public static boolean online = false;
 	public static JDA jda = null;
 	public static Random rand = new Random();
 	public static  String cmdPrefixe = Constants.CMDPREFIXE;
@@ -45,6 +47,18 @@ public class BotCore {
 	public static Set<String> explicationRequest = new HashSet<>();
 	public static boolean useButtons = true;
 	
+	public static boolean isBugFree(){
+		return !areWeTesting;
+	}
+	public static boolean isOnline(){
+		return !online;
+	}
+	public static boolean canIRunThisHere(String channelId){
+		if (isBugFree() || channelId!=null && channelId.equals(Constants.ADMINID) || Constants.DEBUGCHANNELID != null && Constants.DEBUGCHANNELID.equals(channelId)){
+			return true;
+		}
+		return false;
+	}
 	public static Random getRandom(){ return rand;}
 	public static String getPrefixe() { return cmdPrefixe;}
 	public static List<User> getAllUsers() { return new ArrayList<>(allUsers);}
@@ -91,6 +105,7 @@ public class BotCore {
 		BotCore.SHUTINGDOWN = true;
 		Users.exportAllUserLists();
 		Users.exportAllUserData();
+		getJDA().shutdown();
 		getJDA().shutdownNow();
 		BotCore.jda = null;
 	}

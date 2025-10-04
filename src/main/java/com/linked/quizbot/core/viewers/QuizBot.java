@@ -205,32 +205,11 @@ public class QuizBot extends Viewer {
 	}
 	
     @Override
-    public String getFormatedQuestion () {
+    public String getFormatedQuestion() {
 		if (useAutoNext() && awnsersByUserIdByQuestionIndex.get(getCurrentIndex()).size()>1){
 			this.timeLimit = TimeFormat.RELATIVE.after(delaySec*1000);
 		}
-		Question q = getCurrQuestion();
-		String questionText = String.format("### %d/%d/%s\n", getCurrentIndex()+1, q.size(), q.getQuestion());
-		String options = "",box, users="";
-		Map<String, Set<Option>> respondents = userAnswersForCurrQuestion;
-		Set<Option>awnsers;
-		for (String u : getPlayers()){
-			users += u.substring(0, 1);
-		}
-		users = "\n";
-		for (int i = 0; i < q.size(); i++) {
-			box="";
-			if (!getPlayers().isEmpty()){
-				for (String u : getPlayers()){
-					awnsers = respondents.get(u);
-					box += (awnsers==null||awnsers.isEmpty())?Constants.EMOJIBOX:(awnsers.contains(q.get(i))?Constants.EMOJICHECKEDBOX:Constants.EMOJIBOX);
-				}
-			} else {
-				box = Constants.EMOJIBOX;
-			}
-			options += String.format("%s %d. %s\n", box, i + 1, q.get(i).getText());
-		}
-		return String.format("%s%s%s\n", questionText, users, options, getLastTimestamp());
+		return String.format("%s\n%s\n", getQuestionList().getFormated(getCurrentIndex(), false, userAnswersForCurrQuestion,  getPlayers()), getLastTimestamp());
     }
 
     @Override
@@ -259,7 +238,7 @@ public class QuizBot extends Viewer {
 				String u = awnsersByUserId.getKey();
 				score = userScoreExact.getOrDefault( u, 0.00);
 				for (Option opt : awnsersByUserId.getValue()) {
-					if (!Constants.isBugFree()) System.out.printf("[INFO] lb %s, %s\n", opt.isCorrect(), opt.getText());
+					if (!BotCore.isBugFree()) System.out.printf("[INFO] lb %s, %s\n", opt.isCorrect(), opt.getText());
 					point = (opt.isCorrect()?QuestionList.pointsForCorrect/numberOfTrueOptions:QuestionList.pointsForIncorrect);
 					score += point;
 				}

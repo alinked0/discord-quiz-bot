@@ -32,13 +32,15 @@ public class MessageListener extends ListenerAdapter {
 		User sender = event.getAuthor();
 		if (sender.isBot()) return;
 		// Stop a buggy bot from being used on all of discord
-		if (event.isFromGuild() || event.isFromThread()){
-			if (!Constants.canIRunThisHere(event.getGuild().getId())){
-				return;
-			}
-		} else if (event.isFromType(ChannelType.PRIVATE)){
-			if (Constants.AREWETESTING && !Constants.AUTHORID.equals(sender.getId())){
-				return;
+		if (!BotCore.isBugFree()){
+			if (event.isFromGuild() || event.isFromThread()){
+				if (!BotCore.canIRunThisHere(event.getGuild().getId()) || !BotCore.canIRunThisHere(event.getChannel().getId())){
+					return;
+				}
+			} else if (event.isFromType(ChannelType.PRIVATE)){
+				if (!BotCore.canIRunThisHere(sender.getId())){
+					return;
+				}
 			}
 		}
 

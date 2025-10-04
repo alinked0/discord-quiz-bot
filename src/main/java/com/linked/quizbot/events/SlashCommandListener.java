@@ -9,6 +9,7 @@ import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
 
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -28,12 +29,15 @@ public class SlashCommandListener extends ListenerAdapter {
 		User sender = event.getUser();
 		// Ignorer les messages des bots
 		if (sender.isBot()) return;
-        
-        if (event.isFromGuild()){
-            if (!Constants.canIRunThisHere(event.getGuild().getId())){
-                return;
-            }
-        }
+		
+		if (!BotCore.isBugFree()){
+			if (event.isFromGuild()){
+				if (!BotCore.canIRunThisHere(event.getGuild().getId()) || !BotCore.canIRunThisHere(event.getChannel().getId())){
+					return;
+				}
+			}
+		}
+		
 		String userId = sender.getId();
 		MessageChannel channel = event.getInteraction().getChannel();
         String channelId = channel.getId();
@@ -75,6 +79,6 @@ public class SlashCommandListener extends ListenerAdapter {
 			channel,
 			null 
 		);
-		if (!Constants.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
+		if (!BotCore.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
 	}
 }

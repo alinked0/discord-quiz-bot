@@ -5,6 +5,7 @@ import java.util.List;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
 
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -44,6 +45,9 @@ public class NextCommand extends BotCommand {
 		}
 		Viewer q = BotCore.getViewer(args.get(0));
         if (q != null && q.isActive()){
+			if (q instanceof QuizBot){
+				((QuizBot)q).addPlayer(userId);
+			}
 			return q.next();
 		}
 		return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));

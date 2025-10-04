@@ -13,6 +13,7 @@ import com.linked.quizbot.commands.CommandOutput;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -41,13 +42,15 @@ public class ButtonListener extends ListenerAdapter {
 			return;
 		}
 		MessageChannel channel = event.getChannel();
-		if (channel.getType().isGuild() || channel.getType().isThread()){
-			if (!Constants.canIRunThisHere(event.getGuild().getId())){
-				return;
-			}
-		} else if (!channel.getType().isGuild()){
-			if (Constants.AREWETESTING && !Constants.AUTHORID.equals(sender.getId())){
-				return;
+		if (!BotCore.isBugFree()){
+			if (event.isFromGuild()){
+				if (!BotCore.canIRunThisHere(event.getGuild().getId()) || !BotCore.canIRunThisHere(event.getChannel().getId())){
+					return;
+				}
+			} else {
+				if (!BotCore.canIRunThisHere(sender.getId())){
+					return;
+				}
 			}
 		}
 		String componentId = event.getComponentId(); // The ID you assigned to the buttonBotCore.addUser(sender);
@@ -62,7 +65,7 @@ public class ButtonListener extends ListenerAdapter {
 				output.build(),
 				event
 			);
-			if (!Constants.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
+			if (!BotCore.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
 			return;
 		}
 		Emoji reaction = Emoji.fromFormatted(event.getButton().getLabel());

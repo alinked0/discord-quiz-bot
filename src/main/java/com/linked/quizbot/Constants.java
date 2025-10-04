@@ -12,12 +12,11 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
  * 
  */
 public class Constants {
-	public static boolean AREWETESTING = true;
 	public static String 
 		TOKEN,
-		AUTHORID = "",
-		DEBUGGUILDID = "",
-		DEBUGCHANNELID = "";
+		ADMINID,
+		DEBUGGUILDID ,
+		DEBUGCHANNELID;
 	public static String 
 		SEPARATOR= File.separator,
 		RESOURCESPATH= "src"+SEPARATOR+"main"+SEPARATOR+"resources",
@@ -48,14 +47,4 @@ public class Constants {
 		EMOJIEXPLICATION = Emoji.fromUnicode("❓").getFormatted(),
 		EMOJIBOX = Emoji.fromUnicode("🔲").getFormatted(),
 		EMOJICHECKEDBOX = Emoji.fromUnicode("🔳").getFormatted();
-	public static boolean isBugFree(){
-		return !AREWETESTING;
-	}
-	public static boolean canIRunThisHere(String guildId){
-		boolean b = Constants.DEBUGGUILDID.equals(guildId);
-		return isBugFree()?!b:b;
-	}
-	public static boolean isDebugGuild(String guildId){
-		return Constants.DEBUGGUILDID.equals(guildId);
-	}
 }

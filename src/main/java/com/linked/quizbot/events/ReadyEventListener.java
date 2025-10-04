@@ -7,6 +7,7 @@ import java.util.List;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
 import com.linked.quizbot.core.viewers.Explain;
 import com.linked.quizbot.core.viewers.QuizBot;
@@ -52,7 +53,7 @@ public class ReadyEventListener extends ListenerAdapter {
 			event.getJDA().upsertCommand(cmd).queue();
 		}
 		event.getGuild().updateCommands().addCommands(commandData).queue();
-		if (!Constants.isBugFree()){
+		if (!BotCore.isBugFree()){
 			if (event.getGuild().getId().equals(Constants.DEBUGGUILDID)){
 				event.getGuild().getTextChannelById(Constants.DEBUGCHANNELID).sendMessage("Bot is ready for testing.")
 				.queue(msg -> 
