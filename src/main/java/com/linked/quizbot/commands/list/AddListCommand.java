@@ -65,7 +65,7 @@ public class AddListCommand extends BotCommand{
 					if (l.getAuthorId()==null) {
 						l.setAuthorId(userId);
 					}
-					output.addTextMessage(addListAndReturnMessage(l, userId));
+					output.add(addListAndReturnMessage(l, userId));
 				}
 			}catch (IOException e){
 				res.add(String.format("**Failed to import** ```js\n%s```\n",args.get(i) ));

@@ -56,7 +56,7 @@ public class LeaderBoardCommand extends BotCommand {
 		}
 		CommandOutput.Builder outputBuilder = new CommandOutput.Builder();
 		List<String> lb = q.leaderBoard();
-		outputBuilder.addAllTextMessage(lb);
+		outputBuilder.addAll(lb);
 		Consumer<Message> leaderboardPostSendAction = sentMessage -> {
 			BotCore.explicationRequest.add(sentMessage.getId());
 			// Schedule clearing of reactions after a delay

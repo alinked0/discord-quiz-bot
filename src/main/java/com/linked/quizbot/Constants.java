@@ -33,16 +33,18 @@ public class Constants {
 		DISCORDIDLENMAX= 18;
 	public static final String
 		EMOJIDEL = Emoji.fromUnicode("🔥").getFormatted(),
-		EMOJITRUE = Emoji.fromUnicode("✅").getFormatted(), //✅
-		EMOJIFALSE = Emoji.fromUnicode("❌").getFormatted(), //❌
-		EMOJICORRECT = Emoji.fromUnicode("✔️").getFormatted(),//✔️
-		EMOJIINCORRECT = Emoji.fromUnicode("✖️").getFormatted(),//✖️
-		EMOJIMORETIME = Emoji.fromUnicode("⏰").getFormatted(), //	⏰
-		EMOJINEXTQUESTION = Emoji.fromUnicode("U+23ED U+FE0F").getFormatted(),
-		EMOJIPREVQUESTION = Emoji.fromUnicode("U+23EE U+FE0F").getFormatted(),
-		EMOJISTOP = Emoji.fromUnicode("⏹️").getFormatted(),//⏹️
+		EMOJITRUE = Emoji.fromUnicode("✅").getFormatted(),
+		EMOJIFALSE = Emoji.fromUnicode("❌").getFormatted(),
+		EMOJICORRECT = Emoji.fromUnicode("✔️").getFormatted(),
+		EMOJIINCORRECT = Emoji.fromUnicode("✖️").getFormatted(),
+		EMOJIMORETIME = Emoji.fromUnicode("⏰").getFormatted(),
+		EMOJINEXTQUESTION = Emoji.fromUnicode("▶️").getFormatted(),
+		EMOJIPREVQUESTION = Emoji.fromUnicode("◀️").getFormatted(),
+		EMOJISTOP = Emoji.fromUnicode("⏹️").getFormatted(),
 		EMOJIWHITESQUARE = Emoji.fromUnicode("U+2B1C").getFormatted(),
-		EMOJIEXPLICATION = Emoji.fromUnicode("❓").getFormatted();//❓
+		EMOJIEXPLICATION = Emoji.fromUnicode("❓").getFormatted(),
+		EMOJIBOX = Emoji.fromUnicode("🔲").getFormatted(),
+		EMOJICHECKEDBOX = Emoji.fromUnicode("🔳").getFormatted();
 	public static boolean isBugFree(){
 		return !AREWETESTING;
 	}

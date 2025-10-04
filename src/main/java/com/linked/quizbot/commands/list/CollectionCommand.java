@@ -92,7 +92,7 @@ public class CollectionCommand extends BotCommand {
 			for (String e: emojis){
 				emojiStr +=e;
 			}
-			tmp += String.format("`%s`%s%s\n", l.getId(),emojiStr,l.getName());
+			tmp += String.format("`%s` %s %s\n", l.getId(),emojiStr,l.getName());
 			if (tmp.length()>Constants.CHARSENDLIM - 400) {
 				res.add(tmp);
 				tmp = "";
@@ -100,7 +100,7 @@ public class CollectionCommand extends BotCommand {
 		}
 		if (tmp.length()>0) res.add(tmp);
 		return new CommandOutput.Builder()
-				.addAllTextMessage(res)
+				.addAll(res)
 				.build();
     }
 }

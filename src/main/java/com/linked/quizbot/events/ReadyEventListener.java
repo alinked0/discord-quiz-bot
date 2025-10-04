@@ -8,6 +8,9 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.MessageSender;
+import com.linked.quizbot.core.viewers.Explain;
+import com.linked.quizbot.core.viewers.QuizBot;
+import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.QuestionList;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -51,12 +54,10 @@ public class ReadyEventListener extends ListenerAdapter {
 		event.getGuild().updateCommands().addCommands(commandData).queue();
 		if (!Constants.isBugFree()){
 			if (event.getGuild().getId().equals(Constants.DEBUGGUILDID)){
-				QuestionList q = new QuestionList.Builder().add(QuestionList.getExampleQuestionList()).id("abcdefh").build();
-				q.exportListQuestionAsJson();
 				event.getGuild().getTextChannelById(Constants.DEBUGCHANNELID).sendMessage("Bot is ready for testing.")
-				.addFiles(AttachedFile.fromData(new File(q.getPathToList())))
 				.queue(msg -> 
 				{
+					CommandOutput.Builder output = new CommandOutput.Builder();
 					List<String> emojis = List.of(
 						Constants.EMOJIDEL,
 						Constants.EMOJITRUE,
@@ -73,9 +74,26 @@ public class ReadyEventListener extends ListenerAdapter {
 					List<Emoji> l = new ArrayList<>();
 					for (String e : emojis){l.add(Emoji.fromFormatted(e));}
 
+					QuestionList q = QuestionList.getExampleQuestionList();
 					MessageSender.addButtons(msg, l, mess -> MessageSender.addReactions(mess, l.iterator()));
+
+					Viewer v = new Viewer(q);
+					output.add("## Viewer:\n");
+					output.addAll(v.start().getTextMessages());
+					output.addAll(v.next().getTextMessages());
+
+					v = new QuizBot(q);
+					output.add("## QuizBot:\n");
+					output.addAll(v.start().getTextMessages());
+					output.addAll(v.next().getTextMessages());
+
+					v = new Explain((QuizBot) v, q.getAuthorId());
+					output.add("## Explain:\n");
+					output.addAll(v.start().getTextMessages());
+					output.addAll(v.next().getTextMessages());
+
 					MessageSender.sendCommandOutput(
-						new CommandOutput.Builder().addFile(QuestionList.getExampleQuestionList().getPathToList()).build(),
+						output.addFile(q.getPathToList()).build(),
 						msg.getChannel(),
 						msg 
 					);

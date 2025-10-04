@@ -43,7 +43,7 @@ public class PingCommand extends BotCommand {
 		String res = String.format("Pong! Internal processing: %.2fms | Gateway Ping: %dms", 
 									internalProcessingTimeMs, gatewayPing);
 		return new CommandOutput.Builder()
-				.addTextMessage(res)
+				.add(res)
 				
 				.build();
 	}

@@ -80,7 +80,7 @@ public class Explain extends Viewer{
         if (userAwnsersByQuestionIndex!=null){
             header += String.format("For %s **`%s/%d`**\n", BotCore.getEffectiveNameFromId(userId), points, getQuestionList().size());
         }
-        header+= getQuestionList().header();
+        header+= super.getHeader();
         return header;
     }
     @Override

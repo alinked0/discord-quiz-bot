@@ -20,6 +20,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -889,20 +892,36 @@ public class QuestionList implements Iterable<Question>{
 	
 	/** TODO */
 	public String header(){
-		String res = String.format("**Name:** **%s**\n**Author:** <@%s>\n**nb of questions:** `%d`\n**Date created:** %s\n", 
-			getName(), getAuthorId(),size(), TimeFormat.DATE_TIME_LONG.atTimestamp(getTimeCreatedMillis()));
+		String res = String.format("`%s` `%d` **%s**\n",getId(), size(), getName());
 		return res;
 	}
 	
 	/** TODO */
-	public String getFormated (int index) {
+	public String getFormated(int index, @Nullable Map<String, Set<Option>> respondents,  @Nullable Set<String> players) {
 		Question q = get(index);
-		String questionText = "### "+(index+1)+"/"+size()+" "+q.getQuestion()+"\n";
-		String options = "";
-		for (int i = 0; i < q.size(); i++) {
-			options += (i + 1)+". "+q.get(i).getText()+"\n";
+		String questionText = String.format("### %d/%d/%s\n", index+1, q.size(), q.getQuestion());
+		String options = "",box="", users="";
+		Set<Option>awnsers;
+		for (String u : players){
+			users += BotCore.getEffectiveNameFromId(u).substring(0, 1);
 		}
-		return questionText + options;
+		users = "\n";
+		for (int i = 0; i < q.size(); i++) {
+			if (players==null || respondents==null){
+				box="";
+				if (!players.isEmpty()){
+					for (String u : players){
+						awnsers = respondents.get(u);
+						box += (awnsers==null||awnsers.isEmpty())?Constants.EMOJIBOX:(awnsers.contains(q.get(i))?Constants.EMOJICHECKEDBOX:Constants.EMOJIBOX);
+					}
+				} else {
+					box = Constants.EMOJIBOX;
+				}
+				box += " ";
+			}
+			options += String.format("%s%d. %s\n", box, i + 1, q.get(i).getText());
+		}
+		return String.format("%s%s%s%s", header(), questionText, users, options);
 	}
 	
 	/** TODO */
@@ -922,9 +941,9 @@ public class QuestionList implements Iterable<Question>{
 			} else {
 				emoji = (opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT);
 			}
-			optsString += String.format("> %s*%s*\n",emoji,opt.getExplication());
+			optsString += String.format("> %s%s\n",emoji,opt.getExplication());
 		}
-		String text = String.format("`%s` `%d` **%s**\n",getId(), size(), getName());
+		String text = header();
 		text += String.format("### %d. %s", index+1, q.getQuestion());
 		if (opts!=null && pointsForCorrect != 0.0){
 			text += String.format(" `%s/%s`", points,pointsForCorrect);
@@ -933,6 +952,7 @@ public class QuestionList implements Iterable<Question>{
 		return new Pair<Double, String>(points, text);
 	}
 	
+
 	/** TODO */
 	public Pair<Double, String> getFormatedCorrection (int index, Collection<Option> opts) {
 		return getFormatedCorrection (index, opts, pointsForCorrect, pointsForIncorrect);

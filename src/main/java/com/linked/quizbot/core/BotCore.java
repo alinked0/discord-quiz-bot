@@ -102,15 +102,17 @@ public class BotCore {
 	}
 	public static String getEffectiveNameFromId(String userId){
 		String res;User user;
-		if (getJDA()!=null){
-			user = getJDA().getUserById(userId);
-			if (user!=null){
-				res = user.getEffectiveName();
-				if (res!=null){
-					return res;
+		try {
+			if (getJDA()!=null){
+				user = getJDA().getUserById(userId);
+				if (user!=null){
+					res = user.getEffectiveName();
+					if (res!=null){
+						return res;
+					}
 				}
 			}
-		}
+		}catch(NumberFormatException e){}
 		List<User> l= BotCore.allUsers.stream().filter(u -> u.getId().equals(userId)).toList();
 		if(!l.isEmpty()){
 			user=l.getFirst();

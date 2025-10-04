@@ -59,7 +59,7 @@ public class RawListCommand extends BotCommand{
         }
         CommandOutput.Builder outputBuilder = new CommandOutput.Builder();
         l.exportListQuestionAsJson();
-		return outputBuilder.addTextMessage(String.format("`%s`**%s** Raw JSON\n", l.getId(), l.getName())).addFile(l.getPathToList()).build();
+		return outputBuilder.add(String.format("`%s`**%s** Raw JSON\n", l.getId(), l.getName())).addFile(l.getPathToList()).build();
     }
 
 }

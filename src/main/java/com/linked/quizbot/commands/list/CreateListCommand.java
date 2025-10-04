@@ -84,7 +84,7 @@ public class CreateListCommand extends BotCommand {
             }
         }
 		return new CommandOutput.Builder()
-				.addAllTextMessage(res)
+				.addAll(res)
 				.build();
     }
 }

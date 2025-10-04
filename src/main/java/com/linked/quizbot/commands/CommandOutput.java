@@ -58,7 +58,8 @@ public class CommandOutput {
 		private boolean ephemeral = false;
 		private long delayMillis = 0;
 		private Message message=null;
-		public Builder addTextMessage(String message){
+
+		public Builder add(String message){
 			if (message !=null && !message.isEmpty()){
 				textMessages.add(message);
 			}
@@ -69,9 +70,9 @@ public class CommandOutput {
             return this;
         }
 		public Builder setMessage(Message msg){ message = msg; return this;}
-		public Builder addAllTextMessage(List<String> c){
+		public Builder addAll(List<String> c){
 			for (String s : c){
-				this.addTextMessage(s);
+				this.add(s);
 			}
 			return this;
 		}
@@ -190,7 +191,7 @@ public class CommandOutput {
 			return this;
 		}
 		public Builder add(CommandOutput t) {
-			addAllTextMessage(t.textMessages);
+			addAll(t.textMessages);
 			addAllEmbed(t.embeds);
 			this.replyToSender = t.replyToSender;
 			this.ephemeral = t.ephemeral;

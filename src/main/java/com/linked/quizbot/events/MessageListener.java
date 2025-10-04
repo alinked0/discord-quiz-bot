@@ -69,7 +69,7 @@ public class MessageListener extends ListenerAdapter {
 			BotCommand.CommandCategory category = cmd.getCategory();
 			if(category.equals(BotCommand.CommandCategory.EDITING) || category.equals(BotCommand.CommandCategory.GAME)){
 				MessageSender.sendCommandOutput(
-					new CommandOutput.Builder().addTextMessage(Constants.UPDATEEXPLANATION).build(),
+					new CommandOutput.Builder().add(Constants.UPDATEEXPLANATION).build(),
 					channel,
 					null 
 					);

@@ -62,7 +62,7 @@ public class DeleteListCommand extends BotCommand{
 		l = Users.getById(args.get(0));
 		ownerId = l.getAuthorId(); 
 		if (ownerId.equals(userId)){
-			output.addTextMessage(String.format("Are you sure you want to delete :`%s`**%s**?",l.getId(), l.getName()))
+			output.add(String.format("Are you sure you want to delete :`%s`**%s**?",l.getId(), l.getName()))
 				.addReaction(Emoji.fromFormatted(Constants.EMOJIDEL))
 			.addPostSendAction(
 				message ->{
@@ -71,7 +71,7 @@ public class DeleteListCommand extends BotCommand{
 				BotCore.deletionMessages.put(messageId, message);
 			});
 		}else {
-			output.addTextMessage(String.format("You do not own the list:`%s`**%s**",l.getId(), l.getName()));
+			output.add(String.format("You do not own the list:`%s`**%s**",l.getId(), l.getName()));
 		}
 		return output.build();
 	}

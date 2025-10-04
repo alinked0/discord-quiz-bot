@@ -169,7 +169,9 @@ public class QuizBot extends Viewer {
 		if (getMessage() != null) {
 			BotCore.explicationRequest.remove(getMessageId());
 		}
-		this.awnsersByUserIdByQuestionIndex.set(getCurrentIndex(), new HashMap<>(this.userAnswersForCurrQuestion));
+		if (getCurrentIndex()>=0){
+			this.awnsersByUserIdByQuestionIndex.set(getCurrentIndex(), new HashMap<>(this.userAnswersForCurrQuestion));
+		}
 		this.userAnswersForCurrQuestion.clear();
 		for (String userId : getPlayers()){
 			this.userAnswersForCurrQuestion.put(userId, new HashSet<>());
@@ -201,13 +203,36 @@ public class QuizBot extends Viewer {
 		res += String.format("**AutoNext:** `%s`\n", useAutoNext());
 		return res;
 	}
+	
     @Override
     public String getFormatedQuestion () {
 		if (useAutoNext() && awnsersByUserIdByQuestionIndex.get(getCurrentIndex()).size()>1){
 			this.timeLimit = TimeFormat.RELATIVE.after(delaySec*1000);
 		}
-        return getQuestionList().getFormated(getCurrentIndex())+getLastTimestamp()+"\n";
+		Question q = getCurrQuestion();
+		String questionText = String.format("### %d/%d/%s\n", getCurrentIndex()+1, q.size(), q.getQuestion());
+		String options = "",box, users="";
+		Map<String, Set<Option>> respondents = userAnswersForCurrQuestion;
+		Set<Option>awnsers;
+		for (String u : getPlayers()){
+			users += u.substring(0, 1);
+		}
+		users = "\n";
+		for (int i = 0; i < q.size(); i++) {
+			box="";
+			if (!getPlayers().isEmpty()){
+				for (String u : getPlayers()){
+					awnsers = respondents.get(u);
+					box += (awnsers==null||awnsers.isEmpty())?Constants.EMOJIBOX:(awnsers.contains(q.get(i))?Constants.EMOJICHECKEDBOX:Constants.EMOJIBOX);
+				}
+			} else {
+				box = Constants.EMOJIBOX;
+			}
+			options += String.format("%s %d. %s\n", box, i + 1, q.get(i).getText());
+		}
+		return String.format("%s%s%s\n", questionText, users, options, getLastTimestamp());
     }
+
     @Override
     public void end() {
 		super.end();
@@ -275,7 +300,7 @@ public class QuizBot extends Viewer {
 		int i = 1;
 		while (SortedScoreByUser.hasNext()) {
 			Map.Entry<String, Double> entry = SortedScoreByUser.next();
-			leaderboard += String.format("#%d. %s: `%s`\n", i, BotCore.getEffectiveNameFromId(entry.getKey()), entry.getValue());
+			leaderboard += String.format("#%d. <@%s>: `%s`\n", i, BotCore.getEffectiveNameFromId(entry.getKey()), entry.getValue());
 			i++;
 			if (leaderboard.length() > (Constants.CHARSENDLIM - 1000)) {
 				res.add(leaderboard);

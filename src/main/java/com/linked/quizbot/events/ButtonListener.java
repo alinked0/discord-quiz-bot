@@ -72,11 +72,11 @@ public class ButtonListener extends ListenerAdapter {
 			viewer.addReaction(userId, reaction);
 			if (viewer instanceof QuizBot && viewer.getCurrentIndex()>=0){
 				QuizBot quizBot = (QuizBot)viewer;
+				MessageSender.sendCommandOutput(
+					new CommandOutput.Builder().add(quizBot.current()).sendInOriginalMessage(true).build(),
+					event
+				);
 				if (quizBot.getPlayers().size()==1){
-					MessageSender.sendCommandOutput(
-						new CommandOutput.Builder().add(quizBot.current()).sendInOriginalMessage(true).build(),
-						event
-					);
 					ReactionListener.autoNext(userId, message, quizBot);
 					return;
 				}

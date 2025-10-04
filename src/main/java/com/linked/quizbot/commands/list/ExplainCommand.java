@@ -69,7 +69,7 @@ public class ExplainCommand extends BotCommand {
             ex = new Explain(q, userId);
             expl = ex.start();
         }
-        output.add(expl).addTextMessage(q.getLastTimestamp().toString());
+        output.add(expl).add(q.getLastTimestamp().toString());
         if (nbPlayers>1){
             output.sendAsPrivateMessage(userId).sendInOriginalMessage(false);
         }

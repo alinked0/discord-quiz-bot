@@ -82,7 +82,7 @@ public class TagListCommand extends BotCommand{
         if (totalTagged>0){res += taggedStr;}
         
 		return new CommandOutput.Builder()
-				.addTextMessage(res)
+				.add(res)
 				.build();
     }
 

@@ -72,7 +72,7 @@ public class ReactionListener extends ListenerAdapter {
 				viewer.addReaction(userId, reaction);
 				if (viewer instanceof QuizBot && viewer.getCurrentIndex()>=0){
 					QuizBot quizBot = (QuizBot)BotCore.getViewer(messageId);
-					if (quizBot.getPlayers().size()==1){
+					if (quizBot.useAutoNext() && quizBot.getPlayers().size()==1){
 						ReactionListener.autoNext(userId, message, quizBot);
 						return;
 					}

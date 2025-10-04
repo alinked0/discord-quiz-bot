@@ -50,7 +50,7 @@ public class RemoveListCommand extends BotCommand{
         CommandOutput.Builder output = new CommandOutput.Builder();
         String messageId = args.get(0);
         if (BotCore.toBeDeleted.get(messageId)==null){
-            output.addTextMessage(String.format("Couldn't guess your intentions, nothing will change."));
+            output.add(String.format("Couldn't guess your intentions, nothing will change."));
         } else {
             QuestionList l= BotCore.toBeDeleted.get(messageId);
             String listId = l.getId();
@@ -59,9 +59,9 @@ public class RemoveListCommand extends BotCommand{
             .setMessage(BotCore.deletionMessages.get(messageId))
             .sendInOriginalMessage(true);
             if (Users.deleteList(l)){
-                output.addTextMessage(String.format("`%s`**%s** is deleted form your collection\n", l.getId(), l.getName()));
+                output.add(String.format("`%s`**%s** is deleted form your collection\n", l.getId(), l.getName()));
             } else {
-                output.addTextMessage(String.format("`%s`**%s** will be deleted form your collection\n", l.getId(), l.getName()));
+                output.add(String.format("`%s`**%s** will be deleted form your collection\n", l.getId(), l.getName()));
             }
         }
         BotCore.toBeDeleted.remove(messageId);

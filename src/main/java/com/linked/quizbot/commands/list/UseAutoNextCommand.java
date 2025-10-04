@@ -69,7 +69,7 @@ public class UseAutoNextCommand extends BotCommand {
 		user.useAutoNext(b);
 		Users.update(user);
 		return new CommandOutput.Builder()
-				.addTextMessage(String.format("AutoNext has been set to %s", b))
+				.add(String.format("AutoNext has been set to %s", b))
 				.build();
 	}
 }

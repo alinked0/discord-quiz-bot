@@ -71,14 +71,14 @@ public class RenameListCommand extends BotCommand{
 		QuestionList l = u.getById(id);
 		CommandOutput.Builder output = new CommandOutput.Builder();
 		if (l==null){
-			output.addTextMessage(String.format("Could not find `%s` in your collection.", id));
+			output.add(String.format("Could not find `%s` in your collection.", id));
 		}else {
 			String oldName= l.getName();
 			if(u.renameList(l, newName)){
-				output.addTextMessage(String.format("`%s` **%s** was renamed to `%s` **%s** .", id, oldName, id, newName));
+				output.add(String.format("`%s` **%s** was renamed to `%s` **%s** .", id, oldName, id, newName));
 			}else {
 				QuestionList k = u.getByName(newName);
-				output.addTextMessage(String.format("There is already a list of this name, `%s` **%s** .", k.getId(), k.getName()));
+				output.add(String.format("There is already a list of this name, `%s` **%s** .", k.getId(), k.getName()));
 			}
 		}
 		return output.build();

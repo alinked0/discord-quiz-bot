@@ -14,6 +14,7 @@ import com.linked.quizbot.utils.QuestionList;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.utils.TimeFormat;
 
 /**
  * A stateful component responsible for displaying and navigating through a
@@ -29,7 +30,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
  * @version 1.0
  * @since 2025-02-01
  */
-public class Viewer {
+public class Viewer <T>{
 	private final QuestionList questions;
 	private boolean active= false;
 	private boolean sendInOriginalMessage= true;
@@ -165,7 +166,7 @@ public class Viewer {
 		inBetweenProccessorStart();
 		CommandOutput.Builder output = new CommandOutput.Builder();
 		return output.sendInOriginalMessage(false)
-			.addTextMessage(getHeader())
+			.add(getHeader())
 			.useButtons(useButtons())
 			.addReactions(getReactions())
 			.addPostSendAction(postSendActionStart())
@@ -245,7 +246,8 @@ public class Viewer {
      * @return The header string.
      */
 	public String getHeader(){
-		return questions.header();
+		return String.format("%s**Author:** <@%s>\n**Date created:** %s\n", questions.header(),
+			questions.getAuthorId(), TimeFormat.DATE_TIME_LONG.atTimestamp(questions.getTimeCreatedMillis()));
 	}
 
 	/**
@@ -283,9 +285,10 @@ public class Viewer {
 		CommandOutput.Builder output = new CommandOutput.Builder();
 		if (!isActive()) { return output.build();}
 		if (currIndex == -1){
-			output.addTextMessage(getHeader());
+			output.add(getHeader());
 		} else {
-			output.addTextMessage(getFormatedQuestion());
+			output.add(getFormatedQuestion());
+			if (!Constants.isBugFree())output.add(String.format("```txt\n%s\n```\n",getFormatedQuestion()));
 		}
 		inBetweenProccessorCurrent();
 		return output.sendInOriginalMessage(sendInOriginalMessage)

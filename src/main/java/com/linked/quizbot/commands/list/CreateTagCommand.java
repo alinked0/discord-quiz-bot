@@ -60,7 +60,7 @@ public class CreateTagCommand extends BotCommand{
             res = "Tag already exists.";
         }
 		return new CommandOutput.Builder()
-				.addTextMessage(res)
+				.add(res)
 				
 				.build();
     }

@@ -51,7 +51,7 @@ public class UserInfoCommand extends BotCommand{
     public CommandOutput execute(String userId,  List<String> args){
 		User user = args.size()>0?Users.get(args.get(0)): Users.get(userId);
 		return new CommandOutput.Builder()
-				.addTextMessage(String.format("```js\n%s\n```", user.toString()))
+				.add(String.format("```js\n%s\n```", user.toString()))
 				.build();
     }
 

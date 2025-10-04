@@ -55,7 +55,7 @@ public class SetPrefixeCommand extends BotCommand{
         Users.get(userId).setPrefix(prefixe);
         String res = BotCore.getEffectiveNameFromId(userId)+"'s prefixe has been set to '"+prefixe+"'";
 		return new CommandOutput.Builder()
-				.addTextMessage(res)
+				.add(res)
 				.build();
     }
 

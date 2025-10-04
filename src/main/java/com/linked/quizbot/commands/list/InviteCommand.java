@@ -46,7 +46,7 @@ public class InviteCommand extends BotCommand {
         );
         String res = String.format("`%s`", BotCore.getJDA().getInviteUrl(permissions));
 		return new CommandOutput.Builder()
-				.addTextMessage(res)
+				.add(res)
 				.build();
     }
 }

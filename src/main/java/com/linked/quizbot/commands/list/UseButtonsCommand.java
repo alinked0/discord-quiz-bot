@@ -63,7 +63,7 @@ public class UseButtonsCommand extends BotCommand{
 		user.useButtons(b);
 		Users.update(user);
 		return new CommandOutput.Builder()
-				.addTextMessage(String.format("Your now using %s", b?"Buttons":"Reactions"))
+				.add(String.format("Your now using %s", b?"Buttons":"Reactions"))
 				.build();
     }
 
