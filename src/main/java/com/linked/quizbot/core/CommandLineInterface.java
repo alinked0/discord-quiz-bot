@@ -67,15 +67,15 @@ public class CommandLineInterface {
 				case "shutdown", "stop", "disconnectjda", "disconnect" -> {
 					BotCore.shutDown();
 					BotCore.SHUTINGDOWN = false;
-					System.out.println(String.format("[INFO] Bot nolonger online.", BotCore.isBugFree()?"privately":"publicly"));
+					System.out.println(String.format("[INFO] Bot nolonger online.", BotCore.isBugFree()?"publicly":"privately"));
 				}
 				case "public" -> {
 					BotCore.areWeTesting = false;
-					System.out.println(String.format("[INFO] Bot is %s %s.", BotCore.isBugFree()?"privately":"publicly", BotCore.isOnline()?"online":"offline"));
+					System.out.println(String.format("[INFO] Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
 				}
 				case "private" -> {
 					BotCore.areWeTesting = true;
-					System.out.println(String.format("[INFO] Bot is %s %s.", BotCore.isBugFree()?"privately":"publicly", BotCore.isOnline()?"online":"offline"));
+					System.out.println(String.format("[INFO] Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
 				}
 				case "connectjda", "connect", "startjda", "start" -> {
 					if (BotCore.jda == null){

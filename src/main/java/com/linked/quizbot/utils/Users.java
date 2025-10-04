@@ -154,6 +154,7 @@ public class Users {
 					QuestionList l = QuestionList.Parser.fromJsonFile(listOfFiles[i].getAbsolutePath()).build();
 					res.put(listId, l);
 				}catch (IOException e) {
+					System.err.println(String.format("[ERROR] An error occurred while importing a list. listid:%s , userId:%s",listId, userId));
 					e.printStackTrace();
 				}
 			}

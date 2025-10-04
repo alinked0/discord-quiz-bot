@@ -336,7 +336,7 @@ public class QuestionList implements Iterable<Question>{
 			String imgSrc= null, fieldName;
 			List <Option>opts = null;
 			if(jp.currentToken() != JsonToken.START_OBJECT) {
-				throw new IOException(String.format("Error QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
+				throw new IOException(String.format("[ERROR] QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
 			}
 			while(!jp.isClosed()){
 				if(jp.currentToken() == JsonToken.FIELD_NAME) {
