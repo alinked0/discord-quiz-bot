@@ -127,7 +127,7 @@ public class User implements Iterable<QuestionList>{
 			throw new NullPointerException();
 		}
 		this.userId = builder.userId;
-        this.prefixe = builder.prefixe.length()>0?builder.prefixe:Constants.CMDPREFIXE;
+        this.prefixe = builder.prefixe;
 		this.numberOfGamesPlayed = builder.numberOfGamesPlayed;
 		this.totalPointsEverGained = builder.totalPointsEverGained;
 		this.tagEmojiPerTagName.putAll(builder.tagEmojiPerTagName);
@@ -143,7 +143,7 @@ public class User implements Iterable<QuestionList>{
 		for(QuestionList l: listsSortedById){
 			QuestionList.Hasher.addGeneratedCode(l.getId());
 		}
-		if (new File(getPathToUserData()).exists()){
+		if (new File(getPathToUserData()).exists()){ 
 			try {
 				User.Builder builder = UserDataParser.fromJsonFile(getPathToUserData());
 				this.prefixe = builder.prefixe;
@@ -154,7 +154,7 @@ public class User implements Iterable<QuestionList>{
 				this.useButtons = builder.useButtons;
 				this.useAutoNext = builder.useAutoNext;
 			} catch (IOException e){
-				e.printStackTrace();
+				System.err.println(String.format("[ERROR] %s %s", getPathToUserData(), e.getMessage()));
 			}
 		}
 		for(QuestionList l: importLists().values()){
@@ -180,9 +180,6 @@ public class User implements Iterable<QuestionList>{
 	public void useAutoNext(boolean b){ useAutoNext = b;}
 	public String getPrefix(){
 		return prefixe;
-	}
-	public String getPreferredPrefix(){
-		return getPrefix();
 	}
 	public void setPrefix(String prefixe){
 		this.prefixe= prefixe;

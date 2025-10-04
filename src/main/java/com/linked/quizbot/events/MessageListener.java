@@ -11,6 +11,7 @@ import com.linked.quizbot.commands.list.AddListCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.CommandLineInterface;
 import com.linked.quizbot.core.MessageSender;
+import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
@@ -50,7 +51,11 @@ public class MessageListener extends ListenerAdapter {
 		//vefifier si le message contient notre prefixe
 		Message message = event.getMessage();
 		String content = message.getContentRaw();
-
+		String userPrefixe = Users.get(userId).getPrefix();
+		if (!content.startsWith(Constants.CMDPREFIXE) && userPrefixe!=null && !content.startsWith(userPrefixe)){
+			return;
+		}
+		
 		CommandOutput output= CommandLineInterface.execute(content, userId);
 		MessageSender.sendCommandOutput(
 			output,

@@ -58,7 +58,7 @@ public class TestUserDataParser {
 		User user = UserDataParser.fromJsonFile(tempFile.getAbsolutePath()).id("testUser").build();
 
 		assertNotNull(user);
-		assertEquals("!test", user.getPreferredPrefix());
+		assertEquals("!test", user.getPrefix());
 		assertEquals(100.5, user.getTotalPointsEverGained());
 		assertEquals(5, user.getNumberOfGamesPlayed());
 		assertNotNull(user.getEmojiPerTagName());
@@ -90,7 +90,7 @@ public class TestUserDataParser {
 		User user = UserDataParser.fromString(jsonContent).id("testUser").build();
 
 		assertNotNull(user);
-		assertEquals("@quiz", user.getPreferredPrefix());
+		assertEquals("@quiz", user.getPrefix());
 		assertEquals(250.75, user.getTotalPointsEverGained());
 		assertEquals(15, user.getNumberOfGamesPlayed());
 		assertNotNull(user.getEmojiPerTagName());
@@ -107,7 +107,7 @@ public class TestUserDataParser {
 		User user = UserDataParser.fromString(jsonContent).id("testUser").build();
 
 		assertNotNull(user);
-		assertNull(user.getPreferredPrefix()); // Default value for String
+		assertNull(user.getPrefix()); // Default value for String
 		assertEquals(0.0, user.getTotalPointsEverGained()); // Default value for double
 		assertEquals(0, user.getNumberOfGamesPlayed()); // Default value for int
 		assertNotNull(user.getEmojiPerTagName());
@@ -121,7 +121,7 @@ public class TestUserDataParser {
 			User user = UserDataParser.fromString(jsonContent).id("testUser").build();
 
 		assertNotNull(user);
-		assertNull(user.getPreferredPrefix());
+		assertNull(user.getPrefix());
 		assertEquals(50.0, user.getTotalPointsEverGained());
 		assertEquals(0, user.getNumberOfGamesPlayed()); // Default value
 		assertNotNull(user.getEmojiPerTagName());
@@ -144,7 +144,7 @@ public class TestUserDataParser {
 		User user = UserDataParser.parser(jp).id("testUser").build();
 
 		assertNotNull(user);
-		assertEquals("#", user.getPreferredPrefix());
+		assertEquals("#", user.getPrefix());
 		assertEquals(75.25, user.getTotalPointsEverGained());
 		assertEquals(8, user.getNumberOfGamesPlayed());
 		assertNotNull(user.getEmojiPerTagName());

@@ -99,7 +99,7 @@ public class Option {
 			s+="\n}";
 			return s;
 		} catch (Exception e){
-			System.err.println("[ERROR] [toJson() failed]"+e.getMessage());
+			System.err.println(String.format("[ERROR] [%s.toJson() failed]%s", getClass(), e.getMessage()));
 		}
 		return null;
 	}
