@@ -68,31 +68,33 @@ public class CollectionCommand extends BotCommand {
 				userId = id;
 			} else {return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));}
 		}
-		if (user==null) user = Users.get(userId);
-		List<String> res = new ArrayList<>();
 
-		String tmp = "Collection of ";
-		tmp += String.format("<@%s>\n",userId);
+		String minEmoji, tagName;
+		List<String> res = new ArrayList<>();
+		
+		if (user==null) user = Users.get(userId);
+		String tmp = String.format("Collection of <@%s>\n",userId);
 		List<QuestionList> list = user.getLists();
-		QuestionList example = QuestionList.getExampleQuestionList();
+		
 		list.sort(QuestionList.comparatorByDate().reversed());
-		list.add(example);
-		int maxTags = 0;
+		list.add(QuestionList.getExampleQuestionList());
+		
 		for (QuestionList l : list){
-			maxTags = Math.max(maxTags, l.getTags().size());
-		}
-		Collection<String> emojis;
-		String emojiStr = "";
-		for (QuestionList l : list){
-			emojiStr = "";
-			emojis = l.getTags().values();
-			if (emojis.size()<maxTags){
-				emojiStr += Constants.EMOJIWHITESQUARE.repeat(maxTags-emojis.size());
+			minEmoji = "";
+			if (!l.getTagNames().isEmpty()) {
+				tagName = l.getTagNames().iterator().next();
+				int min = user.getListsByTag(tagName).size();
+				minEmoji = l.getEmoji(tagName);
+				int curr;
+				for (String emoji : l.getTagNames()){
+					curr = user.getListsByTag(emoji).size();
+					if (curr<min){
+						min = curr;
+						minEmoji = l.getEmoji(emoji);
+					}
+				}
 			}
-			for (String e: emojis){
-				emojiStr +=e;
-			}
-			tmp += String.format("`%s` %s %s\n", l.getId(),emojiStr,l.getName());
+			tmp += String.format("`%s` %s %s\n", l.getId(), minEmoji, l.getName());
 			if (tmp.length()>Constants.CHARSENDLIM - 400) {
 				res.add(tmp);
 				tmp = "";

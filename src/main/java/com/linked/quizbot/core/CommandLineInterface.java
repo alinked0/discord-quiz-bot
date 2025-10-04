@@ -9,6 +9,8 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.commands.list.HelpCommand;
 import com.linked.quizbot.utils.Users;
 
 /**
@@ -27,23 +29,23 @@ public class CommandLineInterface {
 	}
 	public static String usage(){
 		String s="";
-		s+= "Usage: \n\t$ [COMMAND]\n";
+		s+= "Usage: \n\t[COMMAND]\n";
 		s+= String.format("\t%s\t%s\n", "status","gets the bot status");
 		s+= String.format("\t%s\t%s\n", "stop, shutdown","stops the bots");
 		s+= String.format("\t%s\t%s\n", "exit","stops the bot, kills this process");
 		s+= String.format("\t%s\t%s\n", "start"," starts the bot and connects it to discord");
 		s+= String.format("\t%s\t%s\n", "q![BotCommand] [Argumments]","executes a command and returns a text output");
 		s+= "Example: \n";
-        s+= "\t$ status\n";
-        s+= "\t$ q!collection\n";
-        s+= "\t$ q!help\n";
+        s+= "\tstatus\n";
+        s+= "\tq!collection\n";
+        s+= "\tq!help\n";
 		return s;
 	}
 	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	public static void execute (Scanner scanner) {
 		boolean exiting = false;
 		while (!exiting) {
-			System.out.print("$ ");
+			System.out.print("");
 			String input = scanner.nextLine().toLowerCase();
 			switch (input) {
 				case "exit" -> {
@@ -66,13 +68,17 @@ public class CommandLineInterface {
 				case "status", "stat"-> {
 					System.out.print(getStatus());
 				}
+				case "load", "reload"-> {
+					Users.loadAllUsers();
+					System.out.println("[IO] Loaded All data from disk.");
+				}
 				case "help" -> {
 					System.out.println(usage());
 				}
 				default -> {
 					try {
 						Future<?> future = scheduler.submit(() -> {
-							List<String> out = execute(input, Constants.AUTHORID);
+							List<String> out = execute(input, Constants.AUTHORID).getAsText();
 							for (String s: out){
 								System.out.println(s);
 							}
@@ -93,18 +99,19 @@ public class CommandLineInterface {
 		}
 		if (BotCore.jda!=null) BotCore.jda.shutdownNow();
 	}
-	public static List<String> execute(String message, String userId) {
-		String content = message;
+	public static CommandOutput execute(String message, String userId) {
+		long start = System.nanoTime();
+		CommandOutput.Builder ouitput = new CommandOutput.Builder();
 		List<String> arguments=new ArrayList<>();
 		List<String> tmp = parsePrefixe(userId, message);
 		if (tmp.isEmpty()){
-			return List.of(usage());
+			return ouitput.add("help").build();
 		}
 		message = tmp.getLast();
 		arguments.add(tmp.get(0));
 		tmp = parseBotCommand(message);
 		if (tmp.isEmpty()){
-			return List.of(String.format("Prefixe:%s, Cmd:None", arguments.get(0)));
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of());
 		}
 		message = tmp.getLast();
 		arguments.add(tmp.get(0));
@@ -113,22 +120,22 @@ public class CommandLineInterface {
 		if(BotCore.isShutingDown()){
 			BotCommand.CommandCategory category = cmd.getCategory();
 			if(category.equals(BotCommand.CommandCategory.EDITING) || category.equals(BotCommand.CommandCategory.GAME)){
-				return List.of(Constants.UPDATEEXPLANATION);
+				return ouitput.add(Constants.UPDATEEXPLANATION).build();
 			}
 		}
 		
 		String cmndLineArgs = message;
 		arguments = cmd.parseArguments(cmndLineArgs);
 
+		System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`, Argc-1=%d;\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
 		if (!Constants.isBugFree()) {
-			System.out.print("[INFO] "+content.replace("\n", "").replace("\t", ""));
-			System.out.print(" ; arguments size="+arguments.size()+":");
 			for (int i=0; i<arguments.size(); i++) {
-				System.out.print(arguments.get(i).replace("\n", "").replace("\t", "")+":");
+				System.out.print(arguments.get(i).replace("[\\n \\t]", ""));
+				if (i!=arguments.size()-1){System.out.print("::");}
 			}
-			System.out.print("\n");
+			System.out.print(";\n");
 		}
-		return cmd.execute(userId, arguments).getAsText();
+		return cmd.execute(userId, arguments);
 	}
 	public static List<String> parsePrefixe(String userId, String message){
 		String prefixe;

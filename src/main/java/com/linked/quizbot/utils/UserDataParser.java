@@ -70,7 +70,7 @@ public class UserDataParser {
 		String tagName;
 		String emoji;
 		Map<String, String> m = new HashMap<>();
-		if (jp.currentToken() == JsonToken.FIELD_NAME && "getTagEmojiPerTagName".equals(jp.currentName())) {
+		if (jp.currentToken() == JsonToken.FIELD_NAME && "emojiPerTagName".equals(jp.currentName())) {
 			jp.nextToken();
 		}
 		while (jp.nextToken() != JsonToken.END_OBJECT && !jp.isClosed()) {

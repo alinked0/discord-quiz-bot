@@ -30,7 +30,7 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  * @version 1.0
  * @since 2025-02-01
  */
-public class Viewer <T>{
+public class Viewer {
 	private final QuestionList questions;
 	private boolean active= false;
 	private boolean sendInOriginalMessage= true;

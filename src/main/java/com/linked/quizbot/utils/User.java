@@ -127,7 +127,7 @@ public class User implements Iterable<QuestionList>{
 			throw new NullPointerException();
 		}
 		this.userId = builder.userId;
-        this.prefixe = builder.prefixe;
+        this.prefixe = builder.prefixe.length()>0?builder.prefixe:Constants.CMDPREFIXE;
 		this.numberOfGamesPlayed = builder.numberOfGamesPlayed;
 		this.totalPointsEverGained = builder.totalPointsEverGained;
 		this.tagEmojiPerTagName.putAll(builder.tagEmojiPerTagName);
@@ -161,7 +161,7 @@ public class User implements Iterable<QuestionList>{
 			addList(l);
 		}
 		for(QuestionList l: listsSortedById){
-			tags = l.getTags();
+			tags = l.getEmojiPerTagName();
 			tagEmojiPerTagName.putAll(tags);
 			for (String tagName : tags.keySet()){
 				if (questionListPerTags.get(tagName)==null){
@@ -214,7 +214,7 @@ public class User implements Iterable<QuestionList>{
 		numberOfGamesPlayed+=1;
 		this.exportUserData();
 	}
-	public Map<String, String> getTagEmojiPerTagName() {
+	public Map<String, String> getEmojiPerTagName() {
 		return new HashMap<>(tagEmojiPerTagName);
 	}
 	public Map<String, List<QuestionList>> getQuestionListPerTags() {
@@ -227,11 +227,11 @@ public class User implements Iterable<QuestionList>{
 		}
 		return new ArrayList<>(res);
 	}
-	public Set<String> getTags() {
-		return new HashSet<>(tagEmojiPerTagName.keySet());
+	public Set<String> getTagNames() {
+		return tagEmojiPerTagName.keySet();
 	}
 
-	public List<QuestionList> getQuestionListsByTag(String tagName){
+	public List<QuestionList> getQuestionListsFromTagName(String tagName){
 		List<QuestionList> res = questionListPerTags.get(tagName);
 		if (res == null){
 			return new ArrayList<>();
@@ -363,7 +363,7 @@ public class User implements Iterable<QuestionList>{
 	}
 	
 	public boolean removeTagFromList(QuestionList l, String tagName) {
-		if (!l.getTags().containsKey(tagName)) {
+		if (!l.getTagNames().contains(tagName)) {
 			return false; // Tag does not exist in the list
 		}
 		l.removeTag(tagName);
@@ -381,8 +381,8 @@ public class User implements Iterable<QuestionList>{
 		tagEmojiPerTagName.clear();
 		questionListPerTags.clear();
 		for(QuestionList l1: listsSortedById){
-			Map<String, String> tags = l1.getTags();
-			tagEmojiPerTagName.putAll(l1.getTags());
+			Map<String, String> tags = l1.getEmojiPerTagName();
+			tagEmojiPerTagName.putAll(l1.getEmojiPerTagName());
 			for (String tagName : tags.keySet()){
 				if (questionListPerTags.get(tagName)==null){
 					questionListPerTags.put(tagName, new ArrayList<QuestionList>());
@@ -471,21 +471,21 @@ public class User implements Iterable<QuestionList>{
 		String nextLine = oneLine?"":"\n";
 		String res="", spc = oneLine?" ":"  ";
 		res += "{"+nextLine;
-		ObjectMapper mapper = new ObjectMapper();
-		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("userId"), mapper.writeValueAsString(getId()), ","+nextLine);
-		res += String.format("%s:%s%s",spc+mapper.writeValueAsString("tagEmojiPerTagName"), "{", nextLine);
+
+		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("userId"), Constants.MAPPER.writeValueAsString(getId()), ","+nextLine);
+		res += String.format("%s:%s%s",spc+Constants.MAPPER.writeValueAsString("tagEmojiPerTagName"), "{", nextLine);
 		Iterator<Entry<String, String>> iter = tagEmojiPerTagName.entrySet().iterator();
 		Entry<String, String> entry2;
 		while (iter.hasNext()) {
 			entry2 = iter.next();
-			res += String.format("%s:%s%s", spc+spc+mapper.writeValueAsString(entry2.getKey()), mapper.writeValueAsString(entry2.getValue()), (iter.hasNext()?", ":"")+nextLine);
+			res += String.format("%s:%s%s", spc+spc+Constants.MAPPER.writeValueAsString(entry2.getKey()), Constants.MAPPER.writeValueAsString(entry2.getValue()), (iter.hasNext()?", ":"")+nextLine);
 		}
 		res += spc+"},"+nextLine;
-		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("prefixe"), mapper.writeValueAsString(getPrefix()), ","+nextLine);
-		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("useButtons"), useButtons(), ","+nextLine);
-		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("useAutoNext"), useAutoNext(), ","+nextLine);
-		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("totalPointsEverGained"), getTotalPointsEverGained(), ","+nextLine);
-		res += String.format("%s:%s%s", spc+mapper.writeValueAsString("numberOfGamesPlayed"), getNumberOfGamesPlayed(), nextLine);
+		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("prefixe"), Constants.MAPPER.writeValueAsString(getPrefix()), ","+nextLine);
+		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("useButtons"), useButtons(), ","+nextLine);
+		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("useAutoNext"), useAutoNext(), ","+nextLine);
+		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("totalPointsEverGained"), getTotalPointsEverGained(), ","+nextLine);
+		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("numberOfGamesPlayed"), getNumberOfGamesPlayed(), nextLine);
 		res +="}";
 		return res;
 	}

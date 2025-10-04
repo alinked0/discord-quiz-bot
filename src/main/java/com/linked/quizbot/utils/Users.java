@@ -39,7 +39,7 @@ public class Users {
 	public static User get(String userId) {
 		return Users.getUser(userId);
 	}
-	public static void reset() {
+	public static void clear() {
         allUsers.clear();
         QuestionList.Hasher.clearGeneratedCodes();
     }
@@ -169,6 +169,7 @@ public class Users {
 		}
 	}
 	public static void loadAllUsers(){
+		Users.clear();
 		File folder = new File(Constants.USERDATAPATH);
 		String userId;
 		if (folder.exists()){

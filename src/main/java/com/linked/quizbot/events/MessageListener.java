@@ -27,7 +27,6 @@ public class MessageListener extends ListenerAdapter {
 	
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event) {
-		long start = System.nanoTime();
 		// Ignore bots
 		User sender = event.getAuthor();
 		if (sender.isBot()) return;
@@ -51,51 +50,13 @@ public class MessageListener extends ListenerAdapter {
 		//vefifier si le message contient notre prefixe
 		Message message = event.getMessage();
 		String content = message.getContentRaw();
-		
-		List<String> tmp = CommandLineInterface.parsePrefixe(userId, content);
-		String cmndLineArgs = "";
-		if (tmp.isEmpty()){
-			return;
-		}
-		content = tmp.getLast();
-		tmp = CommandLineInterface.parseBotCommand(content);
-		if (tmp.isEmpty()){
-			return;
-		}
-		cmndLineArgs = tmp.getLast();
-		BotCommand cmd = BotCommand.getCommandByName(tmp.get(0));
-		
-		if(BotCore.isShutingDown()){
-			BotCommand.CommandCategory category = cmd.getCategory();
-			if(category.equals(BotCommand.CommandCategory.EDITING) || category.equals(BotCommand.CommandCategory.GAME)){
-				MessageSender.sendCommandOutput(
-					new CommandOutput.Builder().add(Constants.UPDATEEXPLANATION).build(),
-					channel,
-					null 
-					);
-				return;
-			}
-		}
-		List<String> arguments=new ArrayList<>();
-		arguments.addAll(cmd.parseArguments(cmndLineArgs));
-		switch (cmd.getName()) {
-			case CreateListCommand.CMDNAME, AddListCommand.CMDNAME -> {
-				arguments.addAll(BotCommand.getArgFromAttachments(userId, message.getAttachments()));
-			}
-		}
-		/*if (!Constants.isBugFree()) {
-			System.out.print("[INFO] ("+cmd.getName()+") "+content.replace("\n", "").replace("\t", ""));
-			System.out.print(" ; arguments :");
-			for (int i=0; i<arguments.size(); i++) { 
-				System.out.print(arguments.get(i).replace("\n", "").replace("\t", "")+":");
-			}
-		}*/
+
+		CommandOutput output= CommandLineInterface.execute(content, userId);
 		MessageSender.sendCommandOutput(
-			cmd.execute(userId, arguments),
+			output,
 			channel,
 			message
 		);
-		if (!Constants.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`, Number of Args: %s\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
 	}
 }
 

@@ -1,5 +1,8 @@
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.UserDataParser;
 
@@ -23,6 +26,7 @@ public class TestUserDataParser {
 	private String emoji;
 	private String tagName;
 
+
 	@BeforeEach
 	void setUp() {
 		// Initialize a  Emoji object before each test
@@ -32,18 +36,18 @@ public class TestUserDataParser {
 
 	@Test
 	@DisplayName("Test fromJsonFile with a valid file")
-	void testFromJsonFile_ValidFile() throws IOException {
+	void testFromJsonFile_ValidFile() throws IOException, JsonProcessingException{
 		// Create a temporary JSON file for testing
 		File tempFile = File.createTempFile("userData", ".json");
 		tempFile.deleteOnExit(); // Ensure the file is deleted after the test
 
 		String jsonContent = "{" +
-							 "\"prefixe\": \"!test\", " +
-							 "\"totalPointsEverGained\": 100.5, " +
-							 "\"numberOfGamesPlayed\": 5, " +
-							 "\"tagEmojiPerTagName\": {" +
-							 "\"tagA\": \"<:emojiA:12345>\", " +
-							 "\"tagB\": \"<:emojiB:67890>\"" +
+							 Constants.MAPPER.writeValueAsString("prefixe")+": "+Constants.MAPPER.writeValueAsString("!test")+", " +
+							 Constants.MAPPER.writeValueAsString("totalPointsEverGained")+": 100.5, " +
+							 Constants.MAPPER.writeValueAsString("numberOfGamesPlayed")+": 5, " +
+							 Constants.MAPPER.writeValueAsString("tagEmojiPerTagName")+": {" +
+							 Constants.MAPPER.writeValueAsString("tagA")+": "+Constants.MAPPER.writeValueAsString("<:emojiA:12345>")+", " +
+							 Constants.MAPPER.writeValueAsString("tagB")+": "+Constants.MAPPER.writeValueAsString("<:emojiB:67890>")+ 
 							 "}" +
 							 "}";
 
@@ -57,12 +61,12 @@ public class TestUserDataParser {
 		assertEquals("!test", user.getPreferredPrefix());
 		assertEquals(100.5, user.getTotalPointsEverGained());
 		assertEquals(5, user.getNumberOfGamesPlayed());
-		assertNotNull(user.getTagEmojiPerTagName());
-		assertEquals(2, user.getTagEmojiPerTagName().size());
-		assertTrue(user.getTagEmojiPerTagName().containsKey("tagA"));
-		assertTrue(user.getTagEmojiPerTagName().containsKey("tagB"));
-		assertEquals("<:emojiA:12345>", user.getTagEmojiPerTagName().get("tagA"));
-		assertEquals("<:emojiB:67890>", user.getTagEmojiPerTagName().get("tagB"));
+		assertNotNull(user.getEmojiPerTagName());
+		assertEquals(2, user.getEmojiPerTagName().size());
+		assertTrue(user.getEmojiPerTagName().containsKey("tagA"));
+		assertTrue(user.getEmojiPerTagName().containsKey("tagB"));
+		assertEquals("<:emojiA:12345>", user.getEmojiPerTagName().get("tagA"));
+		assertEquals("<:emojiB:67890>", user.getEmojiPerTagName().get("tagB"));
 	}
 
 	@Test
@@ -76,11 +80,11 @@ public class TestUserDataParser {
 	@DisplayName("Test fromString with a valid JSON string")
 	void testFromString_ValidString() throws IOException {
 		String jsonContent = "{" +
-							 "\"prefixe\": \"@quiz\", " +
-							 "\"totalPointsEverGained\": 250.75, " +
-							 "\"numberOfGamesPlayed\": 15, " +
-							 "\"tagEmojiPerTagName\": {" +
-							 "\"quiz\": \"<:quiz_emoji:111222>\"" +
+							 Constants.MAPPER.writeValueAsString("prefixe")+": "+Constants.MAPPER.writeValueAsString("@quiz")+", " +
+							 Constants.MAPPER.writeValueAsString("totalPointsEverGained")+": 250.75, " +
+							 Constants.MAPPER.writeValueAsString("numberOfGamesPlayed")+": 15, " +
+							 Constants.MAPPER.writeValueAsString("tagEmojiPerTagName")+": {" +
+							 Constants.MAPPER.writeValueAsString("quiz")+": "+Constants.MAPPER.writeValueAsString("<:quiz_emoji:111222>")+ 
 							 "}" +
 							 "}";
 		User user = UserDataParser.fromString(jsonContent).id("testUser").build();
@@ -89,10 +93,10 @@ public class TestUserDataParser {
 		assertEquals("@quiz", user.getPreferredPrefix());
 		assertEquals(250.75, user.getTotalPointsEverGained());
 		assertEquals(15, user.getNumberOfGamesPlayed());
-		assertNotNull(user.getTagEmojiPerTagName());
-		assertEquals(1, user.getTagEmojiPerTagName().size());
-		assertTrue(user.getTagEmojiPerTagName().containsKey("quiz"));
-		assertEquals("<:quiz_emoji:111222>", user.getTagEmojiPerTagName().get("quiz"));
+		assertNotNull(user.getEmojiPerTagName());
+		assertEquals(1, user.getEmojiPerTagName().size());
+		assertTrue(user.getEmojiPerTagName().containsKey("quiz"));
+		assertEquals("<:quiz_emoji:111222>", user.getEmojiPerTagName().get("quiz"));
 	}
 
 	@Test
@@ -106,34 +110,34 @@ public class TestUserDataParser {
 		assertNull(user.getPreferredPrefix()); // Default value for String
 		assertEquals(0.0, user.getTotalPointsEverGained()); // Default value for double
 		assertEquals(0, user.getNumberOfGamesPlayed()); // Default value for int
-		assertNotNull(user.getTagEmojiPerTagName());
-		assertTrue(user.getTagEmojiPerTagName().isEmpty());
+		assertNotNull(user.getEmojiPerTagName());
+		assertTrue(user.getEmojiPerTagName().isEmpty());
 	}
 
 	@Test
 	@DisplayName("Test fromString with missing fields")
 	void testFromString_MissingFields() throws IOException {
-		String jsonContent = "{\"totalPointsEverGained\": 50.0}";
+		String jsonContent = "{"+Constants.MAPPER.writeValueAsString("totalPointsEverGained")+": 50.0}";
 			User user = UserDataParser.fromString(jsonContent).id("testUser").build();
 
 		assertNotNull(user);
 		assertNull(user.getPreferredPrefix());
 		assertEquals(50.0, user.getTotalPointsEverGained());
 		assertEquals(0, user.getNumberOfGamesPlayed()); // Default value
-		assertNotNull(user.getTagEmojiPerTagName());
-		assertTrue(user.getTagEmojiPerTagName().isEmpty());
+		assertNotNull(user.getEmojiPerTagName());
+		assertTrue(user.getEmojiPerTagName().isEmpty());
 	}
 
 	@Test
 	@DisplayName("Test parser with valid JsonParser input")
 	void testParser_ValidInput() throws IOException {
 		String jsonContent = "{" +
-							 "\"prefixe\": \"#\", " +
-							 "\"totalPointsEverGained\": 75.25, " +
-							 "\"numberOfGamesPlayed\": 8, " +
-							 "\"tagEmojiPerTagName\": {" +
-							 "\"dev\": \"<:dev_emoji:333444>\", " +
-							 "\"testing\": \"<:test_emoji:555666>\"" +
+							 Constants.MAPPER.writeValueAsString("prefixe")+": "+Constants.MAPPER.writeValueAsString("#")+", " +
+							 Constants.MAPPER.writeValueAsString("totalPointsEverGained")+": 75.25, " +
+							 Constants.MAPPER.writeValueAsString("numberOfGamesPlayed")+": 8, " +
+							 Constants.MAPPER.writeValueAsString("tagEmojiPerTagName")+": {" +
+							 Constants.MAPPER.writeValueAsString("dev")+": "+Constants.MAPPER.writeValueAsString("<:dev_emoji:333444>")+", " +
+							 Constants.MAPPER.writeValueAsString("testing")+": "+Constants.MAPPER.writeValueAsString("<:test_emoji:555666>")+ 
 							 "}" +
 							 "}";
 		JsonParser jp = new JsonFactory().createParser(jsonContent);
@@ -143,10 +147,10 @@ public class TestUserDataParser {
 		assertEquals("#", user.getPreferredPrefix());
 		assertEquals(75.25, user.getTotalPointsEverGained());
 		assertEquals(8, user.getNumberOfGamesPlayed());
-		assertNotNull(user.getTagEmojiPerTagName());
-		assertEquals(2, user.getTagEmojiPerTagName().size());
-		assertEquals("<:dev_emoji:333444>", user.getTagEmojiPerTagName().get("dev"));
-		assertEquals("<:test_emoji:555666>", user.getTagEmojiPerTagName().get("testing"));
+		assertNotNull(user.getEmojiPerTagName());
+		assertEquals(2, user.getEmojiPerTagName().size());
+		assertEquals("<:dev_emoji:333444>", user.getEmojiPerTagName().get("dev"));
+		assertEquals("<:test_emoji:555666>", user.getEmojiPerTagName().get("testing"));
 		jp.close();
 	}
 
@@ -154,7 +158,7 @@ public class TestUserDataParser {
 	@DisplayName("Test parser with incorrect starting token (not START_OBJECT)")
 	void testParser_IncorrectStartToken() throws IOException {
 		// Simulate a JSON array or a string instead of an object
-		String invalidJson = "[\"not an object\"]";
+		String invalidJson = "["+Constants.MAPPER.writeValueAsString("not an object")+"]";
 		JsonParser jp = new JsonFactory().createParser(invalidJson);
 
 		assertThrows(IOException.class, () -> UserDataParser.parser(jp));
@@ -164,9 +168,9 @@ public class TestUserDataParser {
 	@Test
 	@DisplayName("Test parseEmojiPerTagName with valid emoji map")
 	void testParseEmojiPerTagName_ValidMap() throws IOException {
-		String jsonContent = "{\"tagEmojiPerTagName\": {" +
-								"\"funny\": \"<:laugh:123>\", " +
-								"\"serious\": \"<:think:456>\"" +
+		String jsonContent = "{"+Constants.MAPPER.writeValueAsString("tagEmojiPerTagName")+": {" +
+								Constants.MAPPER.writeValueAsString("funny")+": "+Constants.MAPPER.writeValueAsString("<:laugh:123>")+", " +
+								Constants.MAPPER.writeValueAsString("serious")+": "+Constants.MAPPER.writeValueAsString("<:think:456>")+ 
 								"}}";
 		JsonParser jp = new JsonFactory().createParser(jsonContent);
 		// Navigate to the 'tagEmojiPerTagName' field
@@ -186,7 +190,7 @@ public class TestUserDataParser {
 	@Test
 	@DisplayName("Test parseEmojiPerTagName with empty emoji map")
 	void testParseEmojiPerTagName_EmptyMap() throws IOException {
-		String jsonContent = "{\"tagEmojiPerTagName\": {}}";
+		String jsonContent = "{"+Constants.MAPPER.writeValueAsString("tagEmojiPerTagName")+": {}}";
 		JsonParser jp = new JsonFactory().createParser(jsonContent);
 		// Navigate to the 'tagEmojiPerTagName' field
 		jp.nextToken(); // START_OBJECT
@@ -207,7 +211,7 @@ public class TestUserDataParser {
 		// is inside another object or array, or points to a different field name,
 		// but still within a structure that leads to an object.
 		// This test ensures it handles moving past the potential FIELD_NAME check.
-		String jsonContent = "{\"someOtherField\": {\"key\":\"value\"}, \"tagEmojiPerTagName\": {}}";
+		String jsonContent = "{"+Constants.MAPPER.writeValueAsString("someOtherField")+": {"+Constants.MAPPER.writeValueAsString("key")+":"+Constants.MAPPER.writeValueAsString("value")+"}, "+Constants.MAPPER.writeValueAsString("tagEmojiPerTagName")+": {}}";
 		JsonParser jp = new JsonFactory().createParser(jsonContent);
 		// Simulate the parser being at the "someOtherField" key's value (which is an object)
 		jp.nextToken(); // START_OBJECT

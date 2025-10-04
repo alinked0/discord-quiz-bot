@@ -38,7 +38,8 @@ import com.linked.quizbot.commands.list.RemoveListCommand;
 import com.linked.quizbot.commands.list.RenameListCommand;
 import com.linked.quizbot.commands.list.SetPrefixeCommand;
 import com.linked.quizbot.commands.list.StartCommand;
-import com.linked.quizbot.commands.list.TagListCommand;
+import com.linked.quizbot.commands.list.TagsCommand;
+import com.linked.quizbot.commands.list.AddTagCommand;
 import com.linked.quizbot.commands.list.UseButtonsCommand;
 import com.linked.quizbot.commands.list.UserInfoCommand;
 import com.linked.quizbot.commands.list.ViewCommand;
@@ -80,6 +81,7 @@ public abstract class BotCommand {
         ALL_COMMANDS = new HashSet<>();
         PUBLIC_COMMANDS.addAll(List.of(
             new AddListCommand(),
+            new AddTagCommand(),
             new CreateListCommand(),
             new CollectionCommand(),
             new CreateTagCommand(),
@@ -98,7 +100,7 @@ public abstract class BotCommand {
 			new RenameListCommand(),
             new SetPrefixeCommand(),
             new StartCommand(),
-            new TagListCommand(),
+			new TagsCommand(),
             new UserInfoCommand(),
             new UseButtonsCommand(),
             new ViewCommand()

@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.Option;
 
@@ -9,6 +11,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 public class TestOption {
+
     
     @Test
     @DisplayName("Test Option constructor with text and correctness")
@@ -99,42 +102,42 @@ public class TestOption {
 
     @Test
     @DisplayName("Test toString method - with explanation")
-    void testToString_WithExplanation() {
+    void testToString_WithExplanation() throws JsonProcessingException{
         Option option = new Option("Test Option", true, "Detailed explanation here.");
-        String expectedJson = "{\n\t\"text\":\"Test Option\",\n\t\"isCorrect\":true,\n\t\"explication\":\"Detailed explanation here.\"\n}".replace("\n\t\"","\"");
-        assertEquals(expectedJson, option.toString());
+        String expectedJson = "{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Test Option")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("Detailed explanation here.")+"\n}";
+        assertEquals(expectedJson.replaceAll("[\\n \\s \\t]", ""), option.toString().replaceAll("[\\n \\s \\t]", ""));
     }
 
     @Test
     @DisplayName("Test toString method - without explanation (null)")
-    void testToString_NoExplanationNull() {
+    void testToString_NoExplanationNull()  throws JsonProcessingException{
         Option option = new Option("Test Option No Expl", false);
-        String expectedJson = "{\n\t\"text\":\"Test Option No Expl\",\n\t\"isCorrect\":false,\n\t\"explication\":null\n}".replace("\n\t\"","\"");
-        assertEquals(expectedJson, option.toString());
+        String expectedJson = "{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Test Option No Expl")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":false,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}";
+       assertEquals(expectedJson.replaceAll("[\\n \\s \\t]", ""), option.toString().replaceAll("[\\n \\s \\t]", ""));
     }
 
     @Test
     @DisplayName("Test toString method - with empty string explanation")
-    void testToString_EmptyStringExplanation() {
+    void testToString_EmptyStringExplanation()  throws JsonProcessingException{
         Option option = new Option("Test Option Empty Expl", true, "");
-        String expectedJson = "{\n\t\"text\":\"Test Option Empty Expl\",\n\t\"isCorrect\":true,\n\t\"explication\":\"\"\n}".replace("\n\t\"","\"");
-        assertEquals(expectedJson, option.toString());
+        String expectedJson = "{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Test Option Empty Expl")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("")+"\n}";
+       assertEquals(expectedJson.replaceAll("[\\n \\s \\t]", ""), option.toString().replaceAll("[\\n \\s \\t]", ""));
     }
 
     @Test
     @DisplayName("Test toString method - with 'null' string explanation")
-    void testToString_NullStringExplanation() {
+    void testToString_NullStringExplanation()  throws JsonProcessingException{
         Option option = new Option("Test Option 'null' Expl", true, "null");
-        String expectedJson = "{\n\t\"text\":\"Test Option 'null' Expl\",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}".replace("\n\t\"","\"");
-        assertEquals(expectedJson, option.toString());
+        String expectedJson = "{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Test Option 'null' Expl")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}";
+       assertEquals(expectedJson.replaceAll("[\\n \\s \\t]", ""), option.toString().replaceAll("[\\n \\s \\t]", ""));
     }
 
     @Test
     @DisplayName("Test toString method - with Constants.NOEXPLICATION explanation")
-    void testToString_ConstantsNoExplanation() {
+    void testToString_ConstantsNoExplanation()  throws JsonProcessingException{
         Option option = new Option("Test Option Constants.NOEXPLICATION", true, Constants.NOEXPLICATION);
-        String expectedJson = "{\n\t\"text\":\"Test Option Constants.NOEXPLICATION\",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}".replace("\n\t\"","\"");
-        assertEquals(expectedJson, option.toString());
+        String expectedJson = "{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Test Option Constants.NOEXPLICATION")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}";
+       assertEquals(expectedJson.replaceAll("[\\n \\s \\t]", ""), option.toString().replaceAll("[\\n \\s \\t]", ""));
     }
 
     @Test

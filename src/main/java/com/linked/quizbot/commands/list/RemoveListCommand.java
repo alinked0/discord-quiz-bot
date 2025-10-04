@@ -49,23 +49,29 @@ public class RemoveListCommand extends BotCommand{
         }
         CommandOutput.Builder output = new CommandOutput.Builder();
         String messageId = args.get(0);
+        QuestionList l;
         if (BotCore.toBeDeleted.get(messageId)==null){
-            output.add(String.format("Couldn't guess your intentions, nothing will change."));
+            l= Users.getById(messageId);
+            if (l==null){
+                output.add(String.format("Couldn't guess your intentions, nothing will change."));
+            }
         } else {
-            QuestionList l= BotCore.toBeDeleted.get(messageId);
+            l= BotCore.toBeDeleted.get(messageId);
             String listId = l.getId();
             CommandOutput outRaw = BotCommand.getCommandByName(RawListCommand.CMDNAME).execute(userId, List.of(listId));
             output.addAllFile(outRaw.getFiles())
             .setMessage(BotCore.deletionMessages.get(messageId))
             .sendInOriginalMessage(true);
+        }
+        if (l!=null){
             if (Users.deleteList(l)){
                 output.add(String.format("`%s`**%s** is deleted form your collection\n", l.getId(), l.getName()));
             } else {
                 output.add(String.format("`%s`**%s** will be deleted form your collection\n", l.getId(), l.getName()));
             }
+            BotCore.toBeDeleted.remove(messageId);
+            BotCore.deletionMessages.remove(messageId);
         }
-        BotCore.toBeDeleted.remove(messageId);
-        BotCore.deletionMessages.remove(messageId);
         return output.build();
     }
 }

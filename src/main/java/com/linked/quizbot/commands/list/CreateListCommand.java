@@ -69,13 +69,13 @@ public class CreateListCommand extends BotCommand {
                 QuestionList l = QuestionList.Parser.fromString(args.get(i)).authorId(userId).build();
                 if (l.getName()!=null) {
                     if(Users.get(userId).getByName(l.getName())!=null) {
-                        res.add("Failed, list of name : \""+l.getName()+"\" already exists in your collection.\n");
+                        res.add("Failed, list of name : "+Constants.MAPPER.writeValueAsString(""+l.getName()+"")+" already exists in your collection.\n");
                     } else {
                         Users.addListToUser(l.getAuthorId(), l);
-                        res.add("Success, list of name : \""+l.getName()+"\", has been created, \nuse `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getId()+"` command to verife.\n");
+                        res.add("Success, list of name : "+Constants.MAPPER.writeValueAsString(""+l.getName()+"")+", has been created, \nuse `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getId()+"` command to verife.\n");
                     }
                 }else {
-                    res.add("Failed to import ```"+args.get(i)+"```, no \"name\" found\n");
+                    res.add("Failed to import ```"+args.get(i)+"```, no "+Constants.MAPPER.writeValueAsString("name")+" found\n");
                 }
             }catch (IOException e){
                 res.add(String.format("**Failed to import** ```js\n%s```\n",args.get(i) ));

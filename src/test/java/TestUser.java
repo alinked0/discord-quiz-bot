@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.*; 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -34,6 +36,7 @@ import java.util.Map.Entry;
 import static org.junit.jupiter.api.Assertions.*;
 public class TestUser {
 
+
 	@TempDir
 	Path tempDir; // JUnit 5 provides a temporary directory for each test
 
@@ -53,15 +56,15 @@ public class TestUser {
 		Constants.SEPARATOR = File.separator;
 
 		// Reset all static stubs for each test
-		Users.reset();
+		Users.clear();
 		QuestionList.Hasher.clearGeneratedCodes();
 	}
 
 	@AfterEach
 	void tearDown() throws IOException {
 		// No explicit cleanup needed for @TempDir, JUnit handles it.
-		// Ensure static fields are reset for good measure, though @BeforeEach handles it too.
-		Users.reset();
+		// Ensure static fields are clear() for good measure, though @BeforeEach handles it too.
+		Users.clear();
 		QuestionList.Hasher.clearGeneratedCodes();
 	}
 
@@ -73,20 +76,21 @@ public class TestUser {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("{\n");
-		sb.append("\t\"userId\":\"").append(userId).append("\",\n");
-		sb.append("\t\"tagEmojiPerTagName\":{");
+		sb.append("\t"+Constants.MAPPER.writeValueAsString("userId")+":"+Constants.MAPPER.writeValueAsString(userId)+"\n");
+		sb.append("\t"+Constants.MAPPER.writeValueAsString("tagEmojiPerTagName")+":{");
 		Iterator<Entry<String, String>> iter = tags.entrySet().iterator();
 		while (iter.hasNext()) {
 			Entry<String, String> entry = iter.next();
-			sb.append("\"").append(entry.getKey()).append("\":\"").append(entry.getValue()).append("\"");
+			
+			sb.append(Constants.MAPPER.writeValueAsString(entry.getKey())+":"+Constants.MAPPER.writeValueAsString(entry.getValue()));
 			if(iter.hasNext()){
 				sb.append(", ");
 			}
 		}
 		sb.append("},\n");
-		sb.append("\t\"prefixe\":\"").append(prefix).append("\",\n");
-		sb.append("\t\"totalPointsEverGained\":").append(points).append(",\n");
-		sb.append("\t\"numberOfGamesPlayed\":").append(games).append("\n");
+		sb.append("\t"+Constants.MAPPER.writeValueAsString("prefixe")+":"+Constants.MAPPER.writeValueAsString(prefix)+",\n");
+		sb.append("\t"+Constants.MAPPER.writeValueAsString("totalPointsEverGained")+":"+Constants.MAPPER.writeValueAsString(points)+",\n");
+		sb.append("\t"+Constants.MAPPER.writeValueAsString("numberOfGamesPlayed")+":"+Constants.MAPPER.writeValueAsString(games)+"\n");
 		sb.append("}");
 
 		try (BufferedWriter writer = Files.newBufferedWriter(userFile)) {
@@ -129,7 +133,7 @@ public class TestUser {
 		assertEquals("!", user.getPrefix());
 		assertEquals(10, user.getNumberOfGamesPlayed());
 		assertEquals(100.5, user.getTotalPointsEverGained());
-		assertEquals(tags, user.getTagEmojiPerTagName());
+		assertEquals(tags, user.getEmojiPerTagName());
 		assertEquals(1, user.getLists().size());
 		assertEquals(l.getId(), user.getLists().get(0).getId());
 	}
@@ -178,7 +182,7 @@ public class TestUser {
 				.build();
 		predefinedUserStub.exportUserData();
 		// Instantiate User, which should load data
-		Users.reset();
+		Users.clear();
 		User user = new User(userId);
 		Users.addUser(user);
 
@@ -187,8 +191,8 @@ public class TestUser {
 		assertEquals(expectedPrefix, user.getPrefix());
 		assertEquals(expectedPoints, user.getTotalPointsEverGained());
 		assertEquals(expectedGames, user.getNumberOfGamesPlayed());
-		assertEquals(expectedTags.size(), user.getTagEmojiPerTagName().size());
-		assertEquals(expectedTags.get("science"), user.getTagEmojiPerTagName().get("science"));
+		assertEquals(expectedTags.size(), user.getEmojiPerTagName().size());
+		assertEquals(expectedTags.get("science"), user.getEmojiPerTagName().get("science"));
 
 		// Verify loaded lists
 		List<QuestionList> userLists = user.getLists();
@@ -205,6 +209,7 @@ public class TestUser {
 		}
 		
 		// Verify questionListPerTags map is correctly populated
+		assertEquals(2, user.getEmojiPerTagName().size());
 		assertEquals(2, user.getQuestionListPerTags().size());
 		assertTrue(user.getQuestionListPerTags().containsKey("science"));
 		assertTrue(user.getQuestionListPerTags().containsKey("history"));
@@ -224,7 +229,7 @@ public class TestUser {
 		assertNull(user.getPrefix()); // Default prefix if no user-data.json
 		assertEquals(0.0, user.getTotalPointsEverGained());
 		assertEquals(0, user.getNumberOfGamesPlayed());
-		assertTrue(user.getTagEmojiPerTagName().isEmpty());
+		assertTrue(user.getEmojiPerTagName().isEmpty());
 		assertTrue(user.getLists().isEmpty());
 		assertTrue(user.getQuestionListPerTags().isEmpty());
 	}
@@ -247,7 +252,7 @@ public class TestUser {
 		Path userFile = tempUserDataPath.resolve(userId).resolve("user-data.json");
 		assertTrue(Files.exists(userFile));
 		String fileContent = readFileContent(userFile);
-		assertTrue(fileContent.contains("\"prefixe\":\"new!\""));
+		assertTrue(fileContent.contains(""+Constants.MAPPER.writeValueAsString("prefixe")+":"+Constants.MAPPER.writeValueAsString("new!")+""));
 	}
 
 	@Test
@@ -266,8 +271,8 @@ public class TestUser {
 		// Verify data is exported
 		Path userFile = tempUserDataPath.resolve(userId).resolve("user-data.json");
 		String fileContent = readFileContent(userFile);
-		assertTrue(fileContent.contains("\"totalPointsEverGained\":75.0"));
-		assertTrue(fileContent.contains("\"numberOfGamesPlayed\":6"));
+		assertTrue(fileContent.contains(""+Constants.MAPPER.writeValueAsString("totalPointsEverGained")+":75.0"));
+		assertTrue(fileContent.contains(""+Constants.MAPPER.writeValueAsString("numberOfGamesPlayed")+":6"));
 	}
 
 	@Test
@@ -306,15 +311,15 @@ public class TestUser {
 		assertTrue(user.createTag("verified", emoji));
 
 		// Verify internal state
-		assertTrue(user.getTagEmojiPerTagName().containsKey("verified"));
-		assertEquals(emoji, user.getTagEmojiPerTagName().get("verified"));
+		assertTrue(user.getEmojiPerTagName().containsKey("verified"));
+		assertEquals(emoji, user.getEmojiPerTagName().get("verified"));
 		assertTrue(user.getQuestionListPerTags().containsKey("verified"));
 		assertTrue(user.getQuestionListPerTags().get("verified").isEmpty());
 
 		// Verify exported data
 		Path userFile = tempUserDataPath.resolve(userId).resolve("user-data.json");
 		String fileContent = readFileContent(userFile);
-		assertTrue(fileContent.contains("\"verified\":\"✅\""));
+		assertTrue(fileContent.contains(""+Constants.MAPPER.writeValueAsString("verified")+":"+Constants.MAPPER.writeValueAsString("✅")+""));
 	}
 
 	@Test
@@ -327,7 +332,7 @@ public class TestUser {
 
 		assertFalse(user.createTag("duplicate", "✅")); // Attempt to re-create
 		// Ensure emoji hasn't changed
-		assertEquals("❌", user.getTagEmojiPerTagName().get("duplicate"));
+		assertEquals("❌", user.getEmojiPerTagName().get("duplicate"));
 	}
 
 	@Test
@@ -342,15 +347,15 @@ public class TestUser {
 		assertTrue(user.deleteTag("toDelete"));
 
 		// Verify internal state
-		assertFalse(user.getTagEmojiPerTagName().containsKey("toDelete"));
+		assertFalse(user.getEmojiPerTagName().containsKey("toDelete"));
 		assertFalse(user.getQuestionListPerTags().containsKey("toDelete"));
-		assertTrue(user.getTagEmojiPerTagName().containsKey("keep"));
+		assertTrue(user.getEmojiPerTagName().containsKey("keep"));
 
 		// Verify exported data
 		Path userFile = tempUserDataPath.resolve(userId).resolve("user-data.json");
 		String fileContent = readFileContent(userFile);
-		assertFalse(fileContent.contains("\"toDelete\""));
-		assertTrue(fileContent.contains("\"keep\""));
+		assertFalse(fileContent.contains(""+Constants.MAPPER.writeValueAsString("toDelete")+""));
+		assertTrue(fileContent.contains(""+Constants.MAPPER.writeValueAsString("keep")+""));
 	}
 
 	@Test
@@ -387,7 +392,7 @@ public class TestUser {
 		assertTrue(Files.exists(listFile));
 		String fileContent = readFileContent(listFile);
 		
-		assertTrue(fileContent.contains("\"name\":\"New List\""));
+		assertTrue(fileContent.contains(""+Constants.MAPPER.writeValueAsString("name")+":"+Constants.MAPPER.writeValueAsString("New List")+""));
 	}
 
 	@Test
@@ -428,8 +433,8 @@ public class TestUser {
 		// Verify the file was updated
 		Path listFile = tempListsPath.resolve(userId).resolve(existingList.getId() + ".json");
 		String fileContent = readFileContent(listFile);
-		assertTrue(fileContent.contains("\"question\":\"New Q\""));
-		assertTrue(fileContent.contains("\"question\":\"Old Q\""));
+		assertTrue(fileContent.contains(""+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("New Q")+""));
+		assertTrue(fileContent.contains(""+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Old Q")+""));
 	}
 	
 	@Test
@@ -445,7 +450,7 @@ public class TestUser {
 			.build();
 		list1.exportListQuestionAsJson(); // Make sure file exists for Users.importUserLists
 		
-		Users.reset();
+		Users.clear();
 		User user = Users.get(userId); // Constructor will load list1
 
 		QuestionList foundList = user.getById(id);
@@ -562,7 +567,7 @@ public class TestUser {
 
 	@Test
 	@DisplayName("Test toJson method")
-	void testToJson() {
+	void testToJson() throws JsonProcessingException{
 		String userId = "stringUser";
 		String prefix = ">>";
 		double points = 300.75;
@@ -579,17 +584,17 @@ public class TestUser {
 				.tagEmojiPerTagName(tags)
 				.build();
 		
-		String expectedJsonPart1 = "{\n  \"userId\":\"stringUser\"";
+		String expectedJsonPart1 = "{\n  "+Constants.MAPPER.writeValueAsString("userId")+":"+Constants.MAPPER.writeValueAsString("stringUser")+"";
 		// Order of tags in map can vary, so check for both permutations
-		String expectedTag1 = "\"sport\":\"⚽\", \n    \"art\":\"🎨\"";
-		String expectedTag2 = "\"art\":\"🎨\", \n    \"sport\":\"⚽\"";
+		String expectedTag1 = ""+Constants.MAPPER.writeValueAsString("sport")+":"+Constants.MAPPER.writeValueAsString("⚽")+", \n    "+Constants.MAPPER.writeValueAsString("art")+":"+Constants.MAPPER.writeValueAsString("🎨")+"";
+		String expectedTag2 = ""+Constants.MAPPER.writeValueAsString("art")+":"+Constants.MAPPER.writeValueAsString("🎨")+", \n    "+Constants.MAPPER.writeValueAsString("sport")+":"+Constants.MAPPER.writeValueAsString("⚽")+"";
 
 		String expectedJsonPart2 = "},\n" +
-								   "  \"prefixe\":\">>\",\n" +
-								   "  \"useButtons\":true,\n" +
-								   "  \"useAutoNext\":false,\n" +
-								   "  \"totalPointsEverGained\":300.75,\n" +
-								   "  \"numberOfGamesPlayed\":30\n" +
+								   "  "+Constants.MAPPER.writeValueAsString("prefixe")+":"+Constants.MAPPER.writeValueAsString(">>")+",\n" +
+								   "  "+Constants.MAPPER.writeValueAsString("useButtons")+":true,\n" +
+								   "  "+Constants.MAPPER.writeValueAsString("useAutoNext")+":false,\n" +
+								   "  "+Constants.MAPPER.writeValueAsString("totalPointsEverGained")+":300.75,\n" +
+								   "  "+Constants.MAPPER.writeValueAsString("numberOfGamesPlayed")+":30\n" +
 								   "}";
 		
 		String result = user.toJson();

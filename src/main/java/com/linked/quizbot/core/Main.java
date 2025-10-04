@@ -79,10 +79,8 @@ public class Main {
 		}*/
 		if(Constants.isBugFree() || Constants.AUTHORID.isEmpty()){
 			BotCore.startJDA();
-		}else {
-			CommandLineInterface.execute(scanner);
-			if (BotCore.jda!=null) BotCore.jda.shutdownNow();
+			Constants.AUTHORID = QuestionList.getExampleQuestionList().getAuthorId();
 		}
-
+		CommandLineInterface.execute(scanner);
 	}
 }

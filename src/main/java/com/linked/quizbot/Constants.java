@@ -2,6 +2,8 @@ package com.linked.quizbot;
 
 import java.io.File;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 /**
@@ -31,6 +33,7 @@ public class Constants {
 		INCRTIMESEC = 5,
 		DISCORDIDLENMIN= 17,
 		DISCORDIDLENMAX= 18;
+	public static ObjectMapper MAPPER = new ObjectMapper();
 	public static final String
 		EMOJIDEL = Emoji.fromUnicode("🔥").getFormatted(),
 		EMOJITRUE = Emoji.fromUnicode("✅").getFormatted(),

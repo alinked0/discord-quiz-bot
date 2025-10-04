@@ -22,6 +22,7 @@ public class Option {
 	private String txt;
 	private String explication;
 	private boolean isCorrect;
+
 	/**
 	 * Constructs an Option with only text.
 	 *
@@ -84,30 +85,23 @@ public class Option {
 	 */
 	@Override
 	public String toString() {
-		return toJson().replace("\n\t\"","\"");
+		return toJson().replace("\n\t\"" ,"\"");
 	}
 	public String toJson() {
-		ObjectMapper mapper = new ObjectMapper();
+
 		try {
-			String s = "{\n\t\"text\":"+mapper.writeValueAsString(getText());
-			s+= ",\n\t\"isCorrect\":"+isCorrect();
-			s+= ",\n\t\"explication\":";
+			String s = "{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString(getText());
+			s+= ",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":"+isCorrect();
+			s+= ",\n\t"+Constants.MAPPER.writeValueAsString("explication")+":";
 			if(getExplication()==null || getExplication().equals("null") || getExplication().equals(Constants.NOEXPLICATION)){
 				s+=null;
-			}else {s += mapper.writeValueAsString(getExplication());}
+			}else {s += Constants.MAPPER.writeValueAsString(getExplication());}
 			s+="\n}";
 			return s;
 		} catch (Exception e){
 			System.err.println("[ERROR] [toJson() failed]"+e.getMessage());
 		}
-		String s = "{\n\t\"text\":\""+getText()+"\"";
-		s+= ",\n\t\"isCorrect\":"+isCorrect();
-		s+= ",\n\t\"explication\":";
-		if(getExplication()==null || getExplication().equals("null") || getExplication().equals(Constants.NOEXPLICATION)){
-			s+=null;
-		}else {s += "\""+getExplication()+"\"";}
-		s+="\n}";
-		return s;
+		return null;
 	}
 	/**
 	 * Compares this Option to another object for equality.

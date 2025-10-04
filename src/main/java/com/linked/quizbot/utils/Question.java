@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 
@@ -20,6 +22,7 @@ public class Question{
 	private final String question;
 	private String explication;
 	private List<Option> options = new LinkedList<>();
+
 
 	private String imageSrc = null;// TODO pour l'intant pas encore implementer
 	public static class Builder {
@@ -265,23 +268,26 @@ public class Question{
 	 */
 	@Override
 	public String toString() {
-		String s = "{\n\t\"question\":\""+getQuestion()+"\"";
-		s+= ",\n\t\"explication\":";
-		if(getExplication()==null || getExplication().equals("null") || getExplication().equals(Constants.NOEXPLICATION)){
-			s+=null;
-		}else {s+="\""+getExplication()+"\"";}
-		s+=",";
-		s+= "\n\t\"imageSrc\":"+(getImageSrc()==null?null:"\""+getImageSrc()+"\"")+",";
-		s+="\n\t\"options\": [";
-		List<Option> opts = getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
-		for (Iterator<Option> iter = opts.iterator(); iter.hasNext(); ) {
-			s+="\n\t\t"+iter.next().toString();
-			if(iter.hasNext()) {
-				s+= ",";
+		try {
+			String s = "{\n\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString(""+getQuestion()+"")+"";
+			s+= ",\n\t"+Constants.MAPPER.writeValueAsString("explication")+":";
+			if(getExplication()==null || getExplication().equals("null") || getExplication().equals(Constants.NOEXPLICATION)){
+				s+=null;
+			}else {s+=""+Constants.MAPPER.writeValueAsString(""+getExplication()+"")+"";}
+			s+=",";
+			s+= "\n\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":"+(getImageSrc()==null?null:""+Constants.MAPPER.writeValueAsString(""+getImageSrc()+"")+"")+",";
+			s+="\n\t"+Constants.MAPPER.writeValueAsString("options")+": [";
+			List<Option> opts = getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
+			for (Iterator<Option> iter = opts.iterator(); iter.hasNext(); ) {
+				s+="\n\t\t"+iter.next().toString();
+				if(iter.hasNext()) {
+					s+= ",";
+				}
 			}
-		}
-		s+= "\n\t]\n}";
-		return s;
+			s+= "\n\t]\n}";
+			return s;
+		}catch(JsonProcessingException e){e.printStackTrace();}
+		return null;
 	}
 	public Question clone(){
 		return new Question.Builder().add(this).build();

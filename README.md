@@ -72,7 +72,7 @@ The bot supports both **slash commands** and **message commands** (e.g., `q!help
 - `q!collection` — List all your question lists.
 - `q!view <list-id>` — View a question list in a readable format.
 - `q!start <list-id>` — Start a quiz from a list.
-- `q!taglist <tag-name> <list-id>` — Tag a list for easier organization.
+- `q!addtag <tag-name> <list-id>` — Tag a list for easier organization.
 - `q!createtag <tag-name> <emoji>` — Create a new tag.
 - `q!renamelist <list-id> <new-name>` — Rename a question list.
 - `q!setprefixe <prefix>` — Change your command prefix.
@@ -92,7 +92,7 @@ Question lists are stored as JSON files. Example:
   "name": "Sample Quiz",
   "id": "abcdefg",
   "timeCreatedMillis": 1700000000000,
-  "tags": { "science": "🧪" },
+  "emojiPerTagName": { "science": "🧪" },
   "questions": [
     {
       "question": "What is the chemical symbol for water?",

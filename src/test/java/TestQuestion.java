@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
@@ -19,6 +21,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestQuestion {
+
 
     @Test
     @DisplayName("Test Question constructor for true-or-false")
@@ -252,26 +255,26 @@ public class TestQuestion {
 
     @Test
     @DisplayName("Test toString method - basic without explication/image")
-    void testToString_Basic() {
+    void testToString_Basic() throws JsonProcessingException{
         Option opt1 = new Option("True option", true);
         Option opt2 = new Option("False option", false);
         Question q = new Question("Simple Question", opt1, opt2);
 
         String expectedJson = "{\n" +
-                              "\t\"question\":\"Simple Question\",\n" +
-                              "\t\"explication\":null,\n" +
-                              "\t\"imageSrc\":null,\n" +
-                              "\t\"options\": [\n" +
-                              "\t\t{\n\t\"text\":\"True option\",\n\t\"isCorrect\":true,\n\t\"explication\":null\n},\n" +
-                              "\t\t{\n\t\"text\":\"False option\",\n\t\"isCorrect\":false,\n\t\"explication\":null\n}\n" +
+                              "\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Simple Question")+",\n" +
+                              "\t"+Constants.MAPPER.writeValueAsString("explication")+":null,\n" +
+                              "\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":null,\n" +
+                              "\t"+Constants.MAPPER.writeValueAsString("options")+": [\n" +
+                              "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("True option")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n},\n" +
+                              "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("False option")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":false,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}\n" +
                               "\t]\n}";
         // Normalize whitespace for comparison if necessary, but direct comparison is usually fine
-        assertEquals(expectedJson.replaceAll("\\s", ""), q.toString().replaceAll("\\s", ""));
+        assertEquals(expectedJson.replaceAll("[\\n \\s \\t]", ""), q.toString().replaceAll("[\\n \\s \\t]", ""));
     }
 
     @Test
     @DisplayName("Test toString method - with explication and imageSrc")
-    void testToString_WithExplicationAndImage() {
+    void testToString_WithExplicationAndImage() throws JsonProcessingException{
         Option opt1 = new Option("Correct", true, "This is correct");
         Option opt2 = new Option("Incorrect", false);
         Question q = new Question("Advanced Question", opt1, opt2);
@@ -279,30 +282,30 @@ public class TestQuestion {
         q.setImageSrc("http://example.com/question.jpg");
 
         String expectedJson = "{\n" +
-                              "\t\"question\":\"Advanced Question\",\n" +
-                              "\t\"explication\":\"Full explanation for the question.\",\n" +
-                              "\t\"imageSrc\":\"http://example.com/question.jpg\",\n" +
-                              "\t\"options\": [\n" +
-                              "\t\t{\n\t\"text\":\"Correct\",\n\t\"isCorrect\":true,\n\t\"explication\":\"This is correct\"\n},\n" +
-                              "\t\t{\n\t\"text\":\"Incorrect\",\n\t\"isCorrect\":false,\n\t\"explication\":null\n}\n" +
+                              "\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Advanced Question")+",\n" +
+                              "\t"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("Full explanation for the question.")+",\n" +
+                              "\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":"+Constants.MAPPER.writeValueAsString("http://example.com/question.jpg")+",\n" +
+                              "\t"+Constants.MAPPER.writeValueAsString("options")+": [\n" +
+                              "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Correct")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("This is correct")+"\n},\n" +
+                              "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Incorrect")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":false,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}\n" +
                               "\t]\n}";
-        assertEquals(expectedJson.replaceAll("\\s", ""), q.toString().replaceAll("\\s", ""));
+        assertEquals(expectedJson.replaceAll("[\\n \\s \\t]", ""), q.toString().replaceAll("[\\n \\s \\t]", ""));
     }
 
     @Test
     @DisplayName("Test toString method - explication is 'null' string or Constants.NOEXPLICATION")
-    void testToString_NullExplications() {
+    void testToString_NullExplications() throws JsonProcessingException{
         Option opt = new Option("Dummy", true);
 
         Question q1 = new Question("Question with 'null' explication string", opt);
         q1.setExplication("null");
-        String expected1 = "{\n\t\"question\":\"Question with 'null' explication string\",\n\t\"explication\":null,\n\t\"imageSrc\":null,\n\t\"options\": [\n\t\t{\n\t\"text\":\"Dummy\",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}\n\t]\n}";
-        assertEquals(expected1.replaceAll("\\s", ""), q1.toString().replaceAll("\\s", ""));
+        String expected1 = "{\n\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Question with 'null' explication string")+",\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null,\n\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":null,\n\t"+Constants.MAPPER.writeValueAsString("options")+": [\n\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Dummy")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}\n\t]\n}";
+        assertEquals(expected1.replaceAll("[\\n \\s \\t]", ""), q1.toString().replaceAll("[\\n \\s \\t]", ""));
 
         Question q2 = new Question("Question with Constants.NOEXPLICATION", opt);
         q2.setExplication(Constants.NOEXPLICATION);
-        String expected2 = "{\n\t\"question\":\"Question with Constants.NOEXPLICATION\",\n\t\"explication\":null,\n\t\"imageSrc\":null,\n\t\"options\": [\n\t\t{\n\t\"text\":\"Dummy\",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}\n\t]\n}";
-        assertEquals(expected2.replaceAll("\\s", ""), q2.toString().replaceAll("\\s", ""));
+        String expected2 = "{\n\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Question with Constants.NOEXPLICATION")+",\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null,\n\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":null,\n\t"+Constants.MAPPER.writeValueAsString("options")+": [\n\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Dummy")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}\n\t]\n}";
+        assertEquals(expected2.replaceAll("[\\n \\s \\t]", ""), q2.toString().replaceAll("[\\n \\s \\t]", ""));
     }
 
 

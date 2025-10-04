@@ -76,8 +76,8 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  */
 public class QuestionList implements Iterable<Question>{
 	private String authorId;
-	private Map<String,String> tags;
-	private List<Question> questions = new LinkedList<>();
+	private Map<String,String> emojiPerTagName;
+	private List<Question> questions;
 	private String name;
 	public static double pointsForCorrect = 1.00;
 	public static double pointsForIncorrect = -0.25;
@@ -90,7 +90,7 @@ public class QuestionList implements Iterable<Question>{
 
 	public static class Builder {
 		public final List<Question> list= new ArrayList<>();
-		public final Map<String,String> tags= new HashMap<>();
+		public final Map<String,String> emojiPerTagName= new HashMap<>();
 		public String authorId= null;
 		public String name= null;
 		public String id= null;
@@ -101,11 +101,11 @@ public class QuestionList implements Iterable<Question>{
 			return this;
 		}
 		public  Builder addTag(String tagName, String emoji){
-			this.tags.put(tagName, emoji);
+			this.emojiPerTagName.put(tagName, emoji);
 			return this;
 		}
-		public  Builder addTags(Map<String,String> tags){
-			this.tags.putAll(tags);
+		public  Builder addTags(Map<String,String> emojiPerTagName){
+			this.emojiPerTagName.putAll(emojiPerTagName);
 			return this;
 		}
 		public  Builder name(String listName){
@@ -128,7 +128,7 @@ public class QuestionList implements Iterable<Question>{
 			for (Question q : questions){
 				this.add(q.clone());
 			}
-			this.addTags(questions.getTags());
+			this.addTags(questions.getEmojiPerTagName());
 			if (id == null)this.id(questions.getId());
 			if (name==null)this.name(questions.getName());
 			if (authorId==null)this.authorId(questions.getAuthorId());
@@ -283,8 +283,8 @@ public class QuestionList implements Iterable<Question>{
 						case "authorid","userid","user" -> {
 							outputBuilder.authorId(jp.getText());
 						}
-						case "tags" -> {
-							outputBuilder.addTags(parseTags(jp, arg));
+						case "emojipertagname" -> {
+							outputBuilder.addTags(parseEmojiPerTagName(jp, arg));
 						}
 						case "name" -> {
 							outputBuilder.name(jp.getText());
@@ -307,11 +307,11 @@ public class QuestionList implements Iterable<Question>{
 			return outputBuilder;
 		}
 
-		public static Map<String, String> parseTags(JsonParser jp, String arg) throws IOException {
+		public static Map<String, String> parseEmojiPerTagName(JsonParser jp, String arg) throws IOException {
 			Map<String, String> m = new HashMap<>();
 			String tagName, emojiCode;
 			if(jp.currentToken() != JsonToken.START_OBJECT){
-				throw new IOException(String.format("Error QuestionList.Parser.parseTags, input is not a json: \n\t%s\n", arg));
+				throw new IOException(String.format("Error QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
 			}
 			while (!jp.isClosed()) {
 				jp.nextToken();
@@ -336,7 +336,7 @@ public class QuestionList implements Iterable<Question>{
 			String imgSrc= null, fieldName;
 			List <Option>opts = null;
 			if(jp.currentToken() != JsonToken.START_OBJECT) {
-				throw new IOException(String.format("Error QuestionList.Parser.parseTags, input is not a json: \n\t%s\n", arg));
+				throw new IOException(String.format("Error QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
 			}
 			while(!jp.isClosed()){
 				if(jp.currentToken() == JsonToken.FIELD_NAME) {
@@ -449,7 +449,7 @@ public class QuestionList implements Iterable<Question>{
 
 	/**
 	 * Default constructor for QuestionList.
-	 * Initializes the list with default values for authorId, name, and tags.
+	 * Initializes the list with default values for authorId, name, and emojiPerTagName.
 	 */
 	public QuestionList(Builder builder) {
 		if (builder.timeCreatedMillis==0L){
@@ -458,10 +458,10 @@ public class QuestionList implements Iterable<Question>{
 		if (!(builder.id!=null && !builder.id.isEmpty()&& builder.id.length()>=QuestionList.Hasher.DEFAULT_LENGTH)){
 			builder.id = QuestionList.Hasher.generate(builder.authorId+builder.name, builder.timeCreatedMillis);
 		}
-		this.questions.addAll(builder.list);
+		this.questions= builder.list;
 		this.authorId = builder.authorId;
 		this.name = builder.name;
-		this.tags = builder.tags;
+		this.emojiPerTagName = builder.emojiPerTagName;
 		this.id = builder.id;
 		this.timeCreatedMillis = builder.timeCreatedMillis;
 	}
@@ -635,24 +635,35 @@ public class QuestionList implements Iterable<Question>{
 	}
 
 	/**
-	 * Gets the tags of this QuestionList.
+	 * Gets the emojiPerTagName of this QuestionList.
 	 *
-	 * @return an instance of tags
+	 * @return an instance of emojiPerTagName
 	 */
-	public HashMap<String,String> getTags() {
-		HashMap<String, String> res = new HashMap<>(tags);
+	public HashMap<String,String> getEmojiPerTagName() {
+		HashMap<String, String> res = new HashMap<>(emojiPerTagName);
 		return res;
 	}
 
-	public String getEmojiByTag(String tagName) {
-		return getTags().getOrDefault(tagName, null);
+	public Set<String> getTagNames() {
+		return emojiPerTagName.keySet();
+	}
+
+	public String getEmoji(String tagName) {
+		return emojiPerTagName.getOrDefault(tagName, null);
 	}
 
 	public void addTag(String tagName, String emoji) {
-		tags.put(tagName, emoji);
+		emojiPerTagName.put(tagName, emoji);
 	}
 	public void setTags(Map<? extends String,? extends String> m) {
-		tags = new HashMap<>(m);
+		emojiPerTagName = new HashMap<>(m);
+	}
+	
+	/** TODO */
+	public void removeTag(String tagName) {
+		if (emojiPerTagName.containsKey(tagName)) {
+			emojiPerTagName.remove(tagName);
+		}
 	}
 
 	/**
@@ -709,12 +720,6 @@ public class QuestionList implements Iterable<Question>{
 		}
 	}
 	
-	/** TODO */
-	public void removeTag(String tagName) {
-		if (tags.containsKey(tagName)) {
-			tags.remove(tagName);
-		}
-	}
 	
 	/** TODO */
 	public static Comparator<? super QuestionList> comparatorByDate() {
@@ -750,55 +755,55 @@ public class QuestionList implements Iterable<Question>{
 			spc3 = spc2+spc1,
 		seperatorParamOpt = "\n";
 
-		ObjectMapper mapper = new ObjectMapper();
+
 
 		res += "{\n";
 		tab = "\t";
-		res += tab+"\"authorId\":\""+getAuthorId()+"\",\n";
-		res += tab + "\"name\":\""+getName()+"\",\n";
-		res += tab + "\"id\":\""+getId()+"\",\n";
-		res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
+		res += tab+Constants.MAPPER.writeValueAsString("authorId")+":"+Constants.MAPPER.writeValueAsString(""+getAuthorId()+"")+",\n";
+		res += tab + Constants.MAPPER.writeValueAsString("name")+":"+Constants.MAPPER.writeValueAsString(""+getName()+"")+",\n";
+		res += tab + Constants.MAPPER.writeValueAsString("id")+":"+Constants.MAPPER.writeValueAsString(""+getId()+"")+",\n";
+		res += tab + Constants.MAPPER.writeValueAsString("timeCreatedMillis")+":"+getTimeCreatedMillis()+",\n";
 
-		res += tab + "\"tags\":{";
-		Iterator<Entry<String, String>> iter = tags.entrySet().iterator();
+		res += tab + Constants.MAPPER.writeValueAsString("emojiPerTagName")+":{";
+		Iterator<Entry<String, String>> iter = emojiPerTagName.entrySet().iterator();
 		Entry<String, String> entry;
 		while (iter.hasNext()) {
 			entry = iter.next();
-			res += "\""+entry.getKey()+"\" : \""+entry.getValue()+"\"";
+			res += ""+Constants.MAPPER.writeValueAsString(""+entry.getKey()+"")+" : "+Constants.MAPPER.writeValueAsString(""+entry.getValue()+"")+"";
 			if(iter.hasNext()){
 				res += ", ";
 			}
 		}
 		res += "},\n";
 
-		res += tab + "\"questions\": \n";
+		res += tab + Constants.MAPPER.writeValueAsString("questions")+": \n";
 		res += "\t[\n";
 		Iterator<Question> iterQuestion = this.iterator();
 		while (iterQuestion.hasNext()){
 			Question q = iterQuestion.next();
 			tab = "\t\t";
-			res += "\t{\n" + spc2 + "\"question\":"+mapper.writeValueAsString(q.getQuestion())+",\n";
-			res += spc2 + "\"explication\":";
+			res += "\t{\n" + spc2 + Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString(q.getQuestion())+",\n";
+			res += spc2 + Constants.MAPPER.writeValueAsString("explication")+":";
 			if(q.getExplication()==null || q.getExplication().equals("null") || q.getExplication().equals(Constants.NOEXPLICATION)){
 				res +=null;
 			}else {
-				res += mapper.writeValueAsString(q.getExplication());
+				res += Constants.MAPPER.writeValueAsString(q.getExplication());
 			}
 			res += ",\n";
-			res +=spc2 + "\"imageSrc\":"+(q.getImageSrc()==null?null:mapper.writeValueAsString(q.getImageSrc()))+",\n";
-			res +=spc2 + "\"options\": [\n";
+			res +=spc2 + Constants.MAPPER.writeValueAsString("imageSrc")+":"+(q.getImageSrc()==null?null:Constants.MAPPER.writeValueAsString(q.getImageSrc()))+",\n";
+			res +=spc2 + Constants.MAPPER.writeValueAsString("options")+": [\n";
 			List<Option> opts = q.getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
 			Iterator<Option> iterOpt = opts.iterator();
 			while (iterOpt.hasNext()){
 				Option opt = iterOpt.next();
 				res += spc2+"{\n";
-				res += spc3+"\"text\":"+mapper.writeValueAsString(opt.getText())+","+seperatorParamOpt;
-				res += spc3+"\"isCorrect\":"+opt.isCorrect()+","+seperatorParamOpt;
-				res += spc3+"\"explication\":";
+				res += spc3+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString(opt.getText())+","+seperatorParamOpt;
+				res += spc3+Constants.MAPPER.writeValueAsString("isCorrect")+":"+opt.isCorrect()+","+seperatorParamOpt;
+				res += spc3+Constants.MAPPER.writeValueAsString("explication")+":";
 				if(opt.getExplication()==null || opt.getExplication().equals("null") || opt.getExplication().equals(Constants.NOEXPLICATION)){
 					res +=null+seperatorParamOpt;
 				}else {
-					res += mapper.writeValueAsString(opt.getExplication())+seperatorParamOpt;
+					res += Constants.MAPPER.writeValueAsString(opt.getExplication())+seperatorParamOpt;
 				}
 				res += spc2+"}";
 				if (iterOpt.hasNext()){
