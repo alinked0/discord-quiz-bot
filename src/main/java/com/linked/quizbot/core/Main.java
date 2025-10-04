@@ -2,15 +2,7 @@ package com.linked.quizbot.core;
 
 import java.util.Arrays;
 import java.util.Scanner;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.core.viewers.QuizBot;
-import com.linked.quizbot.core.viewers.Viewer;
-import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 
 /**
@@ -26,61 +18,30 @@ import com.linked.quizbot.utils.Users;
 public class Main {
 	public static void usageMain(){
 		String s="";
-		s+= "Usage: \n\tjava -jar QuizBot.jar [BOTTOKEN] [TESTGUILDID] [TESTCHANNELID] [USERID]\n";
+		s+= "Usage: \n\tjava -jar QuizBot.jar BOTTOKEN USERID [TESTCHANNELID TESTGUILDID]\n";
 		s+= "\t\t BOTTOKEN: the bot token, TESTGUILDID: the guild id to test in, TESTCHANNELID: the channel id to test in\n";
 		s+= "\t\t USERID: the user id to test with, if running the bot in testing mode\n";
-		s+= "Example: \n\tjava -jar QuizBot.jar 123456789012345678abc 123456789012345678 123456789012345678 123456789012345678\n";
-		s+= "If you want to run the bot in production mode, you can use:\n\tjava -jar QuizBot.jar 123456789012345678abc";
+		s+= "Starts a quiz bot restricted to the TESTCHANNELID int the TESTGUILDID, if none are defined, the bot will start a private channel with the USERID.\n";
 		System.out.println(s);
 	}
 	public static void main (String[] args) {
-		if (args.length <1 || Arrays.asList("help", "-h", "--help").contains(args[0].toLowerCase())) {
+		if (args.length <2 || Arrays.asList("help", "-h", "--help").contains(args[0].toLowerCase())) {
 			usageMain();
 			return;
 		}
-		
-		Constants.AREWETESTING = false;
-		Scanner scanner = new Scanner(System.in);
-		if (args.length ==0 || args[0].isEmpty()) {
-			System.out.print("Input bot token: ");
-			Constants.TOKEN =scanner.nextLine().trim();
-		} else if (args.length ==1 && !args[0].isEmpty()){
-			Constants.TOKEN = args[0];
-		} else if(args.length ==4){
-			for (int i=1; i<4; ++i){
-				if (args[i].isEmpty() || args[i].length()<Constants.DISCORDIDLENMIN){
-					usageMain();
-					scanner.close();
-					return;
-				}
-			}
-			Constants.AREWETESTING = true;
-			Constants.TOKEN = args[0];
-			Constants.DEBUGGUILDID = args[1];
+		Constants.TOKEN = args[0];
+		Constants.AUTHORID = args[1];		
+		if(args.length >3){
 			Constants.DEBUGCHANNELID = args[2];
-			Constants.AUTHORID = args[3];
-			
+			Constants.DEBUGGUILDID = args[3];
 		} else {
-			usageMain();
-			scanner.close();
-			return;
+			Constants.DEBUGCHANNELID = null;
+			Constants.DEBUGGUILDID = null;
 		}
+		Scanner scanner = new Scanner(System.in);
 		BotCore.jda= null;
 		Users.loadAllUsers();
-		/*User user = Users.get("468026374557270017");
-		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-		try {
-			String json = ow.writeValueAsString(user);
-			System.out.println(json);
-			System.out.println(user.toJson());
-			
-		}catch(JsonProcessingException e){
-			e.printStackTrace();
-		}*/
-		if(Constants.isBugFree() || Constants.AUTHORID.isEmpty()){
-			BotCore.startJDA();
-			Constants.AUTHORID = QuestionList.getExampleQuestionList().getAuthorId();
-		}
+		
 		CommandLineInterface.execute(scanner);
 	}
 }

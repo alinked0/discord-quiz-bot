@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
  * 
  */
 public class Constants {
-	public static boolean AREWETESTING;
+	public static boolean AREWETESTING = true;
 	public static String 
 		TOKEN,
 		AUTHORID = "",

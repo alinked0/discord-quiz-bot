@@ -45,14 +45,18 @@ public class CommandLineInterface {
 	public static void execute (Scanner scanner) {
 		boolean exiting = false;
 		while (!exiting) {
-			System.out.print("");
+			System.out.print("$ ");
 			String input = scanner.nextLine().toLowerCase();
 			switch (input) {
 				case "exit" -> {
 					BotCore.shutDown();
 					scanner.close();
 					exiting = true;
-					break;
+					if (BotCore.getJDA()!=null){
+						BotCore.getJDA().shutdown();
+					}
+					System.out.println("[INFO] Exited.");
+					return;
 				}
 				case "shutdown", "stop" -> {
 					BotCore.shutDown();
@@ -77,27 +81,26 @@ public class CommandLineInterface {
 				}
 				default -> {
 					try {
-						Future<?> future = scheduler.submit(() -> {
+						/*Future<?> future = scheduler.submit(() -> {*/
 							List<String> out = execute(input, Constants.AUTHORID).getAsText();
 							for (String s: out){
 								System.out.println(s);
 							}
-						});
+						/*}); 
 						while(!future.isDone()){
 							if (BotCore.isShutingDown()){
 								future.resultNow();
 								future.cancel(true);
 								break;
 							}
-						}
+						}*/
 					}catch(Exception e){
-						e.printStackTrace();
+						System.err.printf("[ERROR] %s\n",e.getMessage());
 					}
 					
 				}
 			}
 		}
-		if (BotCore.jda!=null) BotCore.jda.shutdownNow();
 	}
 	public static CommandOutput execute(String message, String userId) {
 		long start = System.nanoTime();
@@ -127,13 +130,13 @@ public class CommandLineInterface {
 		String cmndLineArgs = message;
 		arguments = cmd.parseArguments(cmndLineArgs);
 
-		System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`, Argc-1=%d;\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
+		System.out.printf("[INFO] cmd=%s, Time_elapsed=`%.3f ms`, Argc-1=%d;\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
 		if (!Constants.isBugFree()) {
 			for (int i=0; i<arguments.size(); i++) {
 				System.out.print(arguments.get(i).replace("[\\n \\t]", ""));
 				if (i!=arguments.size()-1){System.out.print("::");}
+				else {System.out.print(";\n");}
 			}
-			System.out.print(";\n");
 		}
 		return cmd.execute(userId, arguments);
 	}
