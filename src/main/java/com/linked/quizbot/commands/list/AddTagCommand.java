@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code TagListCommand} class allows users to tag a list of questions with a specific tag.
+ * The {@code AddTagCommand} class allows users to tag a list of questions with a specific tag.
  * It extends {@link BotCommand} and provides functionality to associate a tag with multiple question lists.
  * <p>
  * This command is part of a Discord bot that manages quiz questions and user interactions.
@@ -29,10 +29,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see BotCommand
  * @see Users
  */
-public class TagListCommand extends BotCommand{
-    public static final String CMDNAME = "taglist";
+public class AddTagCommand extends BotCommand{
+    public static final String CMDNAME = "addtag";
     private String cmdDesrciption = "add a tag to a list of questions";
-	private List<String> abbrevs = List.of("tag", "tl");
+	private List<String> abbrevs = List.of("tag", "at", "taglist", "tl");
     
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
@@ -58,7 +58,7 @@ public class TagListCommand extends BotCommand{
         User user = Users.get(userId);
         String emoji = user.getEmojiFomTagName(tagNameInput);
         String res = "";
-        String taggedStr = "Taged";
+        String taggedStr = "Taged ";
         String notOwnedStr = "You are not the owner of";
         int totalTagged = 0;
         int totalNotOwned = 0;
@@ -79,7 +79,7 @@ public class TagListCommand extends BotCommand{
             res = "Tag : '"+tagNameInput+"' doesn't exist. Firstly create it:`"+Constants.CMDPREFIXE+HelpCommand.CMDNAME +" "+CreateTagCommand.CMDNAME+"`\n";
         }
         if (totalNotOwned>0){res += notOwnedStr + "\n";}
-        if (totalTagged>0){res += taggedStr;}
+        if (totalTagged>0){res += totalTagged+"lists : "+taggedStr;}
         
 		return new CommandOutput.Builder()
 				.add(res)
