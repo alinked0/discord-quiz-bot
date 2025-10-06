@@ -11,7 +11,6 @@ import com.linked.quizbot.commands.list.AddListCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.CommandLineInterface;
 import com.linked.quizbot.core.MessageSender;
-import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
@@ -22,12 +21,13 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 /**
  * The class MessageReceivedListener will serve as the first layer to any text command
- * that means message commands like !help
+ * that means message commands like q!help
  */
 public class MessageListener extends ListenerAdapter {
 	
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event) {
+		long start = System.nanoTime();
 		// Ignore bots
 		User sender = event.getAuthor();
 		if (sender.isBot()) return;
@@ -53,18 +53,47 @@ public class MessageListener extends ListenerAdapter {
 		//vefifier si le message contient notre prefixe
 		Message message = event.getMessage();
 		String content = message.getContentRaw();
-		String userPrefixe = Users.get(userId).getPrefix();
-		if (!content.startsWith(Constants.CMDPREFIXE) && userPrefixe!=null && !content.startsWith(userPrefixe)){
+		
+		List<String> tmp = CommandLineInterface.parsePrefixe(userId, content);
+		String cmndLineArgs = "";
+		if (tmp.isEmpty()){
 			return;
 		}
+		content = tmp.getLast();
+		tmp = CommandLineInterface.parseBotCommand(content);
+		if (tmp.isEmpty()){
+			return;
+		}
+		cmndLineArgs = tmp.getLast();
+		BotCommand cmd = BotCommand.getCommandByName(tmp.get(0));
 		
-		CommandOutput output= CommandLineInterface.execute(content, userId);
+		if(BotCore.isShutingDown()){
+			BotCommand.CommandCategory category = cmd.getCategory();
+			if(category.equals(BotCommand.CommandCategory.EDITING) || category.equals(BotCommand.CommandCategory.GAME)){
+				MessageSender.sendCommandOutput(
+					new CommandOutput.Builder().add(Constants.UPDATEEXPLANATION).build(),
+					channel,
+					null 
+					);
+				return;
+			}
+		}
+		List<String> arguments=new ArrayList<>();
+		arguments.addAll(cmd.parseArguments(cmndLineArgs));
+		switch (cmd.getName()) {
+			case CreateListCommand.CMDNAME, AddListCommand.CMDNAME -> {
+				arguments.addAll(BotCommand.getArgFromAttachments(userId, message.getAttachments()));
+			}
+		}
 		MessageSender.sendCommandOutput(
-			output,
+			cmd.execute(userId, arguments),
 			channel,
 			message
 		);
+
+		System.out.printf("[INFO] cmd=%s, Time_elapsed=`%.3f ms`, Argc-1=%d;\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
 	}
 }
+
 
 
