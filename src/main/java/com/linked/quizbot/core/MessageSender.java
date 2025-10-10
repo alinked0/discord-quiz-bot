@@ -131,7 +131,7 @@ public class MessageSender {
 			channel.sendMessage(s).queue(msg -> msg.createThreadChannel(title).queue(chaine -> sendActualOutput(output, chaine, null)));
 			return;
 		}
-		if (Constants.DEBUGCHANNELID == null && Constants.DEBUGGUILDID == null || output.sendAsPrivateMessage() && channel.getType().isGuild()){
+		if (output.sendAsPrivateMessage() && channel.getType().isGuild()){
 			User u = BotCore.getUser(output.getRequesterId());
 			if (u!=null){
 				u.openPrivateChannel().queue(chaine -> sendActualOutput(output, chaine, null));

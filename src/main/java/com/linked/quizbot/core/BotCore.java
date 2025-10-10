@@ -51,10 +51,10 @@ public class BotCore {
 		return !areWeTesting;
 	}
 	public static boolean isOnline(){
-		return !online;
+		return online;
 	}
 	public static boolean canIRunThisHere(String channelId){
-		if (isBugFree() || channelId!=null && channelId.equals(Constants.ADMINID) || Constants.DEBUGCHANNELID != null && Constants.DEBUGCHANNELID.equals(channelId)){
+		if (channelId!=null && channelId.equals(Constants.ADMINID) || Constants.DEBUGCHANNELID != null && Constants.DEBUGCHANNELID.equals(channelId)){
 			return true;
 		}
 		return false;

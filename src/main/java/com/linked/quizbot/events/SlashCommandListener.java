@@ -30,12 +30,9 @@ public class SlashCommandListener extends ListenerAdapter {
 		// Ignorer les messages des bots
 		if (sender.isBot()) return;
 		
-		if (!BotCore.isBugFree()){
-			if (event.isFromGuild()){
-				if (!BotCore.canIRunThisHere(event.getGuild().getId()) || !BotCore.canIRunThisHere(event.getChannel().getId())){
-					return;
-				}
-			}
+		// Stop a buggy bot from being used on all of discord
+		if (!BotCore.isBugFree() && !(BotCore.canIRunThisHere(event.getChannel().getId()))){
+			return;
 		}
 		
 		String userId = sender.getId();

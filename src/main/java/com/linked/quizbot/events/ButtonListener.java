@@ -41,18 +41,11 @@ public class ButtonListener extends ListenerAdapter {
 		if (sender == null || sender.isBot()) {
 			return;
 		}
-		MessageChannel channel = event.getChannel();
-		if (!BotCore.isBugFree()){
-			if (event.isFromGuild()){
-				if (!BotCore.canIRunThisHere(event.getGuild().getId()) || !BotCore.canIRunThisHere(event.getChannel().getId())){
-					return;
-				}
-			} else {
-				if (!BotCore.canIRunThisHere(sender.getId())){
-					return;
-				}
-			}
+		// Stop a buggy bot from being used on all of discord
+		if (!BotCore.isBugFree() && !(BotCore.canIRunThisHere(event.getChannel().getId()))){
+			return;
 		}
+		MessageChannel channel = event.getChannel();
 		String componentId = event.getComponentId(); // The ID you assigned to the buttonBotCore.addUser(sender);
 		String userId = sender.getId();
 		String messageId = event.getMessageId();

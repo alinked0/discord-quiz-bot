@@ -14,12 +14,13 @@ import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.QuestionList;
 
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.api.utils.AttachedFile;
+
 
 public class ReadyEventListener extends ListenerAdapter {
 	@Override
@@ -54,8 +55,9 @@ public class ReadyEventListener extends ListenerAdapter {
 		}
 		event.getGuild().updateCommands().addCommands(commandData).queue();
 		if (!BotCore.isBugFree()){
-			if (event.getGuild().getId().equals(Constants.DEBUGGUILDID)){
-				event.getGuild().getTextChannelById(Constants.DEBUGCHANNELID).sendMessage("Bot is ready for testing.")
+			TextChannel c = event.getGuild().getTextChannelById(Constants.DEBUGCHANNELID);
+			if (c!=null){
+				c.sendMessage("Bot is ready for testing.")
 				.queue(msg -> 
 				{
 					CommandOutput.Builder output = new CommandOutput.Builder();
@@ -96,11 +98,10 @@ public class ReadyEventListener extends ListenerAdapter {
 					MessageSender.sendCommandOutput(
 						output.addFile(q.getPathToList()).build(),
 						msg.getChannel(),
-						msg 
+						msg
 					);
 				});
 			}
 		}
 	}
-
 }
