@@ -78,7 +78,12 @@ public class Explain extends Viewer{
     public String getHeader(){
         String header = "";
         if (userAwnsersByQuestionIndex!=null){
-            header += String.format("For %s **`%s/%d`**\n", BotCore.getEffectiveNameFromId(userId), points, getQuestionList().size());
+
+			String uName = BotCore.getEffectiveNameFromId(userId);
+			if (uName == userId){
+				uName = String.format("<@%s>", uName);
+			}
+            header += String.format("For %s **`%s/%d`**\n",uName, points, getQuestionList().size());
         }
         header+= super.getHeader();
         return header;

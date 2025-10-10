@@ -273,13 +273,18 @@ public class QuizBot extends Viewer {
 		List<String> res = new ArrayList<>();
 		double totalPoints = getQuestionList().size() * QuestionList.pointsForCorrect;
 		String leaderboard = "Leaderboard:\n";
+		String uName;
 
 		Iterator<Map.Entry<String, Double>> SortedScoreByUser = this.userScoreExact.entrySet().stream()
 			.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).iterator();
 		int i = 1;
 		while (SortedScoreByUser.hasNext()) {
 			Map.Entry<String, Double> entry = SortedScoreByUser.next();
-			leaderboard += String.format("#%d. <@%s>: `%s`\n", i, BotCore.getEffectiveNameFromId(entry.getKey()), entry.getValue());
+			uName = BotCore.getEffectiveNameFromId(entry.getKey());
+			if (uName == entry.getKey()){
+				uName = String.format("<@%s>", uName);
+			}
+			leaderboard += String.format("#%d. %s: `%s`\n", i, uName, entry.getValue());
 			i++;
 			if (leaderboard.length() > (Constants.CHARSENDLIM - 1000)) {
 				res.add(leaderboard);
