@@ -905,13 +905,13 @@ public class QuestionList implements Iterable<Question>{
 	public String getFormated(int index, @Nullable Boolean correct, @Nullable Map<String, Set<Option>> respondents, @Nullable Set<String> players) {
 		Question q = get(index);
 		double points = 0.00;
-		String options = "",box="", users="", emoji, pointStr = "", correctionStr, expl;
+		String options = "",box="", users="", emoji, pointStr = "", corrStr = "", optCorrStr, expl;
 		Iterator<Set<Option>> iter;
 		Set<Option>awnsers;
 		Option opt;
 		for (int i = 0; i < q.size(); i++) {
 			opt = q.get(i);
-			correctionStr="";
+			optCorrStr="";
 			emoji="";
 			if (players!=null && respondents!=null){
 				box=">";
@@ -941,11 +941,12 @@ public class QuestionList implements Iterable<Question>{
 				if (expl ==null){
 					expl = Constants.NOEXPLICATION;
 				}
-				correctionStr = String.format("> %s%s\n",emoji,expl);
+				optCorrStr = String.format("> %s%s\n",emoji,expl);
 			}
-			options += String.format("%s%d. %s\n%s", box, i + 1, q.get(i).getText(), correctionStr);
+			options += String.format("%s%d. %s\n%s", box, i + 1, q.get(i).getText(), optCorrStr);
 		}
 		if (correct != null && correct){
+			corrStr = String.format("> \n> %s\n",(q.getExplication()==null)?Constants.NOEXPLICATION:q.getExplication());
 			pointStr = String.format("`%s/%s`", points, pointsForCorrect);
 		}
 		if (players!=null){
@@ -956,7 +957,7 @@ public class QuestionList implements Iterable<Question>{
 			}
 		}
 		String questionText = String.format("### %d. %s %s\n", index+1, q.getQuestion(), pointStr);
-		return String.format("%s%s%s%s", header(), questionText, users, options).replace("\\$([^\\$]*)\\$", "`$1`");
+		return String.format("%s%s%s%s%s", header(), questionText, users, options, corrStr).replace("\\$([^\\$]*)\\$", "`$1`");
 	}	
 
 	/** TODO */
