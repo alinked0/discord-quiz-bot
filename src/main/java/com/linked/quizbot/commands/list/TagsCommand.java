@@ -1,37 +1,25 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 
-import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
-import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code CollectionCommand} class retrieves and displays a user's collection of question lists,
- * categorized by tags. It extends {@link BotCommand} and allows users to view their own collections
- * or those of other users by specifying a user ID.
+ * The {@code TagsCommand} class is a command that lists all tags associated with the user's questions,
+ * sorted in ascending order by number of taged QuestionLists.
+ * 
+ * Each tag is displayed with an associated txt visual(often an emoji) and the count of questions tagged with it.
  * <p>
- * This command is part of a Discord bot that manages quiz questions and user interactions.
- * It provides functionality to list all question lists associated with a user, including an example list.
- * The command can be invoked with various abbreviations and includes options for specifying the user ID.
+ * This command is part of a Discord bot that manages quiz games and user interactions.
+ * It allows users to label their quizzes with custum tags, making it easier to organize and retrieve them.
  * </p>
  * @author alinked0
  * @version 1.0
@@ -43,7 +31,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class TagsCommand extends BotCommand {
 	public static final String CMDNAME = "tags";
     private String cmdDesrciption = "listing all questions";
-	private List<String> abbrevs = List.of();
+	private List<String> abbrevs = List.of("lt", "listtags");
 	
 	@Override
 	public String getName(){ return CMDNAME;}
