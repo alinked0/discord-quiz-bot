@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,10 +31,13 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 
+import kotlin.Pair;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.utils.TimeFormat;
 
 /**
  * The QuestionList is a class designed to manage a collection
@@ -84,12 +88,6 @@ public class QuestionList implements Iterable<Question>{
 		getExampleQuestionList().exportListQuestionAsJson();
 	}
 
-    /**
-     * Inner class implementing the **Builder pattern** for creating and initializing {@link QuestionList} objects.
-     * <p>
-     * Allows for step-by-step construction of a quiz list by setting metadata (author, name, ID) and adding questions.
-     * </p>
-     */
 	public static class Builder {
 		public final List<Question> list= new ArrayList<>();
 		public final Map<String,String> emojiPerTagName= new HashMap<>();
@@ -98,104 +96,34 @@ public class QuestionList implements Iterable<Question>{
 		public String id= null;
 		public long timeCreatedMillis= 0L;
 
-        /**
-         * Sets the ID of the author for the quiz list.
-         * @param authorId The ID of the author (e.g., a user ID).
-         * @return The current Builder instance for chaining.
-         * @requires authorId != null
-         * @ensures this.authorId == authorId
-         */
 		public  Builder authorId(String authorId){
 			this.authorId = authorId;
 			return this;
 		}
-
-        /**
-         * Adds a single tag-emoji pair to the list's tag map.
-         * @param tagName The name of the tag (e.g., "Math", "Science").
-         * @param emoji The emoji string associated with the tag (e.g., "$\#$").
-         * @return The current Builder instance for chaining.
-         * @requires tagName != null && emoji != null
-         * @ensures this.emojiPerTagName.containsKey(tagName)
-         */
 		public  Builder addTag(String tagName, String emoji){
 			this.emojiPerTagName.put(tagName, emoji);
 			return this;
 		}
-
-
-        /**
-         * Adds all tag-emoji pairs from a map to the list's tag map. Existing keys are overwritten.
-         * @param emojiPerTagName A map of tags and their corresponding emoji icons.
-         * @return The current Builder instance for chaining.
-         * @requires emojiPerTagName != null
-         * @ensures this.emojiPerTagName contains all entries from the input map.
-         */
 		public  Builder addTags(Map<String,String> emojiPerTagName){
 			this.emojiPerTagName.putAll(emojiPerTagName);
 			return this;
 		}
-
-
-        /**
-         * Sets the display name for the quiz list.
-         * @param listName The name of the list.
-         * @return The current Builder instance for chaining.
-         * @requires listName != null
-         * @ensures this.name == listName
-         */
 		public  Builder name(String listName){
 			this.name = listName;
 			return this;
 		}
-
-
-        /**
-         * Sets the unique identifier (ID) for the quiz list.
-         * @param id The unique ID for the list.
-         * @return The current Builder instance for chaining.
-         * @requires id != null
-         * @ensures this.id == id
-         */
 		public  Builder id(String id){
 			this.id = id;
 			return this;
 		}
-
-        /**
-         * Sets the creation timestamp for the quiz list.
-         * @param timeCreatedMillis The time of creation in milliseconds.
-         * @return The current Builder instance for chaining.
-         * @requires timeCreatedMillis >= 0L
-         * @ensures this.timeCreatedMillis == timeCreatedMillis
-         */
 		public  Builder timeCreatedMillis(long timeCreatedMillis){
 			this.timeCreatedMillis = timeCreatedMillis;
 			return this;
 		}
-
-        /**
-         * Adds a single {@link Question} to the list of questions.
-         * @param q The question to add.
-         * @return The current Builder instance for chaining.
-         * @requires q != null
-         * @ensures this.list.contains(q)
-         * @ensures this.list.size() == \old(this.list.size()) + 1
-         */
 		public Builder add(Question q){
 			list.add(q);
 			return this;
 		}
-
-        /**
-         * Merges content from an existing {@link QuestionList} into this builder.
-         * <p>Questions are deep-cloned. Tags are merged. Metadata (ID, name, author) is only set if not already present in the builder.
-         * The earliest creation timestamp is retained.</p>
-         * @param questions The existing QuestionList to merge from.
-         * @return The current Builder instance for chaining.
-         * @requires questions != null
-         * @ensures this.list contains clones of all questions from the input list.
-         */
 		public Builder add(QuestionList questions){
 			for (Question q : questions){
 				this.add(q.clone());
@@ -207,74 +135,34 @@ public class QuestionList implements Iterable<Question>{
 			if (timeCreatedMillis==0L || questions.getTimeCreatedMillis()<timeCreatedMillis) this.timeCreatedMillis(questions.getTimeCreatedMillis());
 			return this;
 		}
-
-        /**
-         * Adds a collection of {@link Question} objects to the list.
-         * @param c The list or collection of questions to add.
-         * @return The current Builder instance for chaining.
-         * @requires c != null
-         * @ensures this.list contains all elements from c.
-         */
 		public Builder addAll(List<? extends Question> c){
 			list.addAll(c);
 			return this;
 		}
-        /**
-         * Constructs the final immutable {@link QuestionList} object.
-         * @return The newly constructed {@link QuestionList} object.
-         * @requires this.name != null
-         * @ensures \result != null
-         * @ensures \result.getQuestions().equals(this.list)
-         */
 		public QuestionList build(){
 			return new QuestionList(this);
 		}
 	}
 	
-    /**
-     * QuestionList.Hasher is a utility class for generating unique, short, alphanumeric codes
-     * based on an input string and a timestamp. It uses SHA-256 hashing and Base-36 encoding
-     * to create a code that is guaranteed to be unique for the same input and timestamp.
-     * <p>
-     * Most of this code was written by chatgpt.
-     * </p>
-     */
+	/**
+	 * QuestionList.Hasher is a utility class for generating unique, short, alphanumeric codes
+	 * based on an input string and a timestamp. It uses SHA-256 hashing and Base-36 encoding
+	 * to create a code that is guaranteed to be unique for the same input and timestamp.
+	 * 
+	 * Most of this code was written by chatgpt
+	 */
 	public static class Hasher {
 
 		public static final char[] BASE36_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
 		public static final int DEFAULT_LENGTH = 7;
 		public static final Set<String> generatedCodes = new HashSet<>();
 
-        /**
-         * Adds a newly generated code to the set of codes currently in use.
-         * @param code The code to add.
-         * @requires code != null
-         * @ensures generatedCodes.contains(code)
-         */
 		public static void addGeneratedCode(String code){
 			Hasher.generatedCodes.add(code);
 		}
-
-        /**
-         * Clears the set of generated codes, allowing codes to be reused in a new session.
-         * @ensures generatedCodes.isEmpty()
-         */
 		public static void clearGeneratedCodes(){
 			generatedCodes.clear();
 		}
-
-
-        /**
-         * Generates a unique, short hash code based on a string input and a timestamp.
-         * <p>The method ensures the code is not already in {@link #generatedCodes} using random components and retries.</p>
-         * @param input The base string input for hashing (e.g., list name).
-         * @param timestamp The creation time or other timestamp to ensure entropy.
-         * @return A unique alphanumeric hash code of {@link #DEFAULT_LENGTH}.
-         * @throws RuntimeException if too many hash collisions occur (10,000 attempts).
-         * @requires input != null
-         * @ensures \result != null && \result.length() == DEFAULT_LENGTH
-         * @ensures generatedCodes.contains(\result)
-         */
 		public static String generate(String input, long timestamp) {
 			String code;
 			int attempts = 0;
@@ -295,16 +183,6 @@ public class QuestionList implements Iterable<Question>{
 			return code;
 		}
 
-        /**
-         * Generates a unique, short hash code for a given {@link QuestionList} object.
-         * <p>The hash is primarily based on the list's author ID and name, combined with the creation timestamp.</p>
-         * @param l The QuestionList object for which to generate the hash.
-         * @return A unique alphanumeric hash code of {@link #DEFAULT_LENGTH}.
-         * @throws RuntimeException if too many hash collisions occur (10,000 attempts).
-         * @requires l != null
-         * @ensures \result != null && \result.length() == DEFAULT_LENGTH
-         * @ensures generatedCodes.contains(\result)
-         */
 		public static String generate(QuestionList l) {
 			String code, input = l.getAuthorId() + l.getName();
 			long timestamp = l.getTimeCreatedMillis();
@@ -325,15 +203,6 @@ public class QuestionList implements Iterable<Question>{
 			Hasher.addGeneratedCode(code);
 			return code;
 		}
-
-        /**
-         * Internal method to create a Base-36 encoded, truncated code from a combined string input.
-         * <p>Uses SHA-256 hashing on the input, converts the hash to Base-36, prepends 'a' if necessary, and truncates/pads to {@link #DEFAULT_LENGTH}.</p>
-         * @param combinedInput The input string (including random elements) to be hashed.
-         * @return A Base-36 encoded string based on the hash.
-         * @throws RuntimeException if SHA-256 algorithm is not available.
-         * @requires combinedInput != null
-         */
 		private static String createCode(String combinedInput) {
 			try {
 				// SHA-256 hashing
@@ -356,13 +225,6 @@ public class QuestionList implements Iterable<Question>{
 				throw new RuntimeException("SHA-256 not available", e);
 			}
 		}
-
-        /**
-         * Internal method to convert a {@link BigInteger} into a Base-36 encoded string.
-         * @param value The BigInteger value to encode.
-         * @return The Base-36 string representation.
-         * @requires value.compareTo(BigInteger.ZERO) > 0
-         */
 		private static String toBase36(BigInteger value) {
 			StringBuilder sb = new StringBuilder();
 			BigInteger base = BigInteger.valueOf(36);
@@ -375,16 +237,6 @@ public class QuestionList implements Iterable<Question>{
 
 			return sb.toString();
 		}
-
-        /**
-         * Internal method to pad an input string with the character 'a' until it reaches the specified length.
-         * @param input The string to pad.
-         * @param length The target length.
-         * @return The padded string.
-         * @requires input != null
-         * @requires length >= input.length()
-         * @ensures \result.length() == length
-         */
 		private static String padToLength(String input, int length) {
 			StringBuilder sb = new StringBuilder(input);
 			while (sb.length() < length) {
@@ -392,34 +244,12 @@ public class QuestionList implements Iterable<Question>{
 			}
 			return sb.toString();
 		}
-
-        /**
-         * Checks if the given ID is currently tracked in the set of generated codes.
-         * @param id The ID to check.
-         * @return {@code true} if the ID is already in use, {@code false} otherwise.
-         * @requires id != null
-         * @ensures \result == generatedCodes.contains(id)
-         */
 		public static boolean isAlreadyInUse(String id){
 			return Hasher.generatedCodes.contains(id);
 		}
 	}
 
-    /**
-     * QuestionList.Parser is a utility class dedicated to parsing {@link QuestionList} objects
-     * from JSON input, supporting reading from files or direct strings.
-     * <p>It uses Jackson's low-level {@link JsonParser} for efficient processing.</p>
-     */
 	public static class Parser {
-
-        /**
-         * Parses a {@link QuestionList} from a JSON file specified by the file path.
-         * @param filePathToJson The absolute or relative path to the JSON file.
-         * @return A {@link QuestionList.Builder} pre-populated with data from the file, or {@code null} if the file is not found.
-         * @throws IOException if an I/O error occurs during file reading or JSON parsing.
-         * @requires filePathToJson != null
-         * @ensures \result == parser(new JsonFactory().createParser(f), filePathToJson) if file exists.
-         */
 		public static QuestionList.Builder fromJsonFile(String filePathToJson) throws IOException{
 			File f = new File(filePathToJson);
 			if (!f.exists()){
@@ -430,14 +260,6 @@ public class QuestionList implements Iterable<Question>{
 			return parser(jp, filePathToJson);
 		}
 
-        /**
-         * Parses a {@link QuestionList} from a raw JSON string.
-         * @param arg The JSON string content.
-         * @return A {@link QuestionList.Builder} pre-populated with data from the string.
-         * @throws IOException if an error occurs during JSON parsing.
-         * @requires arg != null
-         * @ensures \result == parser(new JsonFactory().createParser(arg), arg)
-         */
 		public static QuestionList.Builder fromString(String arg)throws IOException{
 			JsonParser jp =  new JsonFactory().createParser(arg);
 			return parser(jp, arg);
@@ -514,7 +336,7 @@ public class QuestionList implements Iterable<Question>{
 			String imgSrc= null, fieldName;
 			List <Option>opts = null;
 			if(jp.currentToken() != JsonToken.START_OBJECT) {
-				throw new IOException(String.format("[ERROR] QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
+				throw new IOException(String.format("[ERROR] QuestionList.Parser.parseQuestion, input is not a json: \n\t%s\n", arg));
 			}
 			while(!jp.isClosed()){
 				if(jp.currentToken() == JsonToken.FIELD_NAME) {
@@ -684,22 +506,12 @@ public class QuestionList implements Iterable<Question>{
 		return QuestionList.Parser.fromJsonFile(filePath).build();
 	}
 	
-	/** 
-	 * Returns the Question at the specified position in this list.
-	 * @param index index of the Question to return
-	 * @return the Question at the specified position in this list
-	 * @pure
-	 */
+	/** TODO */
 	public Question get(int index) {
 		return questions.get(index);
 	}
 	
-	/** 
-	 * Appends all of the Questions that aren't already in this QuestionList,
-	 * @param c List containing Questions to be added to this list
-	 * @return true
-	 * @ensures this.containsAll(c)
-	 */
+	/** TODO */
 	public boolean addAll(List<? extends Question> c) {
 		for (Question e : c) {
 			if(!contains(e)) {
@@ -709,36 +521,23 @@ public class QuestionList implements Iterable<Question>{
 		return true;
 	}
 	
-	/** 
-	 * @return an Iterator over the Questions in this list in insertion order
-	 */
+	/** TODO */
 	public Iterator<Question> iterator(){
 		return questions.iterator();
 	}
 	
-	/** 
-	 * Append all questions in q into this QuestionList
-	 * @param q the QuestionList containing Questions to be added to this list
-	 * @return true
-	 * @ensures this.containsAll(q.getQuestions())
-	 */
+	/** TODO */
 	public boolean addAll(QuestionList q) {
 		return addAll(q.getQuestions());
 	}
 	
-	/** 
-	 * @return an instance of the list of Questions in insertion order
-	 */
+	/** TODO */
 	public List<Question> getQuestions(){
 		List<Question> res = new LinkedList<>(questions);
 		return res;
 	}
 	
-	/** 
-	 * Appends the specified Question to the end of this list if not already present.
-	 * @param e Question to be appended to this list
-	 * @return true
-	 */
+	/** TODO */
 	public boolean add(Question e) {
 		if (contains(e)) {
 			return true;
@@ -748,42 +547,25 @@ public class QuestionList implements Iterable<Question>{
 		return true;
 	}
 	
-	/** 
-	 * Inserts the specified Question at the specified position in this list if not already present.
-	 * @param index index at which the specified Question is to be inserted
-	 * @param element Question to be inserted
-	 * @throws IndexOutOfBoundsException if the index is out of range (index < 0 || index > size())
-	 */
+	/** TODO */
 	public void add(int index, Question element) {
-		if (index < 0 || index > questions.size()) {
-			throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + questions.size());
-		}
 		if (contains(element)) {
 			return ;
 		}
 		questions.add(index, element);
 	}
 	
-	/** 
-	 * @param o Question
-	 * @return true if o is in this list
-	 */
+	/** TODO */
 	public boolean contains(Object o) {
 		return questions.contains(o);
 	}
 	
-	/** 
-	 * @return true if this list contains nothing
-	 * @pure
-	 */
+	/** TODO */
 	public boolean isEmpty(){
 		return questions.isEmpty();
 	}
 
-	/** 
-	 * @return the number of Questions in this list
-	 * @pure
-	 */
+	/** TODO */
 	public int size(){
 		return questions.size();
 	}
@@ -877,11 +659,7 @@ public class QuestionList implements Iterable<Question>{
 		emojiPerTagName = new HashMap<>(m);
 	}
 	
-	/** 
-	 * Removes the tag with the specified name from this QuestionList.
-	 * @param tagName the name of the tag to remove
-	 * @ensures !this.getTagNames().contains(tagName)
-	 */
+	/** TODO */
 	public void removeTag(String tagName) {
 		if (emojiPerTagName.containsKey(tagName)) {
 			emojiPerTagName.remove(tagName);
@@ -925,9 +703,7 @@ public class QuestionList implements Iterable<Question>{
 		exportListQuestionAsJson(getPathToList());
 	}
 	
-	/** 
-	 * Exports this QuestionList as a JSON file to the specified destination file path.
-	 */
+	/** TODO */
 	public void exportListQuestionAsJson(String destFilePath){
 		try {
 			File myJson = new File(destFilePath);
@@ -945,23 +721,17 @@ public class QuestionList implements Iterable<Question>{
 	}
 	
 	
-	/** 
-	 * Comparator to compare two QuestionList instances by their creation date.
-	 */
+	/** TODO */
 	public static Comparator<? super QuestionList> comparatorByDate() {
         return (e, f)->(Long.compare(e.getTimeCreatedMillis(),f.getTimeCreatedMillis()));
     }
 	
-	/** 
-	 * Comparator to compare two QuestionList instances by their name.
-	 */
+	/** TODO */
 	public static Comparator<? super QuestionList> comparatorByName() {
         return (e, f)->(e.getName().compareTo(f.getName()));
     }
 	
-	/** 
-	 * Comparator to compare two QuestionList instances by their id.
-	 */
+	/** TODO */
 	public static Comparator<? super QuestionList> comparatorById() {
         return (e, f)->(e.getId().compareTo(f.getId()));
     }
@@ -976,10 +746,8 @@ public class QuestionList implements Iterable<Question>{
 		return toJson().replace("\n", "").replace("\t", "");
 	}
 	
-	/** 
-	 * Converts this QuestionList to a JSON string using the Jackson ObjectMapper.
-	 */
-	private String toJsonUsingMapper() throws JsonProcessingException{
+	/** TODO */
+	public String toJsonUsingMapper() throws JsonProcessingException{
 		String res="", 
 			tab="",
 			spc1 = "  ",
@@ -1055,9 +823,7 @@ public class QuestionList implements Iterable<Question>{
 		return res;
 	}
 	
-	/** 
-	 * Returns a string representation of this QuestionList in JSON format.
-	 */
+	/** TODO */
 	public String toJson(){
 		String res=null;
 		try {
@@ -1095,10 +861,8 @@ public class QuestionList implements Iterable<Question>{
 			&& Set.copyOf(this.getQuestions()).equals(Set.copyOf(l.getQuestions()));
 	}
 	
-	/** 
-	 * Utility method to compare two strings for equality, handling null values.
-	 */
-	private static boolean areStringsEqual(String s1, String s2) {
+	/** TODO */
+	public static boolean areStringsEqual(String s1, String s2) {
 		if (s1 == s2){ 
 			return true;
 		}
@@ -1108,26 +872,20 @@ public class QuestionList implements Iterable<Question>{
 		return s1.equals(s2);
 	}
 	
-	/** 
-	 * Rearranges the questions in this QuestionList randomly.
-	 */
+	/** TODO */
 	public QuestionList rearrageQuestions(){
 		Random r = BotCore.getRandom();
 		questions.sort((a,b)->r.nextBoolean()?-1:1);
 		return this;
 	}
 	
-	/** 
-	 * Rearranges the options of each question in this QuestionList randomly.
-	 */
+	/** TODO */
 	public QuestionList rearrageOptions(){
 		Random r = BotCore.getRandom();
 		return rearrageOptions((a,b)->r.nextBoolean()?-1:1);
 	}
 	
-	/** 
-	 * Rearranges the options of each question in this QuestionList using the specified comparator.
-	 */
+	/** TODO */
 	public QuestionList rearrageOptions(Comparator<? super Option> comp){
 		Question q;
 		for (int i=0; i<size(); ++i){
@@ -1137,22 +895,13 @@ public class QuestionList implements Iterable<Question>{
 		return this;
 	}
 	
-	/** 
-	 * @return a header string for this QuestionList
-	 */
+	/** TODO */
 	public String header(){
 		String res = String.format("`%s` `%d` **%s**\n",getId(), size(), getName());
 		return res;
 	}
 	
-	/** 
-	 * Formats the question at the specified index for display.
-	 * @param index the index of the question to format
-	 * @param correct if true, includes the correct answers and explanations in the output
-	 * @param respondents a map of user IDs to their selected options
-	 * @param players a set of user IDs to display
-	 * @return a formatted string representing the question and its options
-	 */
+	/** TODO */
 	public String getFormated(int index, @Nullable Boolean correct, @Nullable Map<String, Set<Option>> respondents, @Nullable Set<String> players) {
 		Question q = get(index);
 		double points = 0.00;
@@ -1211,11 +960,7 @@ public class QuestionList implements Iterable<Question>{
 		return String.format("%s%s%s%s%s", header(), questionText, users, options, corrStr).replace("\\$([^\\$]*)\\$", "`$1`");
 	}	
 
-	/** 
-	 * @param index the index of the question to format
-	 * @param opts a collection of options to mark as selected
-	 * @return the correction of the question at index
-	 */
+	/** TODO */
 	public String getFormatedCorrection (int index, Collection<Option> opts) {
 		Map<String, Set<Option>> m = null;
 		if (opts!=null){
@@ -1225,17 +970,12 @@ public class QuestionList implements Iterable<Question>{
 		return getFormated (index,true, m, null);
 	}
 	
-	/** 
-	 * @param index the index of the question to format
-	 * @return the awsers of question at index
-	 */
+	/** TODO */
 	public String getFormatedCorrection (int index) {
 		return getFormated(index, true, null, null);
 	}
 	
-	/** 
-	 * @return an example of a QuestionList
-	 */
+	/** TODO */
 	public static QuestionList getExampleQuestionList(){
 		return new QuestionList.Builder()
 		.authorId("Examplary Author")
@@ -1246,23 +986,23 @@ public class QuestionList implements Iterable<Question>{
 		.build();
 	}
 	
-	/** TODO docs */
+	/** TODO */
 	public static int myBinarySearchIndexOf(List<QuestionList> tab, int start, int end, String listName){
 		QuestionList searched = new QuestionList.Builder().name(listName).build();
 		return Users.myBinarySearchIndexOf(tab, 0, end, searched, QuestionList.comparatorByName());
 	}
 	
-	/** TODO docs */
+	/** TODO */
 	public static int myBinarySearchIndexOf(List<QuestionList> tab, String listName){
 		return myBinarySearchIndexOf(tab, 0, tab.size()-1, listName);
 	}
 	
-	/** TODO docs */
+	/** TODO */
 	public static QuestionList getById(String id) {
 		return Users.getById(id);
 	}
 	
-	/** TODO docs */
+	/** TODO */
 	public static QuestionList getByName(String listName) {
 		return Users.getByName(listName);
 	}

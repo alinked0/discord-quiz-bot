@@ -3,15 +3,20 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 

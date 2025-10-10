@@ -1,10 +1,17 @@
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken; // Important: Make sure this is imported
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
+import com.linked.quizbot.utils.QuestionList.Hasher;
+import com.linked.quizbot.utils.QuestionList.Parser;
+
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
@@ -398,8 +406,7 @@ public class TestQuestionListParser {
         IOException thrown = assertThrows(IOException.class, () -> {
             QuestionList.Parser.parseQuestion(jp, invalidJson);
         }, "Expected IOException when input for parseQuestion is not START_OBJECT.");
-        
-        assertTrue(thrown.getMessage().contains("[ERROR] QuestionList.Parser.parseEmojiPerTagName")); // Note: The error message mistakenly says parseEmojiPerTagName
+        assertTrue(thrown.getMessage().contains("[ERROR] QuestionList.Parser.parseQuestion"));
         assertTrue(thrown.getMessage().contains(invalidJson));
 
         jp.close();
