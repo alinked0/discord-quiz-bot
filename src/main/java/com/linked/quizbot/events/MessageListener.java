@@ -14,7 +14,6 @@ import com.linked.quizbot.core.MessageSender;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -32,16 +31,8 @@ public class MessageListener extends ListenerAdapter {
 		User sender = event.getAuthor();
 		if (sender.isBot()) return;
 		// Stop a buggy bot from being used on all of discord
-		if (!BotCore.isBugFree()){
-			if (event.isFromGuild() || event.isFromThread()){
-				if (!BotCore.canIRunThisHere(event.getGuild().getId()) || !BotCore.canIRunThisHere(event.getChannel().getId())){
-					return;
-				}
-			} else if (event.isFromType(ChannelType.PRIVATE)){
-				if (!BotCore.canIRunThisHere(sender.getId())){
-					return;
-				}
-			}
+		if (!BotCore.isBugFree() && !(BotCore.canIRunThisHere(event.getChannel().getId()))){
+			return;
 		}
 
 		// log User
