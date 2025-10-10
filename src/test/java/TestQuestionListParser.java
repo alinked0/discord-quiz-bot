@@ -406,7 +406,10 @@ public class TestQuestionListParser {
         IOException thrown = assertThrows(IOException.class, () -> {
             QuestionList.Parser.parseQuestion(jp, invalidJson);
         }, "Expected IOException when input for parseQuestion is not START_OBJECT.");
-        
+
+        assertTrue(thrown.getMessage().contains("[ERROR] QuestionList.Parser.parseEmojiPerTagName")); // Note: The error message mistakenly says parseEmojiPerTagName
+        assertTrue(thrown.getMessage().contains(invalidJson));
+
         jp.close();
     }
 
