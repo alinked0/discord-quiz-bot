@@ -11,8 +11,6 @@ import java.util.Map;
 
 import com.linked.quizbot.Constants;
 
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-
 /**
  * A central registry and utility class for managing all {@link User} objects in the application.
  * <p>

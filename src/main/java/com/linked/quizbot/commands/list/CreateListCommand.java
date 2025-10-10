@@ -3,16 +3,12 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.QuestionList.Hasher;
-import com.linked.quizbot.utils.QuestionList.Parser;
 import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;

@@ -5,14 +5,11 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.QuestionList.Hasher;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
-import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.viewers.QuizBot;
-import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.Question;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;

@@ -18,7 +18,6 @@ import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.Timestamp;
@@ -150,7 +149,7 @@ public class QuizBot extends Viewer {
 	};
 
     @Override
-    public void removeReaction(String userId, Emoji emoji){/*TODO*/};
+    public void removeReaction(String userId, Emoji emoji){/*TODO impl a response removal */};
 
     @Override
     public void inBetweenProccessorStart(){

@@ -1,37 +1,24 @@
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.UserDataParser;
 
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestUserDataParser {
-	// Mock Emoji object that will be returned by Emoji.fromFormatted
-	private String emoji;
-	private String tagName;
-
-
 	@BeforeEach
 	void setUp() {
-		// Initialize a  Emoji object before each test
-		emoji = "<:mocked_emoji:123456789>";
-	   tagName = "mocked_emoji";
 	}
 
 	@Test

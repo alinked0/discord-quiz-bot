@@ -35,6 +35,7 @@ import com.linked.quizbot.commands.list.PingCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
 import com.linked.quizbot.commands.list.RawListCommand;
 import com.linked.quizbot.commands.list.RemoveListCommand;
+import com.linked.quizbot.commands.list.RemoveTagCommand;
 import com.linked.quizbot.commands.list.RenameListCommand;
 import com.linked.quizbot.commands.list.SetPrefixeCommand;
 import com.linked.quizbot.commands.list.StartCommand;
@@ -44,8 +45,6 @@ import com.linked.quizbot.commands.list.UseButtonsCommand;
 import com.linked.quizbot.commands.list.UserInfoCommand;
 import com.linked.quizbot.commands.list.ViewCommand;
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message.Attachment;
@@ -83,26 +82,27 @@ public abstract class BotCommand {
             new AddListCommand(),
             new AddTagCommand(),
             new CreateListCommand(),
-            new CollectionCommand(),
             new CreateTagCommand(),
+            new CollectionCommand(),
             new DeleteListCommand(),
+            new EmbedCommand(),
             new EndCommand(),
             new ExplainCommand(),
-            new EmbedCommand(),
             new HelpCommand(),
             new InviteCommand(),
             new LeaderBoardCommand(),
-            new UseAutoNextCommand(),
             new NextCommand(),
             new PingCommand(),
             new PreviousCommand(),
 			new RawListCommand(),
 			new RenameListCommand(),
+			new RemoveTagCommand(),
             new SetPrefixeCommand(),
             new StartCommand(),
 			new TagsCommand(),
-            new UserInfoCommand(),
+            new UseAutoNextCommand(),
             new UseButtonsCommand(),
+            new UserInfoCommand(),
             new ViewCommand()
         )); 
 		PRIVATE_COMMANDS.addAll(List.of(
