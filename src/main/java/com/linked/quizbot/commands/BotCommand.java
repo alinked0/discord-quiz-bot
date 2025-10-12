@@ -287,7 +287,7 @@ public abstract class BotCommand {
 			res.addAll(BotCommand.splitJson(tmpStr));
 		}
 	} catch (IOException e) {
-		System.err.println("[ERROR] An error occurred while taking an attachment.");
+		System.err.println("[\u001b[33mERROR\u001b[0m] An error occurred while taking an attachment.");
 		e.printStackTrace();
 	}
 		return res;
@@ -337,7 +337,7 @@ public abstract class BotCommand {
 		try {
 			return Emoji.fromFormatted(arg);
 		} catch (IllegalArgumentException e) {
-			System.err.println("[ERROR] Failed to parse emoji from argument: " + arg + " - " + e.getMessage());
+			System.err.println("[\u001b[33mERROR\u001b[0m] Failed to parse emoji from argument: " + arg + " - " + e.getMessage());
 			return null;
 		}
 	}
@@ -377,7 +377,7 @@ public abstract class BotCommand {
 				identifiers.addAll(List.of(userId, userName, userEffectiveName, userTag));
 
 				if (!BotCore.isBugFree()) { // Debug logging
-					System.out.printf("[INFO] %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
+					System.out.printf("[\u001b[34mINFO\u001b[0m] %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
 				}
 
 				String lowerArg = arg.toLowerCase();
@@ -397,8 +397,8 @@ public abstract class BotCommand {
 			}
 		}
 		if (!BotCore.isBugFree()) { // Debug logging
-			System.out.printf("[INFO] approxiUserId %s;\n", approxiUserId);
-			System.out.printf("[INFO] time getIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
+			System.out.printf("[\u001b[34mINFO\u001b[0m] approxiUserId %s;\n", approxiUserId);
+			System.out.printf("[\u001b[34mINFO\u001b[0m] time getIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
 		}
 
 		// If the arg itself is a raw ID of the correct length

@@ -294,7 +294,7 @@ public class User implements Iterable<QuestionList>{
 				this.useButtons = builder.useButtons;
 				this.useAutoNext = builder.useAutoNext;
 			} catch (IOException e){
-				System.err.println(String.format("[ERROR] %s %s", getPathToUserData(), e.getMessage()));
+				System.err.println(String.format("[\u001b[33mERROR\u001b[0m] %s %s", getPathToUserData(), e.getMessage()));
 			}
 		}
 		for(QuestionList l: importLists().values()){
@@ -935,7 +935,7 @@ public class User implements Iterable<QuestionList>{
 		try {
 			res = toJsonUsingMapper(false);
 		} catch (Exception e){
-			System.err.println("[ERROR] [toJsonUsingMapper() failed]"+e.getMessage());
+			System.err.println("[\u001b[33mERROR\u001b[0m] [toJsonUsingMapper() failed]"+e.getMessage());
 		}
 		return res;
 	}
@@ -957,7 +957,7 @@ public class User implements Iterable<QuestionList>{
 			buff.write(this.toJson());
 			buff.close();
 		} catch (IOException e) {
-			System.err.println("[ERROR] An error occurred while exporting UserData."+destFilePath);
+			System.err.println("[\u001b[33mERROR\u001b[0m] An error occurred while exporting UserData."+destFilePath);
 			e.printStackTrace();
 		}
 	}
@@ -974,7 +974,7 @@ public class User implements Iterable<QuestionList>{
 		try {
 			res = toJsonUsingMapper(true);
 		} catch (Exception e){
-			System.err.println("[ERROR] [toJsonUsingMapper() failed]"+e.getMessage());
+			System.err.println("[\u001b[33mERROR\u001b[0m] [toJsonUsingMapper() failed]"+e.getMessage());
 		}
 		return res;
 	}

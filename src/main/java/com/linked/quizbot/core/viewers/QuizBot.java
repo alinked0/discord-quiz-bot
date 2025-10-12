@@ -237,7 +237,7 @@ public class QuizBot extends Viewer {
 				String u = awnsersByUserId.getKey();
 				score = userScoreExact.getOrDefault( u, 0.00);
 				for (Option opt : awnsersByUserId.getValue()) {
-					if (!BotCore.isBugFree()) System.out.printf("[INFO] lb %s, %s\n", opt.isCorrect(), opt.getText());
+					if (!BotCore.isBugFree()) System.out.printf("[\u001b[34mINFO\u001b[0m] lb %s, %s\n", opt.isCorrect(), opt.getText());
 					point = (opt.isCorrect()?QuestionList.pointsForCorrect/numberOfTrueOptions:QuestionList.pointsForIncorrect);
 					score += point;
 				}

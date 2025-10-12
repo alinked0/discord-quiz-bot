@@ -152,7 +152,7 @@ public class Users {
 					QuestionList l = QuestionList.Parser.fromJsonFile(listOfFiles[i].getAbsolutePath()).build();
 					res.put(listId, l);
 				}catch (IOException e) {
-					System.err.println(String.format("[ERROR] An error occurred while importing a list. listid:%s , userId:%s",listId, userId));
+					System.err.println(String.format("[\u001b[33mERROR\u001b[0m] An error occurred while importing a list. listid:%s , userId:%s",listId, userId));
 					e.printStackTrace();
 				}
 			}
@@ -164,7 +164,7 @@ public class Users {
 		for (int i=0; i<Users.allUsers.size(); i++) {
 			user = Users.allUsers.get(i);
 			user.exportUserLists();
-			System.out.println("[INFO] exported UserLists ("+(i+1)+"/"+Users.allUsers.size()+"); ");
+			System.out.println("[\u001b[34mINFO\u001b[0m] exported UserLists ("+(i+1)+"/"+Users.allUsers.size()+"); ");
 		}
 	}
 	public static void loadAllUsers(){
@@ -188,7 +188,8 @@ public class Users {
 		for (int i=0; i<Users.allUsers.size(); i++) {
 			user = Users.allUsers.get(i);
 			user.exportUserData();
-			System.out.println("[INFO] exported UserData ("+(i+1)+"/"+Users.allUsers.size()+"); ");
+			System.out.print(String.format("\r[\\u001b[34mINFO\\u001b[0m] Exporting all user data [ %s%s ] %d%s", "#".repeat(i+1), " ".repeat(Users.allUsers.size()-i-1), Math.floorDiv((i+1)*100,Users.allUsers.size()), "%"));
 		}
+		System.out.println("");
 	}
 }

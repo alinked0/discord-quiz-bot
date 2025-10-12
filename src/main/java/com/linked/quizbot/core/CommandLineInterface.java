@@ -61,28 +61,28 @@ public class CommandLineInterface {
 					BotCore.shutDown();
 					scanner.close();
 					exiting = true;
-					System.out.println("[INFO] Exited.");
+					System.out.println("[\u001b[34mINFO\u001b[0m] Exited.");
 					return;
 				}
 				case "shutdown", "stop", "disconnectjda", "disconnect" -> {
 					BotCore.shutDown();
 					BotCore.SHUTINGDOWN = false;
-					System.out.println(String.format("[INFO] Bot nolonger online.", BotCore.isBugFree()?"publicly":"privately"));
+					System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot nolonger online.", BotCore.isBugFree()?"publicly":"privately"));
 				}
 				case "public" -> {
 					BotCore.areWeTesting = false;
-					System.out.println(String.format("[INFO] Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
+					System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
 				}
 				case "private" -> {
 					BotCore.areWeTesting = true;
-					System.out.println(String.format("[INFO] Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
+					System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
 				}
 				case "connectjda", "connect", "startjda", "start" -> {
 					if (BotCore.jda == null){
 					    BotCore.startJDA();
-					    System.out.println(String.format("[INFO] Bot is %s online.", BotCore.isBugFree()?"publicly":"privately"));
+					    System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot is %s online.", BotCore.isBugFree()?"publicly":"privately"));
 					} else {
-				        System.out.println(String.format("[INFO] Bot is already %s online.", BotCore.isBugFree()?"publicly":"privately"));
+				        System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot is already %s online.", BotCore.isBugFree()?"publicly":"privately"));
 				    }
 				}
 				case "status", "stat"-> {
@@ -90,7 +90,7 @@ public class CommandLineInterface {
 				}
 				case "load", "reload"-> {
 					Users.loadAllUsers();
-					System.out.println("[IO] Loaded All data from disk.");
+					System.out.println("[\u001b[35mIO\u001b[0m] Loaded All data from disk.");
 				}
 				case "help" -> {
 					System.out.println(usage());
@@ -102,7 +102,7 @@ public class CommandLineInterface {
 							System.out.println(s);
 						}
 					}catch(Exception e){
-						System.err.printf("[ERROR] %s\n",e.getMessage());
+						System.err.printf("[\u001b[33mERROR\u001b[0m] %s\n",e.getMessage());
 					}
 					
 				}
@@ -137,7 +137,7 @@ public class CommandLineInterface {
 		String cmndLineArgs = message;
 		arguments = cmd.parseArguments(cmndLineArgs);
 
-		System.out.printf("[INFO] cmd=%s, Time_elapsed=`%.3f ms`, Argc-1=%d;\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
+		System.out.printf("[\u001b[34mINFO\u001b[0m] cmd=%s, Time_elapsed=`%.3f ms`, Argc-1=%d;\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
 		if (!BotCore.isBugFree()) {
 			for (int i=0; i<arguments.size(); i++) {
 				System.out.print(arguments.get(i).replace("[\\n \\t]", ""));

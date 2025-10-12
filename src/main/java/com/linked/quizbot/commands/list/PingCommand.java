@@ -40,7 +40,7 @@ public class PingCommand extends BotCommand {
 		// Calculate the internal processing time.
 		double internalProcessingTimeMs = (System.nanoTime() - start) / 1000000.00;
 		// Combine both internal processing time and gateway ping into the response
-		String res = String.format("Pong! Internal processing: %.2fms | Gateway Ping: %dms", 
+		String res = String.format("Pong! Internal processing: %.3fms | Gateway Ping: %dms", 
 									internalProcessingTimeMs, gatewayPing);
 		return new CommandOutput.Builder()
 				.add(res)

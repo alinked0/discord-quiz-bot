@@ -275,7 +275,7 @@ public class TestQuestionListParser {
 				try {
 				    jp.close();
 				} catch (IOException e) {
-				    System.err.println("[ERROR] Error closing JsonParser: " + e.getMessage());
+				    System.err.println("[\u001b[33mERROR\u001b[0m] Error closing JsonParser: " + e.getMessage());
 				}
 			}
 		}
@@ -399,7 +399,7 @@ public class TestQuestionListParser {
 			QuestionList.Parser.parseQuestion(jp, invalidJson);
 		}, "Expected IOException when input for parseQuestion is not START_OBJECT.");
 
-		assertTrue(thrown.getMessage().contains("[ERROR] QuestionList.Parser.parseEmojiPerTagName")); // Note: The error message mistakenly says parseEmojiPerTagName
+		assertTrue(thrown.getMessage().contains("[\u001b[33mERROR\u001b[0m] QuestionList.Parser.parseEmojiPerTagName")); // Note: The error message mistakenly says parseEmojiPerTagName
 		assertTrue(thrown.getMessage().contains(invalidJson));
 
 		jp.close();

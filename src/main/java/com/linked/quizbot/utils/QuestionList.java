@@ -423,7 +423,7 @@ public class QuestionList implements Iterable<Question>{
 		public static QuestionList.Builder fromJsonFile(String filePathToJson) throws IOException{
 			File f = new File(filePathToJson);
 			if (!f.exists()){
-				System.err.println("[ERROR] File not found"+ f.getAbsoluteFile());
+				System.err.println("[\u001b[33mERROR\u001b[0m] File not found"+ f.getAbsoluteFile());
 				return null;
 			}
 			JsonParser jp =  new JsonFactory().createParser(new File(filePathToJson));
@@ -514,7 +514,7 @@ public class QuestionList implements Iterable<Question>{
 			String imgSrc= null, fieldName;
 			List <Option>opts = null;
 			if(jp.currentToken() != JsonToken.START_OBJECT) {
-				throw new IOException(String.format("[ERROR] QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
+				throw new IOException(String.format("[\u001b[33mERROR\u001b[0m] QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
 			}
 			while(!jp.isClosed()){
 				if(jp.currentToken() == JsonToken.FIELD_NAME) {
@@ -939,7 +939,7 @@ public class QuestionList implements Iterable<Question>{
 			buff.write(this.toJson());
 			buff.close();
 		} catch (IOException e) {
-			System.err.println("[ERROR] An error occurred while exporting a List of questions.");
+			System.err.println("[\u001b[33mERROR\u001b[0m] An error occurred while exporting a List of questions.");
 			e.printStackTrace();
 		}
 	}
@@ -1063,7 +1063,7 @@ public class QuestionList implements Iterable<Question>{
 		try {
 			res = toJsonUsingMapper();
 		} catch (Exception e){
-			System.err.println("[ERROR] [toJsonUsingMapper() failed]"+e.getMessage());
+			System.err.println("[\u001b[33mERROR\u001b[0m] [toJsonUsingMapper() failed]"+e.getMessage());
 		}
 		return res;
 	}

@@ -56,7 +56,7 @@ public class ButtonListener extends ListenerAdapter {
 				output.build(),
 				event
 			);
-			if (!BotCore.isBugFree()) System.out.printf("[INFO] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
+			if (!BotCore.isBugFree()) System.out.printf("[\u001b[34mINFO\u001b[0m] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
 			return;
 		}
 		Emoji reaction = Emoji.fromFormatted(event.getButton().getLabel());
