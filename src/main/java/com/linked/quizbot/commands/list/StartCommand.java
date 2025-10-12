@@ -5,14 +5,11 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.QuestionList.Hasher;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
-import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.viewers.QuizBot;
-import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.Question;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -34,46 +31,46 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see QuizBot
  */
 public class StartCommand extends BotCommand{
-    public static final String CMDNAME = "start";
-    private String cmdDesrciption = "starting a given quiz, whether its your own or another users";
+	public static final String CMDNAME = "start";
+	private String cmdDesrciption = "starting a given quiz, whether its your own or another users";
 	private List<String> abbrevs = List.of("s", "play");
 
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public BotCommand.CommandCategory getCategory(){
-        return BotCommand.CommandCategory.GAME;
+		return BotCommand.CommandCategory.GAME;
 	}
-    @Override
-    public String getName(){ return CMDNAME;}
-    @Override
-    public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public List<OptionData> getOptionData(){
-        List<OptionData> res = new ArrayList<OptionData>();
-        res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME, true)
-        .setRequiredLength(QuestionList.Hasher.DEFAULT_LENGTH, QuestionList.Hasher.DEFAULT_LENGTH));
-        return res;
-    }
-    @Override
-    public CommandOutput execute(String userId,  List<String> args){
+	public String getName(){ return CMDNAME;}
+	@Override
+	public String getDescription(){ return cmdDesrciption;}
+	@Override
+	public List<OptionData> getOptionData(){
+		List<OptionData> res = new ArrayList<OptionData>();
+		res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME, true)
+		.setRequiredLength(QuestionList.Hasher.DEFAULT_LENGTH, QuestionList.Hasher.DEFAULT_LENGTH));
+		return res;
+	}
+	@Override
+	public CommandOutput execute(String userId,  List<String> args){
 		QuestionList questions = args.size()>0?Users.getById(args.get(0)): null;
-        if (questions==null){
+		if (questions==null){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-        }
-        questions = new QuestionList.Builder().add(questions).build().rearrageOptions();
+		}
+		questions = new QuestionList.Builder().add(questions).build().rearrageOptions();
 		User user = Users.get(userId);
-        boolean autoNext = user.useAutoNext();
-        if (autoNext){
-            for (Question q: questions){
-                if (q.getNumberTrue()>1){
-                    autoNext = false;
-                    break;
-                }
-            }
-        }
-        QuizBot quizBot = new QuizBot(questions, user.useButtons(), autoNext);
+		boolean autoNext = user.useAutoNext();
+		if (autoNext){
+			for (Question q: questions){
+				if (q.getNumberTrue()>1){
+					autoNext = false;
+					break;
+				}
+			}
+		}
+		QuizBot quizBot = new QuizBot(questions, user.useButtons(), autoNext);
 		quizBot.addPlayer(userId);
-        return quizBot.start();
-    }
+		return quizBot.start();
+	}
 }

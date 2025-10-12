@@ -35,16 +35,16 @@ public class NextCommand extends BotCommand {
 	@Override
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public List<OptionData> getOptionData(){
-        return BotCommand.getCommandByName(PreviousCommand.CMDNAME).getOptionData();
-    }
+	public List<OptionData> getOptionData(){
+		return BotCommand.getCommandByName(PreviousCommand.CMDNAME).getOptionData();
+	}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
 		Viewer q = BotCore.getViewer(args.get(0));
-        if (q != null && q.isActive()){
+		if (q != null && q.isActive()){
 			if (q instanceof QuizBot){
 				((QuizBot)q).addPlayer(userId);
 			}

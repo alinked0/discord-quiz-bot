@@ -26,26 +26,26 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see Users
  */
 public class UseButtonsCommand extends BotCommand{
-    public static final String CMDNAME = "usebuttons";
-    private String cmdDesrciption = "choose your perfered buttons";
+	public static final String CMDNAME = "usebuttons";
+	private String cmdDesrciption = "choose your perfered buttons";
 	private List<String> abbrevs = List.of("ub");
-    
+	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public BotCommand.CommandCategory getCategory(){ return BotCommand.CommandCategory.OTHER;}
-    @Override
-    public String getName(){ return CMDNAME;}
 	@Override
-    public String getDescription(){ return cmdDesrciption;}
+	public String getName(){ return CMDNAME;}
 	@Override
-    public List<OptionData> getOptionData(){
-        List<OptionData> res = new ArrayList<>();
-        res.add(new OptionData(OptionType.STRING, "yes-or-no", "if you want to use buttons", true));
-        return res;
-    }
+	public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public CommandOutput execute(String userId,  List<String> args){
+	public List<OptionData> getOptionData(){
+		List<OptionData> res = new ArrayList<>();
+		res.add(new OptionData(OptionType.STRING, "yes-or-no", "if you want to use buttons", true));
+		return res;
+	}
+	@Override
+	public CommandOutput execute(String userId,  List<String> args){
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
@@ -65,7 +65,7 @@ public class UseButtonsCommand extends BotCommand{
 		return new CommandOutput.Builder()
 				.add(String.format("Your now using %s", b?"Buttons":"Reactions"))
 				.build();
-    }
+	}
 
 }
 

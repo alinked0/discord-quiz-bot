@@ -1,8 +1,6 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.utils.*; 
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,25 +10,16 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map.Entry;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -197,9 +186,9 @@ public class TestUser {
 		// Verify loaded lists
 		List<QuestionList> userLists = user.getLists();
 		assertEquals(2, userLists.size());
-		int i = 1, j=0;
+		int i = 1;
 		if (id1.compareTo(id2)<=0){
-			i=0;j=1;
+			i=0;
 		}
 		// Sorted by list ID
 		List<String> ids = new ArrayList<>(List.of(id1, id2));
@@ -510,15 +499,9 @@ public class TestUser {
 		String moodEmoji = user.getEmojiFomTagName("mood");
 		assertNotNull(moodEmoji);
 		assertEquals("😊", moodEmoji);
-
-		// Test static method
-		String foodEmoji = User.getEmojiFomTagName(userId, "food");
-		assertNotNull(foodEmoji);
-		assertEquals("🍕", foodEmoji);
-
+		
 		// Test non-existent tag
 		assertNull(user.getEmojiFomTagName("nonexistent"));
-		assertNull(User.getEmojiFomTagName(userId, "nonexistent"));
 	}
 
 	@Test

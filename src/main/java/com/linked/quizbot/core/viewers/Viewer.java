@@ -39,94 +39,94 @@ public class Viewer {
 	private Message message = null;
 
 	/**
-     * Constructs a Viewer with a specified question list and button preference.
-     *
-     * @param l The QuestionList to be viewed.
-     * @param useButtons Whether to use Discord buttons for navigation.
-     */
+	 * Constructs a Viewer with a specified question list and button preference.
+	 *
+	 * @param l The QuestionList to be viewed.
+	 * @param useButtons Whether to use Discord buttons for navigation.
+	 */
 	public Viewer(QuestionList l, boolean useButtons){
 		this.questions = l;
 		this.useButtons = useButtons;
 	}
 
 	/**
-     * Constructs a Viewer with a specified question list, defaulting to using buttons.
-     *
-     * @param l The QuestionList to be viewed.
-     */
+	 * Constructs a Viewer with a specified question list, defaulting to using buttons.
+	 *
+	 * @param l The QuestionList to be viewed.
+	 */
 	public Viewer(QuestionList l){this(l, true);}
 
 	/**
-     * Sets the JDA message associated with this viewer.
-     *
-     * @param m The message to associate.
-     */
+	 * Sets the JDA message associated with this viewer.
+	 *
+	 * @param m The message to associate.
+	 */
 	public void setMessage(Message m) { message = m;}
 
 	/**
-     * Retrieves the current JDA message.
-     *
-     * @return The message object.
-     */
+	 * Retrieves the current JDA message.
+	 *
+	 * @return The message object.
+	 */
 	public Message getMessage() { return message;}
 
 	/**
-     * Checks if the viewer is configured to use buttons.
-     *
-     * @return true if buttons are enabled, false otherwise.
-     */
+	 * Checks if the viewer is configured to use buttons.
+	 *
+	 * @return true if buttons are enabled, false otherwise.
+	 */
 	public boolean useButtons(){return useButtons;}
 
 	 /**
-     * Gets the ID of the current message.
-     *
-     * @return The message ID, or null if no message is set.
-     */
+	 * Gets the ID of the current message.
+	 *
+	 * @return The message ID, or null if no message is set.
+	 */
 	public String getMessageId() { return getMessage()!=null?getMessage().getId(): null;}
 
 	/**
-     * Gets the channel of the current message.
-     *
-     * @return The message channel, or null if no message is set.
-     */
+	 * Gets the channel of the current message.
+	 *
+	 * @return The message channel, or null if no message is set.
+	 */
 	public MessageChannel getChannel() { return getMessage()!=null?getMessage().getChannel(): null;}
 
 	/**
-     * Gets the ID of the channel of the current message.
-     *
-     * @return The channel ID, or null if no channel is set.
-     */
+	 * Gets the ID of the channel of the current message.
+	 *
+	 * @return The channel ID, or null if no channel is set.
+	 */
 	public String getChannelId() { return getChannel()!=null?getChannel().getId(): null;}
 
 	/**
-     * Checks if the viewer session is active.
-     *
-     * @return true if the session is active, false otherwise.
-     */
+	 * Checks if the viewer session is active.
+	 *
+	 * @return true if the session is active, false otherwise.
+	 */
 	public Boolean isActive() { return active;}
 
 	/**
-     * A placeholder method for adding a reaction (not fully implemented in this class).
-     *
-     * @param userId The ID of the user who reacted.
-     * @param emoji The emoji added.
-     */
+	 * A placeholder method for adding a reaction (not fully implemented in this class).
+	 *
+	 * @param userId The ID of the user who reacted.
+	 * @param emoji The emoji added.
+	 */
 	public void addReaction(String userId, Emoji emoji){};
 
 	/**
-     * A placeholder method for removing a reaction (not fully implemented in this class).
-     *
-     * @param userId The ID of the user who removed the reaction.
-     * @param emoji The emoji removed.
-     */
+	 * A placeholder method for removing a reaction (not fully implemented in this class).
+	 *
+	 * @param userId The ID of the user who removed the reaction.
+	 * @param emoji The emoji removed.
+	 */
 	public void removeReaction(String userId, Emoji emoji){};
 
 	/**
-     * Returns a Consumer to be executed after the initial message is sent.
-     * This consumer updates the bot's internal state with the new message ID.
-     *
-     * @return a Consumer for message post-processing.
-     */
+	 * Returns a Consumer to be executed after the initial message is sent.
+	 * This consumer updates the bot's internal state with the new message ID.
+	 *
+	 * @return a Consumer for message post-processing.
+	 */
 	public Consumer<Message> postSendActionStart(){
 		return msg ->{
 			String oldId = msg.getId();
@@ -136,11 +136,11 @@ public class Viewer {
 	}
 
 	/**
-     * Returns a Consumer to be executed after a message update.
-     * This consumer replaces the old message ID with the new one in the bot's state.
-     *
-     * @return a Consumer for message post-processing.
-     */
+	 * Returns a Consumer to be executed after a message update.
+	 * This consumer replaces the old message ID with the new one in the bot's state.
+	 *
+	 * @return a Consumer for message post-processing.
+	 */
 	public Consumer<Message> postSendActionCurrent(){
 		return msg ->{
 			String oldId = msg.getId();
@@ -154,12 +154,12 @@ public class Viewer {
 	public void inBetweenProccessorStart(){}
 
 	/**
-     * Starts the viewer session.
-     * <p>
-     * Initializes the viewer state and returns the first {@link CommandOutput} containing the list's header.
-     *
-     * @return A CommandOutput containing the initial message.
-     */
+	 * Starts the viewer session.
+	 * <p>
+	 * Initializes the viewer state and returns the first {@link CommandOutput} containing the list's header.
+	 *
+	 * @return A CommandOutput containing the initial message.
+	 */
 	public CommandOutput start() {
 		active = true;
 		currIndex = -1;
@@ -174,34 +174,34 @@ public class Viewer {
 	}
 
 	/**
-     * Gets the current question object.
-     *
-     * @return The current {@link Question} or null if the viewer is inactive or at the end of the list.
-     */
+	 * Gets the current question object.
+	 *
+	 * @return The current {@link Question} or null if the viewer is inactive or at the end of the list.
+	 */
 	public Question getCurrQuestion() {
 		if (!isActive() || getCurrentIndex()>=questions.size()) { return null;}
 		return questions.get(getCurrentIndex());
 	}
 
 	/**
-     * Gets the entire question list.
-     *
-     * @return The {@link QuestionList} object.
-     */
+	 * Gets the entire question list.
+	 *
+	 * @return The {@link QuestionList} object.
+	 */
 	public QuestionList getQuestionList(){return questions;}
 
 	/**
-     * Gets the index of the currently displayed question.
-     *
-     * @return The current index.
-     */
+	 * Gets the index of the currently displayed question.
+	 *
+	 * @return The current index.
+	 */
 	public int getCurrentIndex() { return currIndex;}
 
 	/**
-     * Returns a list of emojis to be used as reactions for navigation.
-     *
-     * @return A list of {@link Emoji}s.
-     */
+	 * Returns a list of emojis to be used as reactions for navigation.
+	 *
+	 * @return A list of {@link Emoji}s.
+	 */
 	public List<Emoji> getReactions(){
 		List<Emoji> emojis = new ArrayList<>();
 		if (hasPrevious())emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
@@ -210,11 +210,11 @@ public class Viewer {
 	}
 
 	/**
-     * Navigates to the next question in the list.
-     *
-     * @return A CommandOutput for the next question.
-     * @throws NoSuchElementException if there is no next question.
-     */
+	 * Navigates to the next question in the list.
+	 *
+	 * @return A CommandOutput for the next question.
+	 * @throws NoSuchElementException if there is no next question.
+	 */
 	public CommandOutput next() {
 		if (!hasNext()) {
 			throw new NoSuchElementException();
@@ -224,11 +224,11 @@ public class Viewer {
 	}
 
 	/**
-     * Navigates to the previous question in the list.
-     *
-     * @return A CommandOutput for the previous question.
-     * @throws NoSuchElementException if there is no previous question.
-     */
+	 * Navigates to the previous question in the list.
+	 *
+	 * @return A CommandOutput for the previous question.
+	 * @throws NoSuchElementException if there is no previous question.
+	 */
 	public CommandOutput previous(){
 		if (!hasPrevious()) {
 			throw new NoSuchElementException();
@@ -241,20 +241,20 @@ public class Viewer {
 	}
 
 	/**
-     * Gets the header text for the question list.
-     *
-     * @return The header string.
-     */
+	 * Gets the header text for the question list.
+	 *
+	 * @return The header string.
+	 */
 	public String getHeader(){
 		return String.format("%s**Author:** <@%s>\n**Date created:** %s\n", questions.header(),
 			questions.getAuthorId(), TimeFormat.DATE_TIME_LONG.atTimestamp(questions.getTimeCreatedMillis()));
 	}
 
 	/**
-     * Gets the formatted text for the current question.
-     *
-     * @return The formatted question string.
-     */
+	 * Gets the formatted text for the current question.
+	 *
+	 * @return The formatted question string.
+	 */
 	public String getFormatedQuestion(){
 		return questions.getFormatedCorrection(currIndex);
 	}
@@ -263,21 +263,21 @@ public class Viewer {
 	public void inBetweenProccessorCurrent(){}
 
 	/**
-     * Sets whether to send updates in the original message.
-     *
-     * @param b The boolean value to set.
-     */
+	 * Sets whether to send updates in the original message.
+	 *
+	 * @param b The boolean value to set.
+	 */
 	public void setSendInOriginalMessage(boolean b){ sendInOriginalMessage=b;}
 
 	/**
-     * Generates a CommandOutput for the current state of the viewer.
-     * <p>
-     * This method handles both the initial header display and subsequent question displays,
-     * including reaction and button updates.
-     *
-     * @return A CommandOutput containing the formatted message for the current state.
-     * @throws NoSuchElementException if the current index is out of bounds.
-     */
+	 * Generates a CommandOutput for the current state of the viewer.
+	 * <p>
+	 * This method handles both the initial header display and subsequent question displays,
+	 * including reaction and button updates.
+	 *
+	 * @return A CommandOutput containing the formatted message for the current state.
+	 * @throws NoSuchElementException if the current index is out of bounds.
+	 */
 	public CommandOutput current(){
 		if (getCurrentIndex() >= questions.size()) {
 			throw new NoSuchElementException();
@@ -301,17 +301,17 @@ public class Viewer {
 	}
 
 	/**
-     * Checks if there is a next question to view.
-     *
-     * @return true if a next question exists, false otherwise.
-     */
+	 * Checks if there is a next question to view.
+	 *
+	 * @return true if a next question exists, false otherwise.
+	 */
 	public boolean hasNext(){ return getCurrentIndex()+1 < questions.size();}
 
 	/**
-     * Checks if there is a previous question to view.
-     *
-     * @return true if a previous question exists, false otherwise.
-     */
+	 * Checks if there is a previous question to view.
+	 *
+	 * @return true if a previous question exists, false otherwise.
+	 */
 	public boolean hasPrevious(){ return -1 <= getCurrentIndex()-1;}
 
 	/** Ends the viewer session by setting the active flag to false. */

@@ -45,7 +45,7 @@ public class RenameListCommand extends BotCommand{
 		res.add(new OptionData(OptionType.STRING, "new-name", "the new name for the old question list", true));
 		return res;
 	}
-    @Override
+	@Override
 	public List<String> parseArguments(String cmndLineArgs){
 		int k = 0;
 		List<String> res = new ArrayList<>();

@@ -24,10 +24,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @since 2025-02-01
  */
 public class ViewCommand extends BotCommand{
-    public static final String CMDNAME = "view";
-    private String cmdDesrciption = "showing the contents of a question list in a readable manner";
+	public static final String CMDNAME = "view";
+	private String cmdDesrciption = "showing the contents of a question list in a readable manner";
 	private List<String> abbrevs = List.of("v");
-    
+	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
@@ -35,22 +35,22 @@ public class ViewCommand extends BotCommand{
 		return BotCommand.CommandCategory.READING;
 	}
 	@Override
-    public String getName(){ return CMDNAME;}
+	public String getName(){ return CMDNAME;}
 	@Override
-    public String getDescription(){ return cmdDesrciption;}
+	public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public List<OptionData> getOptionData(){
-        List<OptionData> res = BotCommand.getCommandByName(StartCommand.CMDNAME).getOptionData();
-        return res;
-    }
+	public List<OptionData> getOptionData(){
+		List<OptionData> res = BotCommand.getCommandByName(StartCommand.CMDNAME).getOptionData();
+		return res;
+	}
 	@Override
-    public CommandOutput execute(String userId,  List<String> args){
+	public CommandOutput execute(String userId,  List<String> args){
 		QuestionList l = args.size()>0?Users.getById(args.get(0)): null;
-        if (l==null){
-            return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-        }
-        Viewer viewer = new Viewer(l, Users.get(userId).useButtons());
+		if (l==null){
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+		}
+		Viewer viewer = new Viewer(l, Users.get(userId).useButtons());
 		return viewer.start();
-    }
+	}
 
 }

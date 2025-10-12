@@ -11,8 +11,6 @@ import java.util.Map;
 
 import com.linked.quizbot.Constants;
 
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-
 /**
  * A central registry and utility class for managing all {@link User} objects in the application.
  * <p>
@@ -40,9 +38,9 @@ public class Users {
 		return Users.getUser(userId);
 	}
 	public static void clear() {
-        allUsers.clear();
-        QuestionList.Hasher.clearGeneratedCodes();
-    }
+		allUsers.clear();
+		QuestionList.Hasher.clearGeneratedCodes();
+	}
 	public static void addUser(User user){
 		int index = myBinarySearchIndexOf(Users.allUsers, user, User.comparatorByUserId());
 		if (index < 0){

@@ -119,6 +119,6 @@ public class ReactionListener extends ListenerAdapter {
 				return;
 			}
 		}
-		// TODO 
+		// TODO impl the reaction removal
 	}
 }

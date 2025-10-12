@@ -26,30 +26,30 @@ public class CommandLineInterface {
 	}
 
 	/**
-     * Provides a detailed usage message for the command-line interface.
-     * @return The usage string.
-     */
-    public static String usage(){
-        String s="";
-        s+= "Usage: \n\t[COMMAND]\n";
-        s+= String.format("\t%s\t%s\n", "status, stat","gets the bot status");
-        s+= String.format("\t%s\t%s\n", "stop, shutdown, disconnectjda","stops the bot and disconnects from Discord");
-        s+= String.format("\t%s\t%s\n", "exit","stops the bot, disconnects, and kills this process");
-        s+= String.format("\t%s\t%s\n", "start, connectjda, connect","starts the bot and connects it to Discord");
-        s+= String.format("\t%s\t%s\n", "private","sets the bot to private/testing mode");
-        s+= String.format("\t%s\t%s\n", "public","sets the bot to public mode");
-        s+= String.format("\t%s\t%s\n", "load, reload","reloads all user data from disk");
-        s+= String.format("\t%s\t%s\n", "help","displays this usage message");
-        s+= String.format("\t%s\t%s\n", "q![BotCommand] [Argumments]","executes a bot command (e.g., q!help)");
-        
-        s+= "\nExample: \n";
-        s+= "\tstatus\n";
-        s+= "\tstart\n";
-        s+= "\tq!collection\n";
-        s+= "\tq!help\n";
-        s+= "\texit\n";
-        return s;
-    }
+	 * Provides a detailed usage message for the command-line interface.
+	 * @return The usage string.
+	 */
+	public static String usage(){
+		String s="";
+		s+= "Usage: \n\t[COMMAND]\n";
+		s+= String.format("\t%s\t%s\n", "status, stat","gets the bot status");
+		s+= String.format("\t%s\t%s\n", "stop, shutdown, disconnectjda","stops the bot and disconnects from Discord");
+		s+= String.format("\t%s\t%s\n", "exit","stops the bot, disconnects, and kills this process");
+		s+= String.format("\t%s\t%s\n", "start, connectjda, connect","starts the bot and connects it to Discord");
+		s+= String.format("\t%s\t%s\n", "private","sets the bot to private/testing mode");
+		s+= String.format("\t%s\t%s\n", "public","sets the bot to public mode");
+		s+= String.format("\t%s\t%s\n", "load, reload","reloads all user data from disk");
+		s+= String.format("\t%s\t%s\n", "help","displays this usage message");
+		s+= String.format("\t%s\t%s\n", "q![BotCommand] [Argumments]","executes a bot command (e.g., q!help)");
+		
+		s+= "\nExample: \n";
+		s+= "\tstatus\n";
+		s+= "\tstart\n";
+		s+= "\tq!collection\n";
+		s+= "\tq!help\n";
+		s+= "\texit\n";
+		return s;
+	}
 	
 	public static void execute (Scanner scanner) {
 		boolean exiting = false;
@@ -79,11 +79,11 @@ public class CommandLineInterface {
 				}
 				case "connectjda", "connect", "startjda", "start" -> {
 					if (BotCore.jda == null){
-                        BotCore.startJDA();
-                        System.out.println(String.format("[INFO] Bot is %s online.", BotCore.isBugFree()?"publicly":"privately"));
+					    BotCore.startJDA();
+					    System.out.println(String.format("[INFO] Bot is %s online.", BotCore.isBugFree()?"publicly":"privately"));
 					} else {
-                        System.out.println(String.format("[INFO] Bot is already %s online.", BotCore.isBugFree()?"publicly":"privately"));
-                    }
+				        System.out.println(String.format("[INFO] Bot is already %s online.", BotCore.isBugFree()?"publicly":"privately"));
+				    }
 				}
 				case "status", "stat"-> {
 					System.out.print(getStatus());
@@ -156,13 +156,13 @@ public class CommandLineInterface {
 		}
 		int cmdPrefixeLen;
 		// Prioritise user defined prefixe, if not found search for the default prefixe
-        if (userPrefixe!=null && userPrefixe.length()<=Constants.CMDPREFIXE.length() && Constants.CMDPREFIXE.startsWith(userPrefixe)
-            && Constants.CMDPREFIXE.length()<=message.length() && message.startsWith(Constants.CMDPREFIXE)){
-            prefixe = Constants.CMDPREFIXE;
-        }else if (userPrefixe!=null && message.startsWith(userPrefixe)){
+		if (userPrefixe!=null && userPrefixe.length()<=Constants.CMDPREFIXE.length() && Constants.CMDPREFIXE.startsWith(userPrefixe)
+			&& Constants.CMDPREFIXE.length()<=message.length() && message.startsWith(Constants.CMDPREFIXE)){
+			prefixe = Constants.CMDPREFIXE;
+		}else if (userPrefixe!=null && message.startsWith(userPrefixe)){
 			prefixe = userPrefixe;
-        }else if (message.startsWith(Constants.CMDPREFIXE)){
-            prefixe = Constants.CMDPREFIXE;
+		}else if (message.startsWith(Constants.CMDPREFIXE)){
+			prefixe = Constants.CMDPREFIXE;
 		}else {
 			return List.of();
 		}

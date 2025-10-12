@@ -41,15 +41,15 @@ public class LeaderBoardCommand extends BotCommand {
 	@Override
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public List<OptionData> getOptionData(){
-        return BotCommand.getCommandByName(PreviousCommand.CMDNAME).getOptionData();
-    }
+	public List<OptionData> getOptionData(){
+		return BotCommand.getCommandByName(PreviousCommand.CMDNAME).getOptionData();
+	}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-        String messageId = args.get(0);
+		String messageId = args.get(0);
 		QuizBot q =(QuizBot) BotCore.getViewer(messageId);
 		if(q == null) {
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));

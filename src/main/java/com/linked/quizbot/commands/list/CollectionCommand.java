@@ -3,20 +3,15 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
@@ -38,7 +33,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  */
 public class CollectionCommand extends BotCommand {
 	public static final String CMDNAME = "collection";
-    private String cmdDesrciption = "listing all questions";
+	private String cmdDesrciption = "listing all questions";
 	private List<String> abbrevs = List.of("c", "ls");
 	
 	@Override
@@ -52,11 +47,11 @@ public class CollectionCommand extends BotCommand {
 	@Override
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public List<OptionData> getOptionData(){
-        List<OptionData> tmp = new ArrayList<>();
+	public List<OptionData> getOptionData(){
+		List<OptionData> tmp = new ArrayList<>();
 		tmp.add(new OptionData(OptionType.STRING, "user-id", "id of the user who's questions will be listed"));
-        return tmp;
-    }
+		return tmp;
+	}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
 		User user = null;
@@ -104,5 +99,5 @@ public class CollectionCommand extends BotCommand {
 		return new CommandOutput.Builder()
 				.addAll(res)
 				.build();
-    }
+	}
 }

@@ -27,10 +27,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see BotCommand
  * @see Users
  */
-public class AddTagCommand extends BotCommand{
-	public static final String CMDNAME = "addtag";
-	private String cmdDesrciption = "add a tag to a list of questions";
-	private List<String> abbrevs = List.of("tag", "at", "taglist", "tl");
+public class RemoveTagCommand extends BotCommand{
+	public static final String CMDNAME = "removetag";
+	private String cmdDesrciption = "remove a tag from a list of questions";
+	private List<String> abbrevs = List.of("rt", "tr");
 	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
@@ -56,7 +56,7 @@ public class AddTagCommand extends BotCommand{
 		User user = Users.get(userId);
 		String emoji = user.getEmojiFomTagName(tagNameInput);
 		String res = "";
-		String taggedStr = "Taged ";
+		String taggedStr = "Untaged ";
 		String notOwnedStr = "You are not the owner of";
 		int totalTagged = 0;
 		int totalNotOwned = 0;
@@ -68,7 +68,7 @@ public class AddTagCommand extends BotCommand{
 					notOwnedStr += " `"+args.get(i)+"`";
 					totalNotOwned +=1;
 				} else {
-					Users.addTagToList( k.getId(), tagNameInput);
+					Users.removeTagFromList( k.getId(), tagNameInput);
 					taggedStr += " `"+k.getId()+"`";
 					totalTagged += 1;
 				}
@@ -79,9 +79,7 @@ public class AddTagCommand extends BotCommand{
 		if (totalNotOwned>0){res += notOwnedStr + "\n";}
 		if (totalTagged>0){res += totalTagged+"lists : "+taggedStr;}
 		
-		return new CommandOutput.Builder()
-				.add(res)
-				.build();
+		return new CommandOutput.Builder().add(res).build();
 	}
 
 }

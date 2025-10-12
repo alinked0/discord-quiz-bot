@@ -201,8 +201,8 @@ public class MessageSender {
 			return;
 		}
 
-        MessageChannel channel = event.getChannel();
-        Message message = event.getMessage();
+		MessageChannel channel = event.getChannel();
+		Message message = event.getMessage();
 		String content = "";
 		for (String s : output.getTextMessages()){
 			if (!s.isEmpty()){
@@ -232,11 +232,11 @@ public class MessageSender {
 			if (success!=null) success.accept(message);return;
 		}
 		message.addReaction(iter.next()).queue( v -> addReactions(message, iter, success));
-    }
+	}
 
 	public static void addReactions(Message message, Iterator<Emoji> iter) {
 		message.addReaction(iter.next()).queue( v -> addReactions(message, iter, null));
-    }
+	}
 	public static List<ActionRow> actionRowsFromEmojis(List<Emoji> l) {
 		int nbOptions = 0;
 		List<Button> row= new ArrayList<>();
@@ -274,10 +274,10 @@ public class MessageSender {
 	}
 	public static void addButtons(Message message, List<Emoji> l, @Nullable Consumer<? super Message> success) {
 		message.editMessageComponents(MessageSender.actionRowsFromEmojis(l)).queue(success);;
-    }
+	}
 	public static void addButtons(Message message, List<Emoji> l) {
 		MessageSender.addButtons(message, l, null);
-    }
+	}
 	private static List<MessageCreateAction> recursive_send_text(Iterator<String> iter, Message originalMessage, MessageChannel channel, boolean shouldReply, List<Consumer<Message>> postSendActions) {
 		List<MessageCreateAction> sendActions = new ArrayList<>();
 		while (iter.hasNext()){

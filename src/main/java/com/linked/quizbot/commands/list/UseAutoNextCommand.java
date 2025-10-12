@@ -3,11 +3,8 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
-import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 
@@ -45,11 +42,11 @@ public class UseAutoNextCommand extends BotCommand {
 	@Override
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public List<OptionData> getOptionData(){
-        List<OptionData> res = new ArrayList<OptionData>();
-        res.add(new OptionData(OptionType.STRING, "yes-or-no", "choose if the game should automaticly go to the next question", true));
-        return res;
-    }
+	public List<OptionData> getOptionData(){
+		List<OptionData> res = new ArrayList<OptionData>();
+		res.add(new OptionData(OptionType.STRING, "yes-or-no", "choose if the game should automaticly go to the next question", true));
+		return res;
+	}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
 		if (args.size() < getRequiredOptionData().size()){

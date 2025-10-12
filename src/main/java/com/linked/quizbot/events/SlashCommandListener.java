@@ -37,7 +37,7 @@ public class SlashCommandListener extends ListenerAdapter {
 		
 		String userId = sender.getId();
 		MessageChannel channel = event.getInteraction().getChannel();
-        String channelId = channel.getId();
+		String channelId = channel.getId();
 		
 		// log User
 		BotCore.addUser(sender);

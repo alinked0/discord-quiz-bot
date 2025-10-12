@@ -38,16 +38,8 @@ This will generate the bot jar in the `target/` directory.
 
 ### Run
 
-#### Production Mode
-
 ```sh
-java -jar target/discordquizbot-1.0-SNAPSHOT-jar-with-dependencies.jar <BOTTOKEN>
-```
-
-#### Test Mode
-
-```sh
-java -jar target/discordquizbot-1.0-SNAPSHOT-jar-with-dependencies.jar <BOTTOKEN> <TESTGUILDID> <TESTCHANNELID> <USERID>
+java -jar target/discordquizbot-1.0-SNAPSHOT-jar-with-dependencies.jar BOTTOKEN USERID \[TESTCHANNELID TESTGUILDID\]
 ```
 
 - **BOTTOKEN**: Your Discord bot token.

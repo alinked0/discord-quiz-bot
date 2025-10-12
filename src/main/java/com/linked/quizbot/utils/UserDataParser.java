@@ -13,14 +13,14 @@ import com.fasterxml.jackson.core.JsonToken;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 public class UserDataParser {
-    public static User.Builder fromJsonFile(String filePathToJson)throws IOException{
+	public static User.Builder fromJsonFile(String filePathToJson)throws IOException{
 		File f = new File(filePathToJson);
 		if (!f.exists()){
 			throw new FileNotFoundException(filePathToJson);
 		}
 		JsonParser jp =  new JsonFactory().createParser(f);
 		return parser(jp);
-    }
+	}
 
 	public static User.Builder fromString(String arg) throws IOException{
 		JsonParser jp =  new JsonFactory().createParser(arg);

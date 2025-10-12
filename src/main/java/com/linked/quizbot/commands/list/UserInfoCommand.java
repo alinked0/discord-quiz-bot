@@ -26,10 +26,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see Users
  */
 public class UserInfoCommand extends BotCommand{
-    public static final String CMDNAME = "userinfo";
-    private String cmdDesrciption = "showing user information in a json format";
+	public static final String CMDNAME = "userinfo";
+	private String cmdDesrciption = "showing user information in a json format";
 	private List<String> abbrevs = List.of("ui");
-    
+	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
@@ -37,22 +37,22 @@ public class UserInfoCommand extends BotCommand{
 		return BotCommand.CommandCategory.READING;
 	}
 	@Override
-    public String getName(){ return CMDNAME;}
+	public String getName(){ return CMDNAME;}
 	@Override
-    public String getDescription(){ return cmdDesrciption;}
+	public String getDescription(){ return cmdDesrciption;}
 	@Override
-    public List<OptionData> getOptionData(){
-        List<OptionData> res = new ArrayList<OptionData>();
-        res.add(new OptionData(OptionType.STRING, "userid", "number identifing the user on discord", false)
+	public List<OptionData> getOptionData(){
+		List<OptionData> res = new ArrayList<OptionData>();
+		res.add(new OptionData(OptionType.STRING, "userid", "number identifing the user on discord", false)
 		.setRequiredLength(Constants.DISCORDIDLENMIN, Constants.DISCORDIDLENMAX));
-        return res;
-    }
+		return res;
+	}
 	@Override
-    public CommandOutput execute(String userId,  List<String> args){
+	public CommandOutput execute(String userId,  List<String> args){
 		User user = args.size()>0?Users.get(args.get(0)): Users.get(userId);
 		return new CommandOutput.Builder()
 				.add(String.format("```js\n%s\n```", user.toString()))
 				.build();
-    }
+	}
 
 }

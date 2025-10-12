@@ -7,8 +7,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.MessageEmbed.Footer;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +44,7 @@ public class CommandOutput {
 	public static class Builder {
 		private final List<String> textMessages = new ArrayList<>();
 		private final List<MessageEmbed> embeds = new ArrayList<>();
-        private final List<Consumer<Message>> postSendActions = new ArrayList<>();
+		private final List<Consumer<Message>> postSendActions = new ArrayList<>();
 		private final List<File> attachedFiles= new ArrayList<>();
 		private final List<Emoji> reactions= new ArrayList<>();
 		private boolean useButtons = true;
@@ -66,9 +64,9 @@ public class CommandOutput {
 			return this;
 		}
 		public Builder useButtons(boolean b){ 
-            this.useButtons= b;
-            return this;
-        }
+			this.useButtons= b;
+			return this;
+		}
 		public Builder setMessage(Message msg){ message = msg; return this;}
 		public Builder addAll(List<String> c){
 			for (String s : c){
@@ -302,8 +300,8 @@ public class CommandOutput {
 		return delayMillis;
 	}
 	public List<Consumer<Message>> getPostSendActions() {
-        return postSendActions;
-    }
+		return postSendActions;
+	}
 	public String toString(){
 		return 
 		this.textMessages.toString() +

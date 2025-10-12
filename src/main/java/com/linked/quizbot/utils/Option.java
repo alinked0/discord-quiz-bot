@@ -75,8 +75,8 @@ public class Option {
 	}
 	
 	public static Comparator<? super Option> comparator() {
-        return (e, f)->((e.isCorrect()^f.isCorrect())?(e.isCorrect()?-1:1):0);
-    }
+		return (e, f)->((e.isCorrect()^f.isCorrect())?(e.isCorrect()?-1:1):0);
+	}
 
 	/**
 	 * Returns a string representation of this Option in JSON format.

@@ -35,6 +35,7 @@ import com.linked.quizbot.commands.list.PingCommand;
 import com.linked.quizbot.commands.list.PreviousCommand;
 import com.linked.quizbot.commands.list.RawListCommand;
 import com.linked.quizbot.commands.list.RemoveListCommand;
+import com.linked.quizbot.commands.list.RemoveTagCommand;
 import com.linked.quizbot.commands.list.RenameListCommand;
 import com.linked.quizbot.commands.list.SetPrefixeCommand;
 import com.linked.quizbot.commands.list.StartCommand;
@@ -44,8 +45,6 @@ import com.linked.quizbot.commands.list.UseButtonsCommand;
 import com.linked.quizbot.commands.list.UserInfoCommand;
 import com.linked.quizbot.commands.list.ViewCommand;
 import com.linked.quizbot.core.BotCore;
-import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message.Attachment;
@@ -69,48 +68,49 @@ public abstract class BotCommand {
 	private final static Map<BotCommand.CommandCategory, Set<BotCommand>> commandByCategory = new HashMap<>();
 	public static Random rand = new Random();
 
-    // Static set to hold all command instances, initialized once.
-    private static final Set<BotCommand> ALL_COMMANDS;
-    private static final Set<BotCommand> PUBLIC_COMMANDS;
-    private static final Set<BotCommand> PRIVATE_COMMANDS;
+	// Static set to hold all command instances, initialized once.
+	private static final Set<BotCommand> ALL_COMMANDS;
+	private static final Set<BotCommand> PUBLIC_COMMANDS;
+	private static final Set<BotCommand> PRIVATE_COMMANDS;
 
 	// Static block to initialize the command sets.
-    static {
+	static {
 		PUBLIC_COMMANDS = new HashSet<>();
 		PRIVATE_COMMANDS = new HashSet<>();
-        ALL_COMMANDS = new HashSet<>();
-        PUBLIC_COMMANDS.addAll(List.of(
-            new AddListCommand(),
-            new AddTagCommand(),
-            new CreateListCommand(),
-            new CollectionCommand(),
-            new CreateTagCommand(),
-            new DeleteListCommand(),
-            new EndCommand(),
-            new ExplainCommand(),
-            new EmbedCommand(),
-            new HelpCommand(),
-            new InviteCommand(),
-            new LeaderBoardCommand(),
-            new UseAutoNextCommand(),
-            new NextCommand(),
-            new PingCommand(),
-            new PreviousCommand(),
+		ALL_COMMANDS = new HashSet<>();
+		PUBLIC_COMMANDS.addAll(List.of(
+			new AddListCommand(),
+			new AddTagCommand(),
+			new CreateListCommand(),
+			new CreateTagCommand(),
+			new CollectionCommand(),
+			new DeleteListCommand(),
+			new EmbedCommand(),
+			new EndCommand(),
+			new ExplainCommand(),
+			new HelpCommand(),
+			new InviteCommand(),
+			new LeaderBoardCommand(),
+			new NextCommand(),
+			new PingCommand(),
+			new PreviousCommand(),
 			new RawListCommand(),
 			new RenameListCommand(),
-            new SetPrefixeCommand(),
-            new StartCommand(),
+			new RemoveTagCommand(),
+			new SetPrefixeCommand(),
+			new StartCommand(),
 			new TagsCommand(),
-            new UserInfoCommand(),
-            new UseButtonsCommand(),
-            new ViewCommand()
-        )); 
+			new UseAutoNextCommand(),
+			new UseButtonsCommand(),
+			new UserInfoCommand(),
+			new ViewCommand()
+		)); 
 		PRIVATE_COMMANDS.addAll(List.of(
-            new RemoveListCommand()
-        ));
+			new RemoveListCommand()
+		));
 		ALL_COMMANDS.addAll(PUBLIC_COMMANDS);
 		ALL_COMMANDS.addAll(PRIVATE_COMMANDS);
-    }
+	}
 	/**
 	 * This enum represents the different categories of commands that can be used in the bot.
 	 */
@@ -171,9 +171,9 @@ public abstract class BotCommand {
 	 * @return A list of OptionData objects.
 	 * @pure
 	 */
-    public List<OptionData> getOptionData(){
+	public List<OptionData> getOptionData(){
 		List<OptionData> res = new ArrayList<>();
-        return res;
+		return res;
 	}
 
 	/**
@@ -222,31 +222,31 @@ public abstract class BotCommand {
 	 * @param argumment The JSON-like string to be split.
 	 * @return A list of JSON objects as Strings. 
 	 */
-    public static  List<String> splitJson(String argumment){
-        int k = 0;
-        int start = -1;
-        List<String> res = new ArrayList<>();
-        String[] l = argumment.split("");
-        int i=0;
-        for (i = 0; i<argumment.length(); i++){
-            if (l[i].equals("{")){
-                start = i;
-                break;
-            }
-        }
-        if (start==-1){return res;}
-        for (; i<argumment.length(); i++){
-            if (l[i].equals("{")){k+=1;}
-            else if (l[i].equals("}")){k-=1;}
-            if (k==0){
-                res.add(argumment.substring(start, i+1));
-                start = i+1;
-                if (i+1<argumment.length()) res.addAll(splitJson(argumment.substring(start)));
-                return res;
-            }
-        }
-        return res;
-    }
+	public static  List<String> splitJson(String argumment){
+		int k = 0;
+		int start = -1;
+		List<String> res = new ArrayList<>();
+		String[] l = argumment.split("");
+		int i=0;
+		for (i = 0; i<argumment.length(); i++){
+			if (l[i].equals("{")){
+				start = i;
+				break;
+			}
+		}
+		if (start==-1){return res;}
+		for (; i<argumment.length(); i++){
+			if (l[i].equals("{")){k+=1;}
+			else if (l[i].equals("}")){k-=1;}
+			if (k==0){
+				res.add(argumment.substring(start, i+1));
+				start = i+1;
+				if (i+1<argumment.length()) res.addAll(splitJson(argumment.substring(start)));
+				return res;
+			}
+		}
+		return res;
+	}
 
 	/**
 	 * Retrieves arguments from an attachment associated with a user.
@@ -258,11 +258,11 @@ public abstract class BotCommand {
 	 * @ensures \result.size() <= 1
 	 * @return a list of arguments If the attachment is not null else it returns an empty list.
 	 */
-    public static List<String> getArgFromAttachment(String userId, Attachment attachment){
-        List<String> res = new ArrayList<>();
-        if (attachment==null){
-            return res;
-        }
+	public static List<String> getArgFromAttachment(String userId, Attachment attachment){
+		List<String> res = new ArrayList<>();
+		if (attachment==null){
+			return res;
+		}
 	String tmpStr = "";
 	try {
 		URL website = new URL(attachment.getUrl());
@@ -290,8 +290,8 @@ public abstract class BotCommand {
 		System.err.println("[ERROR] An error occurred while taking an attachment.");
 		e.printStackTrace();
 	}
-        return res;
-    }
+		return res;
+	}
 
 	/**
 	 * Retrieves arguments from a list of attachments associated with a user.
@@ -302,16 +302,16 @@ public abstract class BotCommand {
 	 * @return A list of arguments extracted from the attachments. If the list is null, it returns an empty list.
 	 * @see #getArgFromAttachment(String, Attachment)
 	 */
-    public static List<String> getArgFromAttachments(String userId, List<Attachment> c){
-        List<String> res = new ArrayList<>();
-        if (c==null){
-            return res;
-        }
-        for (Attachment attachment : c){
-            res.addAll(getArgFromAttachment( userId, attachment));
-        }
-        return res;
-    }
+	public static List<String> getArgFromAttachments(String userId, List<Attachment> c){
+		List<String> res = new ArrayList<>();
+		if (c==null){
+			return res;
+		}
+		for (Attachment attachment : c){
+			res.addAll(getArgFromAttachment( userId, attachment));
+		}
+		return res;
+	}
 
 	/**
 	 * Retrieves a command by its name or abbreviation.
@@ -333,14 +333,14 @@ public abstract class BotCommand {
 	 * @param arg The argument string that may contain an emoji.
 	 * @return The parsed Emoji object if successful, or null if the argument cannot be parsed as an emoji.
 	 */
-    public static Emoji getEmojiFromArg(String arg){
-        try {
-            return Emoji.fromFormatted(arg);
-        } catch (IllegalArgumentException e) {
-            System.err.println("[ERROR] Failed to parse emoji from argument: " + arg + " - " + e.getMessage());
-            return null;
-        }
-    }
+	public static Emoji getEmojiFromArg(String arg){
+		try {
+			return Emoji.fromFormatted(arg);
+		} catch (IllegalArgumentException e) {
+			System.err.println("[ERROR] Failed to parse emoji from argument: " + arg + " - " + e.getMessage());
+			return null;
+		}
+	}
 
 	/**
 	 * Retrieves the ID of a user from a given argument string.
@@ -356,7 +356,7 @@ public abstract class BotCommand {
 	 * @pure
 	 */
 	public static String getIdFromArg(String arg, JDA jda) {
-        long start = System.nanoTime();
+		long start = System.nanoTime();
 		if (arg.startsWith("<@")) {
 			return arg.substring(2, arg.length()-1);
 		}

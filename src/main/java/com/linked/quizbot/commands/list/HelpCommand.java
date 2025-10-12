@@ -53,24 +53,24 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see EmbedBuilder
  */
 public class HelpCommand extends BotCommand {
-    public static final String CMDNAME = "help";
-    private String cmdDesrciption = "helping people understands the commands.";
+	public static final String CMDNAME = "help";
+	private String cmdDesrciption = "helping people understands the commands.";
 	private List<String> abbrevs = List.of("h");
 	
-    @Override
-	public List<String> getAbbreviations(){ return abbrevs;}
-    @Override
-    public String getName(){ return CMDNAME;}
-    @Override
-    public String getDescription(){ return cmdDesrciption;}
-    @Override
-    public List<OptionData> getOptionData(){
-		List<OptionData> res = new ArrayList<>();
-        res.add (new OptionData(OptionType.STRING, "command", "Command name for detailed description", false));
-        return res;
-    }
 	@Override
-    public CommandOutput execute(String userId,  List<String> args){
+	public List<String> getAbbreviations(){ return abbrevs;}
+	@Override
+	public String getName(){ return CMDNAME;}
+	@Override
+	public String getDescription(){ return cmdDesrciption;}
+	@Override
+	public List<OptionData> getOptionData(){
+		List<OptionData> res = new ArrayList<>();
+		res.add (new OptionData(OptionType.STRING, "command", "Command name for detailed description", false));
+		return res;
+	}
+	@Override
+	public CommandOutput execute(String userId,  List<String> args){
 		boolean newbie = args.size() < 1;
 		BotCommand cmd;
 		CommandOutput.Builder outBuilder = new CommandOutput.Builder();
@@ -86,7 +86,7 @@ public class HelpCommand extends BotCommand {
 			}
 		}
 		return outBuilder.build();
-    }
+	}
 	private static EmbedBuilder getEmbed(BotCommand cmd){
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.setTitle("Command Info: `"+cmd.getName()+"`");
