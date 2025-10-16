@@ -15,8 +15,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code AddTagCommand} class allows users to tag a list of questions with a specific tag.
- * It extends {@link BotCommand} and provides functionality to associate a tag with multiple question lists.
+ * The {@code RemoveTagCommand} class allows users to remove a specific tag from a list of questions.
+ * It extends {@link BotCommand} and provides functionality to unassociate a tag from multiple question lists.
  * <p>
  * This command is part of a Discord bot that manages quiz questions and user interactions.
  * It enables users to organize their question lists by tagging them, making it easier to find and manage related content.
@@ -56,7 +56,7 @@ public class RemoveTagCommand extends BotCommand{
 		User user = Users.get(userId);
 		String emoji = user.getEmojiFomTagName(tagNameInput);
 		String res = "";
-		String taggedStr = "Untaged ";
+		String taggedStr = "untaged";
 		String notOwnedStr = "You are not the owner of";
 		int totalTagged = 0;
 		int totalNotOwned = 0;
@@ -74,10 +74,10 @@ public class RemoveTagCommand extends BotCommand{
 				}
 			}
 		} else {
-			res = "Tag : '"+tagNameInput+"' doesn't exist. Firstly create it:`"+Constants.CMDPREFIXE+HelpCommand.CMDNAME +" "+CreateTagCommand.CMDNAME+"`\n";
+			res = "Tag : `"+tagNameInput+"` doesn't exist. Firstly create it:`"+Constants.CMDPREFIXE+HelpCommand.CMDNAME +" "+CreateTagCommand.CMDNAME+"`\n";
 		}
 		if (totalNotOwned>0){res += notOwnedStr + "\n";}
-		if (totalTagged>0){res += totalTagged+"lists : "+taggedStr;}
+		if (totalTagged>0){res += "`"+totalTagged+"` lists "+taggedStr;}
 		
 		return new CommandOutput.Builder().add(res).build();
 	}
