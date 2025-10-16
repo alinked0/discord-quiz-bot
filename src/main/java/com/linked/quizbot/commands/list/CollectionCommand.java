@@ -3,6 +3,7 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
@@ -53,51 +54,86 @@ public class CollectionCommand extends BotCommand {
 		return tmp;
 	}
 	@Override
-	public CommandOutput execute(String userId,  List<String> args){
-		User user = null;
-		if (getOptionData().size()<= args.size()){
-			String id = BotCommand.getIdFromArg(args.get(0), BotCore.getJDA());
-			if (id!=null){
-				user = Users.get(id);
-				if (user==null) return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-				userId = id;
-			} else {return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));}
+	public List<String> parseArguments(String cmndLineArgs) {
+		List<String> res = new ArrayList<>();
+		String order = "";
+		String[] tmp = cmndLineArgs.toLowerCase().trim().replaceAll("sort( by|[\\s:=<>!]+)\\s*", "o=").replaceAll("\\s*([:=<>!]+)\\s*", "$1").split("\\s+");
+		String prev = "";
+
+		for(int k = 0; k < tmp.length; ++k) {
+			if (tmp[k].matches(".*[!<>=:]+.*")) {
+			if (!prev.isEmpty()) {
+				res.add(prev);
+			}
+			prev = tmp[k];
+			} else if (tmp[k].matches("a|asc|ascending")) {
+			order = "asc";
+			} else if (tmp[k].matches("d|desc|descending")) {
+			order = "desc";
+			} else {
+			prev = prev + " " + tmp[k];
+			}
 		}
 
-		String minEmoji, tagName;
+		if (!prev.isEmpty()) {
+			res.add(prev);
+		}
+		
+		if (!order.isEmpty()) {
+			res.add(order);
+		}
+
+		return res;
+	}
+	@Override
+	public CommandOutput execute(String userId,  List<String> args){
+		User user = null;
+		String minEmoji;
+		if (this.getOptionData().size() <= args.size()) {
+			minEmoji = BotCommand.getIdFromArg((String)args.get(0), BotCore.getJDA());
+			if (minEmoji == null) {return BotCommand.getCommandByName("help").execute(userId, List.of(this.getName()));}
+			user = Users.get(minEmoji);
+			if (user == null) {return BotCommand.getCommandByName("help").execute(userId, List.of(this.getName()));}
+			userId = minEmoji;
+		}
+
 		List<String> res = new ArrayList<>();
-		
-		if (user==null) user = Users.get(userId);
-		String tmp = String.format("Collection of <@%s>\n",userId);
+		if (user == null) {
+			user = Users.get(userId);
+		}
+
+		String tmp = String.format("Collection of <@%s>\n", userId);
 		List<QuestionList> list = user.getLists();
-		
 		list.sort(QuestionList.comparatorByDate().reversed());
 		list.add(QuestionList.getExampleQuestionList());
-		
-		for (QuestionList l : list){
+		Iterator<QuestionList> lists = list.iterator();
+
+		while(lists.hasNext()) {
+			QuestionList l = (QuestionList)lists.next();
 			minEmoji = "";
 			if (!l.getTagNames().isEmpty()) {
-				tagName = l.getTagNames().iterator().next();
-				int min = user.getListsByTag(tagName).size();
-				minEmoji = l.getEmoji(tagName);
-				int curr;
-				for (String emoji : l.getTagNames()){
-					curr = user.getListsByTag(emoji).size();
-					if (curr<min){
-						min = curr;
-						minEmoji = l.getEmoji(emoji);
-					}
+			String tagName = (String)l.getTagNames().iterator().next();
+			int min = user.getListsByTag(tagName).size();
+			minEmoji = l.getEmoji(tagName);
+			Iterator<String> tagNames = l.getTagNames().iterator();
+
+			while(tagNames.hasNext()) {
+				String emoji = (String)tagNames.next();
+				int curr = user.getListsByTag(emoji).size();
+				if (curr < min) {
+					min = curr;
+					minEmoji = l.getEmoji(emoji);
 				}
 			}
-			tmp += String.format("`%s` %s %s\n", l.getId(), minEmoji, l.getName());
-			if (tmp.length()>Constants.CHARSENDLIM - 400) {
-				res.add(tmp);
-				tmp = "";
+			}
+
+			tmp = tmp + String.format("`%s` %s %s\n", l.getId(), minEmoji, l.getName());
+			if (tmp.length() > 1600) {
+			res.add(tmp);
+			tmp = "";
 			}
 		}
-		if (tmp.length()>0) res.add(tmp);
-		return new CommandOutput.Builder()
-				.addAll(res)
-				.build();
+		if (tmp.length() > 0) {res.add(tmp);}
+		return (new CommandOutput.Builder()).addAll(res).build();
 	}
 }

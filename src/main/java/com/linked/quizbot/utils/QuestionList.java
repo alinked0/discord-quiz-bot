@@ -948,22 +948,29 @@ public class QuestionList implements Iterable<Question>{
 	/** 
 	 * Comparator to compare two QuestionList instances by their creation date.
 	 */
-	public static Comparator<? super QuestionList> comparatorByDate() {
-		return (e, f)->(Long.compare(e.getTimeCreatedMillis(),f.getTimeCreatedMillis()));
+	public static Comparator<QuestionList> comparatorByDate() {
+		return Comparator.comparingLong(QuestionList::getTimeCreatedMillis);
+	}
+
+	/** 
+	 * Comparator to compare two QuestionList instances by their size.
+	 */
+	public static Comparator<QuestionList> comparatorBySize() {
+		return Comparator.comparingInt(QuestionList::size);
 	}
 	
 	/** 
 	 * Comparator to compare two QuestionList instances by their name.
 	 */
-	public static Comparator<? super QuestionList> comparatorByName() {
-		return (e, f)->(e.getName().compareTo(f.getName()));
+	public static Comparator<QuestionList> comparatorByName() {
+		return Comparator.comparing(QuestionList::getName);
 	}
 	
 	/** 
 	 * Comparator to compare two QuestionList instances by their id.
 	 */
-	public static Comparator<? super QuestionList> comparatorById() {
-		return (e, f)->(e.getId().compareTo(f.getId()));
+	public static Comparator<QuestionList> comparatorById() {
+		return Comparator.comparing(QuestionList::getId);
 	}
 	
 	/**
