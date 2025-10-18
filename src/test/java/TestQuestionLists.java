@@ -90,9 +90,9 @@ public class TestQuestionLists {
 		// Test that equal QuestionLists have the same hash code
 		assertEquals(questionList1, questionList1);
 		// Test that different QuestionLists have different hash codes (not guaranteed, but likely)
-		assertNotEquals(questionList1.hashCode(), questionList2.hashCode(), 
+		assertNotEquals(questionList1.hashCode(), questionList2.hashCode(),
 			"QuestionLists with diffrent headers have diffrent hash code");
-		assertNotEquals(questionList1.hashCode(), questionList3.hashCode(), 
+		assertNotEquals(questionList1.hashCode(), questionList3.hashCode(),
 			"Different QuestionLists are likely to have different hash codes");
 	}
 
@@ -105,14 +105,14 @@ public class TestQuestionLists {
 		newCollection.add(questionList2);
 		
 		// Test that the collection contains questionList1 (via equality)
-		assertTrue(newCollection.contains(questionList1), 
+		assertTrue(newCollection.contains(questionList1),
 			"Collection should contain a QuestionList that equals the one we're checking for");
 		
 		// Create a copy of questionList1 with the same content 
 		QuestionList questionList1Copy = new QuestionList.Builder().add(questionList1).build();
 		
 		// Test that the collection contains the copy (via equality)
-		assertTrue(newCollection.contains(questionList1Copy), 
+		assertTrue(newCollection.contains(questionList1Copy),
 			"Collection should contain a QuestionList that equals a copy with the same content");
 	}
 
@@ -122,14 +122,14 @@ public class TestQuestionLists {
 		QuestionList modifiedList = new QuestionList.Builder().add(questionList1).build();
 		
 		// At this point, modifiedList should equal questionList1
-		assertTrue(questionListCollection.contains(modifiedList), 
+		assertTrue(questionListCollection.contains(modifiedList),
 			"Before modification, collection should contain a QuestionList that equals the copy");
 		
 		// Modify the list by adding a new question
-		modifiedList.add(new Question("What is the speed of light?", 
+		modifiedList.add(new Question("What is the speed of light?",
 			createSampleOptions("299,792,458 m/s", "150,000,000 m/s")));
 		// After modification, the list should no longer be equal
-		assertFalse(questionListCollection.contains(modifiedList), 
+		assertFalse(questionListCollection.contains(modifiedList),
 			"After modification, collection should not contain the modified QuestionList");
 	}
 }

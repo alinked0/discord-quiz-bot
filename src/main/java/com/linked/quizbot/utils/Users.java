@@ -41,7 +41,7 @@ public class Users {
 		allUsers.clear();
 		QuestionList.Hasher.clearGeneratedCodes();
 	}
-	public static void addUser(User user){
+	public static User addUser(User user){
 		int index = myBinarySearchIndexOf(Users.allUsers, user, User.comparatorByUserId());
 		if (index < 0){
 			index = -index - 1;
@@ -49,17 +49,18 @@ public class Users {
 		}else {
 			Users.allUsers.set(index, user);
 		}
+		return Users.get(user.getId());
+	}
+	public static User addUser(String userId){
+		User user = Users.get(userId);
+		if (user!=null)	return user;
+		return addUser(new User(userId));
 	}
 	public static void update(User user){
 		addUser(user);
 	}
 	public static User getUser(String userId){
 		int index = User.myBinarySearchUserId(Users.allUsers, userId);
-		if (index >=0){
-			return Users.allUsers.get(index);
-		}
-		addUser(new User(userId));
-		index = User.myBinarySearchUserId(Users.allUsers, userId);
 		if (index >=0){
 			return Users.allUsers.get(index);
 		}
@@ -152,7 +153,7 @@ public class Users {
 					QuestionList l = QuestionList.Parser.fromJsonFile(listOfFiles[i].getAbsolutePath()).build();
 					res.put(listId, l);
 				}catch (IOException e) {
-					System.err.println(String.format("[\u001b[33mERROR\u001b[0m] An error occurred while importing a list. listid:%s , userId:%s",listId, userId));
+					System.err.println(String.format(Constants.ERROR + "An error occurred while importing a list. listid:%s , userId:%s",listId, userId));
 					e.printStackTrace();
 				}
 			}
@@ -164,7 +165,6 @@ public class Users {
 		for (int i=0; i<Users.allUsers.size(); i++) {
 			user = Users.allUsers.get(i);
 			user.exportUserLists();
-			System.out.println("[\u001b[34mINFO\u001b[0m] exported UserLists ("+(i+1)+"/"+Users.allUsers.size()+"); ");
 		}
 	}
 	public static void loadAllUsers(){
@@ -188,7 +188,7 @@ public class Users {
 		for (int i=0; i<Users.allUsers.size(); i++) {
 			user = Users.allUsers.get(i);
 			user.exportUserData();
-			System.out.print(String.format("\r[\\u001b[34mINFO\\u001b[0m] Exporting all user data [ %s%s ] %d%s", "#".repeat(i+1), " ".repeat(Users.allUsers.size()-i-1), Math.floorDiv((i+1)*100,Users.allUsers.size()), "%"));
+			System.out.print(String.format("\r"+Constants.INFO+"Exporting all user data [ %s%s ] %d%s", "#".repeat(i+1), " ".repeat(Users.allUsers.size()-i-1), Math.floorDiv((i+1)*100,Users.allUsers.size()), "%"));
 		}
 		System.out.println("");
 	}

@@ -104,7 +104,7 @@ public abstract class BotCommand {
 			new UseButtonsCommand(),
 			new UserInfoCommand(),
 			new ViewCommand()
-		)); 
+		));
 		PRIVATE_COMMANDS.addAll(List.of(
 			new RemoveListCommand()
 		));
@@ -118,10 +118,10 @@ public abstract class BotCommand {
 		GAME, NAVIGATION, EDITING, READING, OTHER;
 		private String name;
 		static {
-			GAME.name = "Game"; 
-			NAVIGATION.name = "Navigation"; 
-			EDITING.name = "Editing"; 
-			READING.name = "Reading"; 
+			GAME.name = "Game";
+			NAVIGATION.name = "Navigation";
+			EDITING.name = "Editing";
+			READING.name = "Reading";
 			OTHER.name = "Other";
 		}
 		public static Set<CommandCategory> getCategories() {
@@ -206,10 +206,12 @@ public abstract class BotCommand {
 	public List<String> parseArguments(String cmndLineArgs){
 		int k = 0;
 		List<String> res = new ArrayList<>();
+		String s;
 		String [] tmp = cmndLineArgs.split("\\s+");
 		for (; k<tmp.length; ++k){
-			if (tmp[k]!=null && !tmp[k].isEmpty() && tmp[k]!=""){
-				res.add(tmp[k]);
+			s= tmp[k].trim();
+			if (!s.isBlank()){
+				res.add(s);
 			}
 		}
 		return res;
@@ -263,33 +265,33 @@ public abstract class BotCommand {
 		if (attachment==null){
 			return res;
 		}
-	String tmpStr = "";
-	try {
-		URL website = new URL(attachment.getUrl());
-		String path = Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp"+Constants.SEPARATOR+System.currentTimeMillis();
-		File f = new File(path);
-		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-		FileOutputStream fos = new FileOutputStream(f);
-		fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-		if(!f.getParentFile().exists()) {
-			f.getParentFile().mkdirs();
+		String tmpStr = "";
+		try {
+			URL website = new URL(attachment.getUrl());
+			String path = Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp"+Constants.SEPARATOR+System.currentTimeMillis();
+			File f = new File(path);
+			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			FileOutputStream fos = new FileOutputStream(f);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			if(!f.getParentFile().exists()) {
+				f.getParentFile().mkdirs();
+			}
+			BufferedReader fd = Files.newBufferedReader(f.toPath());
+			String k = "";
+			do {
+				tmpStr+= k;
+				k=fd.readLine();
+			}while(k!=null);
+			fd.close();
+			f.delete();
+			fos.close();
+			if (!tmpStr.isEmpty()){
+				res.addAll(BotCommand.splitJson(tmpStr));
+			}
+		} catch (IOException e) {
+			System.err.println(Constants.ERROR + "An error occurred while taking an attachment.");
+			e.printStackTrace();
 		}
-		BufferedReader fd = Files.newBufferedReader(f.toPath());
-		String k = "";
-		do {
-			tmpStr+= k;
-			k=fd.readLine();
-		}while(k!=null);
-		fd.close();
-		f.delete();
-		fos.close();
-		if (!tmpStr.isEmpty()){
-			res.addAll(BotCommand.splitJson(tmpStr));
-		}
-	} catch (IOException e) {
-		System.err.println("[\u001b[33mERROR\u001b[0m] An error occurred while taking an attachment.");
-		e.printStackTrace();
-	}
 		return res;
 	}
 
@@ -337,7 +339,7 @@ public abstract class BotCommand {
 		try {
 			return Emoji.fromFormatted(arg);
 		} catch (IllegalArgumentException e) {
-			System.err.println("[\u001b[33mERROR\u001b[0m] Failed to parse emoji from argument: " + arg + " - " + e.getMessage());
+			System.err.println(Constants.ERROR + "Failed to parse emoji from argument: " + arg + " - " + e.getMessage());
 			return null;
 		}
 	}
@@ -377,7 +379,7 @@ public abstract class BotCommand {
 				identifiers.addAll(List.of(userId, userName, userEffectiveName, userTag));
 
 				if (!BotCore.isBugFree()) { // Debug logging
-					System.out.printf("[\u001b[34mINFO\u001b[0m] %s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
+					System.out.printf(Constants.INFO + "%s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
 				}
 
 				String lowerArg = arg.toLowerCase();
@@ -397,8 +399,8 @@ public abstract class BotCommand {
 			}
 		}
 		if (!BotCore.isBugFree()) { // Debug logging
-			System.out.printf("[\u001b[34mINFO\u001b[0m] approxiUserId %s;\n", approxiUserId);
-			System.out.printf("[\u001b[34mINFO\u001b[0m] time getIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
+			System.out.printf(Constants.INFO + "approxiUserId %s;\n", approxiUserId);
+			System.out.printf(Constants.INFO + "time getIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
 		}
 
 		// If the arg itself is a raw ID of the correct length

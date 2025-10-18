@@ -273,9 +273,9 @@ public class TestQuestionListParser {
 		} finally {
 			if (jp != null) {
 				try {
-				    jp.close();
+					jp.close();
 				} catch (IOException e) {
-				    System.err.println("[\u001b[33mERROR\u001b[0m] Error closing JsonParser: " + e.getMessage());
+					System.err.println(Constants.ERROR + "Error closing JsonParser: " + e.getMessage());
 				}
 			}
 		}
@@ -362,14 +362,14 @@ public class TestQuestionListParser {
 	@DisplayName("Test parseQuestion method with full details")
 	void testParseQuestion_FullDetails() throws IOException {
 		String jsonQuestion = "{" +
-				              Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Sample Q")+"," +
-				              Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("Sample E")+"," +
-				              Constants.MAPPER.writeValueAsString("imageSrc")+":"+Constants.MAPPER.writeValueAsString("http://img.com/a.png")+"," +
-				              Constants.MAPPER.writeValueAsString("options")+":[" +
-				              "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Opt1")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":true,"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("Opt1 Expl")+"}," +
-				              "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Opt2")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":false,"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("null")+"}" + // expl is "null" string
-				              "]" +
-				              "}";
+							  Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Sample Q")+"," +
+							  Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("Sample E")+"," +
+							  Constants.MAPPER.writeValueAsString("imageSrc")+":"+Constants.MAPPER.writeValueAsString("http://img.com/a.png")+"," +
+							  Constants.MAPPER.writeValueAsString("options")+":[" +
+							  "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Opt1")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":true,"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("Opt1 Expl")+"}," +
+							  "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Opt2")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":false,"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("null")+"}" + // expl is "null" string
+							  "]" +
+							  "}";
 		JsonParser jp = new JsonFactory().createParser(jsonQuestion);
 		jp.nextToken(); // START_OBJECT (This is the token parseQuestion expects)
 
@@ -399,7 +399,7 @@ public class TestQuestionListParser {
 			QuestionList.Parser.parseQuestion(jp, invalidJson);
 		}, "Expected IOException when input for parseQuestion is not START_OBJECT.");
 
-		assertTrue(thrown.getMessage().contains("[\u001b[33mERROR\u001b[0m] QuestionList.Parser.parseEmojiPerTagName")); // Note: The error message mistakenly says parseEmojiPerTagName
+		assertTrue(thrown.getMessage().contains(Constants.ERROR + "QuestionList.Parser.parseEmojiPerTagName")); // Note: The error message mistakenly says parseEmojiPerTagName
 		assertTrue(thrown.getMessage().contains(invalidJson));
 
 		jp.close();
@@ -409,11 +409,11 @@ public class TestQuestionListParser {
 	@DisplayName("Test parseQuestion method with missing explication and imageSrc")
 	void testParseQuestion_MissingFields() throws IOException {
 		String jsonQuestion = "{" +
-				              Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Simple Q")+"," +
-				              Constants.MAPPER.writeValueAsString("options")+":[" +
-				              "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Opt1")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":true}" +
-				              "]" +
-				              "}";
+							  Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Simple Q")+"," +
+							  Constants.MAPPER.writeValueAsString("options")+":[" +
+							  "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Opt1")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":true}" +
+							  "]" +
+							  "}";
 		JsonParser jp = new JsonFactory().createParser(jsonQuestion);
 		jp.nextToken(); // START_OBJECT
 
@@ -433,9 +433,9 @@ public class TestQuestionListParser {
 	@DisplayName("Test parseOptionList method")
 	void testParseOptionList() throws IOException {
 		String jsonOptionsArray = "[" +
-				                  "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("A")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":true,"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("ExpA")+"}," +
-				                  "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("B")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":false}" +
-				                  "]";
+								  "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("A")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":true,"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("ExpA")+"}," +
+								  "{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("B")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":false}" +
+								  "]";
 		JsonParser jp = new JsonFactory().createParser(jsonOptionsArray);
 		jp.nextToken(); // START_ARRAY (This is the token parseOptionList expects)
 
@@ -530,9 +530,9 @@ public class TestQuestionListParser {
 	@DisplayName("Test parseQuestionList method")
 	void testParseQuestionList() throws IOException {
 		String jsonQuestionsArray = "[" +
-				                    "{"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Q1")+","+Constants.MAPPER.writeValueAsString("options")+":[{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("A")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":true}]}," +
-				                    "{"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Q2")+","+Constants.MAPPER.writeValueAsString("options")+":[{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("B")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":false}]}" +
-				                    "]";
+									"{"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Q1")+","+Constants.MAPPER.writeValueAsString("options")+":[{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("A")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":true}]}," +
+									"{"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Q2")+","+Constants.MAPPER.writeValueAsString("options")+":[{"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("B")+","+Constants.MAPPER.writeValueAsString("isCorrect")+":false}]}" +
+									"]";
 		JsonParser jp = new JsonFactory().createParser(jsonQuestionsArray);
 		jp.nextToken(); // START_ARRAY (This is the token parseQuestionList expects)
 
@@ -548,13 +548,13 @@ public class TestQuestionListParser {
 	@DisplayName("Test parsing a QuestionList with an empty 'questions' array")
 	void testParseEmptyQuestionsArray() throws IOException {
 		String jsonContent = "{" +
-				             Constants.MAPPER.writeValueAsString("authorId")+":"+Constants.MAPPER.writeValueAsString("user123")+", " +
-				             Constants.MAPPER.writeValueAsString("name")+":"+Constants.MAPPER.writeValueAsString("Empty Quiz")+"," +
-				             Constants.MAPPER.writeValueAsString("id")+":"+Constants.MAPPER.writeValueAsString("empty123")+"," +
-				             Constants.MAPPER.writeValueAsString("timeCreatedMillis")+":123456789," + // Added 'L' for long literal
-				             ""+Constants.MAPPER.writeValueAsString("emojiPerTagName")+":{}," +
-				             Constants.MAPPER.writeValueAsString("questions")+": []" +
-				             "}";
+							 Constants.MAPPER.writeValueAsString("authorId")+":"+Constants.MAPPER.writeValueAsString("user123")+", " +
+							 Constants.MAPPER.writeValueAsString("name")+":"+Constants.MAPPER.writeValueAsString("Empty Quiz")+"," +
+							 Constants.MAPPER.writeValueAsString("id")+":"+Constants.MAPPER.writeValueAsString("empty123")+"," +
+							 Constants.MAPPER.writeValueAsString("timeCreatedMillis")+":123456789," + // Added 'L' for long literal
+							 ""+Constants.MAPPER.writeValueAsString("emojiPerTagName")+":{}," +
+							 Constants.MAPPER.writeValueAsString("questions")+": []" +
+							 "}";
 		QuestionList questionList = QuestionList.Parser.fromString(jsonContent).build();
 
 		assertNotNull(questionList);
@@ -568,12 +568,12 @@ public class TestQuestionListParser {
 	void testParseMissingListId() throws IOException {
 		// Remove id from the sample JSON
 		String jsonContent = "{" +
-				             Constants.MAPPER.writeValueAsString("authorId")+":"+Constants.MAPPER.writeValueAsString("authorMissingId")+", " +
-				             Constants.MAPPER.writeValueAsString("name")+":"+Constants.MAPPER.writeValueAsString("Quiz with no id")+", " +
-				             Constants.MAPPER.writeValueAsString("timeCreatedMillis")+":1000000000000," + // Added 'L' for long literal
-				             ""+Constants.MAPPER.writeValueAsString("emojiPerTagName")+":{}," +
-				             Constants.MAPPER.writeValueAsString("questions")+": []" +
-				             "}";
+							 Constants.MAPPER.writeValueAsString("authorId")+":"+Constants.MAPPER.writeValueAsString("authorMissingId")+", " +
+							 Constants.MAPPER.writeValueAsString("name")+":"+Constants.MAPPER.writeValueAsString("Quiz with no id")+", " +
+							 Constants.MAPPER.writeValueAsString("timeCreatedMillis")+":1000000000000," + // Added 'L' for long literal
+							 ""+Constants.MAPPER.writeValueAsString("emojiPerTagName")+":{}," +
+							 Constants.MAPPER.writeValueAsString("questions")+": []" +
+							 "}";
 		QuestionList questionList = QuestionList.Parser.fromString(jsonContent).build();
 
 		assertNotNull(questionList);
@@ -586,12 +586,12 @@ public class TestQuestionListParser {
 	void testParseMissingTimeCreatedMillis() throws IOException {
 		// Remove timeCreatedMillis from the sample JSON
 		String jsonContent = "{" +
-				             Constants.MAPPER.writeValueAsString("authorId")+":"+Constants.MAPPER.writeValueAsString("authorMissingTime")+", " +
-				             Constants.MAPPER.writeValueAsString("name")+":"+Constants.MAPPER.writeValueAsString("Quiz with no time")+"," +
-				             Constants.MAPPER.writeValueAsString("id")+":"+Constants.MAPPER.writeValueAsString("fixedid")+"," +
-				             Constants.MAPPER.writeValueAsString("emojiPerTagName")+":{}," +
-				             Constants.MAPPER.writeValueAsString("questions")+": []" +
-				             "}";
+							 Constants.MAPPER.writeValueAsString("authorId")+":"+Constants.MAPPER.writeValueAsString("authorMissingTime")+", " +
+							 Constants.MAPPER.writeValueAsString("name")+":"+Constants.MAPPER.writeValueAsString("Quiz with no time")+"," +
+							 Constants.MAPPER.writeValueAsString("id")+":"+Constants.MAPPER.writeValueAsString("fixedid")+"," +
+							 Constants.MAPPER.writeValueAsString("emojiPerTagName")+":{}," +
+							 Constants.MAPPER.writeValueAsString("questions")+": []" +
+							 "}";
 		long beforeParse = System.currentTimeMillis();
 		QuestionList questionList = QuestionList.Parser.fromString(jsonContent).build();
 		long afterParse = System.currentTimeMillis();

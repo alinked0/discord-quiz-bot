@@ -30,7 +30,7 @@ public class Main {
 			return;
 		}
 		Constants.TOKEN = args[0];
-		Constants.ADMINID = args[1];		
+		Constants.ADMINID = args[1];
 		if(args.length == 4){
 			Constants.DEBUGCHANNELID = args[2];
 			Constants.DEBUGGUILDID = args[3];

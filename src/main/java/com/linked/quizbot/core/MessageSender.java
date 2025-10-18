@@ -60,7 +60,7 @@ public class MessageSender {
 	public static void sendCommandOutput(CommandOutput output, MessageChannel channel, Message originalMessage) {
 		if (output == null) {
 			// No output to send, or command returned null
-			System.out.println("[\u001b[34mINFO\u001b[0m] Warning: Command output was null, nothing to send.");
+			System.out.println(Constants.INFO + "Warning: Command output was null, nothing to send.");
 			return;
 		}
 		if (output.getMessage()!=null){
@@ -107,7 +107,7 @@ public class MessageSender {
 					}
 					if (!output.useButtons()  && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
 				},
-				failure -> System.err.println("[\u001b[33mERROR\u001b[0m] Failed to edit Message : " + failure.getMessage()) // Log failure
+				failure -> System.err.println(Constants.ERROR + "Failed to edit Message : " + failure.getMessage()) // Log failure
 			);
 			return;
 		} 
@@ -189,7 +189,7 @@ public class MessageSender {
 					}
 					if (!output.useButtons()  && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
 				},
-				failure -> System.err.println("[\u001b[33mERROR\u001b[0m] Failed to send embed: " + failure.getMessage()) // Log failure
+				failure -> System.err.println(Constants.ERROR + "Failed to send embed: " + failure.getMessage()) // Log failure
 			);
 		}
 	}
@@ -197,7 +197,7 @@ public class MessageSender {
 	public static void sendCommandOutput(CommandOutput output, ButtonInteractionEvent event) {
 		if (output == null) {
 			// No output to send, or command returned null
-			System.out.println("[\u001b[34mINFO\u001b[0m] Warning: Command output was null, nothing to send.");
+			System.out.println(Constants.INFO + "Warning: Command output was null, nothing to send.");
 			return;
 		}
 
@@ -223,7 +223,7 @@ public class MessageSender {
 				}
 				if (!output.useButtons()  && channel.getType().isGuild()) addReactions(message, output.getReactions().iterator());
 			},
-			failure -> System.err.println("[\u001b[33mERROR\u001b[0m] Failed to edit Message : " + failure.getMessage()) // Log failure
+			failure -> System.err.println(Constants.ERROR + "Failed to edit Message : " + failure.getMessage()) // Log failure
 		);
 	}
 

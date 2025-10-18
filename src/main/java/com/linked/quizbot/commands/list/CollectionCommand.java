@@ -1,13 +1,17 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.List;
-
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.utils.CollectionManager;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
@@ -47,57 +51,128 @@ public class CollectionCommand extends BotCommand {
 	@Override
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
+	public String getDetailedExamples(){
+		return 
+		"""
+		```py
+		q!c 1234567 size>=6 tag=trivia name~=geo o=date asc
+		q!c o=id a
+		q!c o=name desc
+		q!c tag=book
+		q!c tag!=book
+		q!c tag~=book
+		q!c name=adolf
+		q!c 1234567
+		q!c size>=10
+		```
+		""";
+	}
+	@Override
 	public List<OptionData> getOptionData(){
 		List<OptionData> tmp = new ArrayList<>();
 		tmp.add(new OptionData(OptionType.STRING, "user-id", "id of the user who's questions will be listed"));
+		tmp.add(new OptionData(OptionType.STRING, "filtering", "add some options to filter the output"));
 		return tmp;
 	}
 	@Override
-	public CommandOutput execute(String userId,  List<String> args){
-		User user = null;
-		if (getOptionData().size()<= args.size()){
-			String id = BotCommand.getIdFromArg(args.get(0), BotCore.getJDA());
-			if (id!=null){
-				user = Users.get(id);
-				if (user==null) return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-				userId = id;
-			} else {return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));}
-		}
-
-		String minEmoji, tagName;
+	public List<String> parseArguments(String cmndLineArgs) {
 		List<String> res = new ArrayList<>();
-		
-		if (user==null) user = Users.get(userId);
-		String tmp = String.format("Collection of <@%s>\n",userId);
-		List<QuestionList> list = user.getLists();
-		
-		list.sort(QuestionList.comparatorByDate().reversed());
-		list.add(QuestionList.getExampleQuestionList());
-		
-		for (QuestionList l : list){
-			minEmoji = "";
-			if (!l.getTagNames().isEmpty()) {
-				tagName = l.getTagNames().iterator().next();
-				int min = user.getListsByTag(tagName).size();
-				minEmoji = l.getEmoji(tagName);
-				int curr;
-				for (String emoji : l.getTagNames()){
-					curr = user.getListsByTag(emoji).size();
-					if (curr<min){
-						min = curr;
-						minEmoji = l.getEmoji(emoji);
+		String order = "";
+		String[] tmp = cmndLineArgs.toLowerCase().trim().replaceAll("sort( by|[\\s:=<>!]+)\\s*", "o=").replaceAll("\\s*([:=<>!]+)\\s*", "$1").split("\\s+");
+		String prev = "";
+
+		for(int k = 0; k < tmp.length; ++k) {
+			if (!tmp[k].isBlank()){
+				if (tmp[k].matches(".*[!<>=:]+.*")) {
+					if (!prev.isBlank()) {
+						res.add(prev);
 					}
+					prev = tmp[k].trim();
+				} else if (tmp[k].matches("a|asc|ascending")) {
+					order = "asc";
+				} else if (tmp[k].matches("d|desc|descending")) {
+					order = "desc";
+				} else {
+					prev = (!prev.isBlank()?( prev+ " "):"") + tmp[k].trim();
 				}
 			}
-			tmp += String.format("`%s` %s %s\n", l.getId(), minEmoji, l.getName());
-			if (tmp.length()>Constants.CHARSENDLIM - 400) {
+		}
+
+		if (!prev.isBlank()) {
+			res.add(prev);
+		}
+		
+		if (!order.isBlank()) {
+			res.add(order);
+		}
+
+		return res;
+	}
+	@Override
+	public CommandOutput execute(String userId,  List<String> args){
+		String targetUserId = userId; String sortFieldToken = "";
+		String sortDirection = "";
+		List<String> filterTokens = new ArrayList<>();
+		
+		for (String arg : args) {
+			if (arg.matches("o[=:]+.*")) {
+				sortFieldToken = arg;
+			} else if (arg.matches("asc|a|desc|d")) {
+				sortDirection = arg;
+			} else if (Users.get(arg) != null && targetUserId.equals(userId)) {
+				targetUserId = arg;
+			} else {
+				filterTokens.add(arg);
+			}
+		}
+
+		User user = Users.get(targetUserId);
+		if (user == null) {user = Users.get(userId);}
+
+		String tmp = String.format("Collection of <@%s>\n", targetUserId);
+		Predicate<QuestionList> predicate = filterTokens.stream().map(a -> CollectionManager.parseFilter(a)).reduce(list->true, Predicate::and);
+		Stream<QuestionList> list = user.getLists().stream().filter(predicate);
+
+		if (!sortFieldToken.isBlank()) {
+			Comparator<QuestionList> comparator = CollectionManager.parseComparator(sortFieldToken);
+			if (sortDirection.matches("d|desc|descending")) {
+				comparator = comparator.reversed();
+			}			
+			list = list.sorted(comparator);
+		}
+
+		List<QuestionList> collection = new ArrayList<>(list.toList());
+		collection.add(QuestionList.getExampleQuestionList());
+
+		Iterator<QuestionList> iterLists = collection.iterator();
+		List<String> res = new ArrayList<>();
+		while(iterLists.hasNext()) {
+			tmp = tmp + getTextFromQuestionList(user, iterLists.next());
+			if (tmp.length() > 1600) {
 				res.add(tmp);
 				tmp = "";
 			}
 		}
-		if (tmp.length()>0) res.add(tmp);
-		return new CommandOutput.Builder()
-				.addAll(res)
-				.build();
+		if (tmp.length() > 0) {res.add(tmp);}
+		return new CommandOutput.Builder().addAll(res).build();
+	}
+	private String getTextFromQuestionList(User user, QuestionList l){
+		String minEmoji = Constants.EMOJIBLACKSQUARE; // TODO allow the user to choose the default
+		if (!l.getTagNames().isEmpty()) {
+			String tagName = (String)l.getTagNames().iterator().next();
+			int min = user.getListsByTag(tagName).size();
+			minEmoji = l.getEmoji(tagName);
+			Iterator<String> tagNames = l.getTagNames().iterator();
+
+			while(tagNames.hasNext()) {
+				String emoji = (String)tagNames.next();
+				int curr = user.getListsByTag(emoji).size();
+				if (curr < min) {
+					min = curr;
+					minEmoji = l.getEmoji(emoji);
+				}
+			}
+		}
+		return String.format("`%s` %s `%2d` %s\n", l.getId(), minEmoji, l.size(), l.getName());
 	}
 }

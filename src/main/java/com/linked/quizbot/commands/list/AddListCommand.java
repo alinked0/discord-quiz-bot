@@ -39,7 +39,7 @@ public class AddListCommand extends BotCommand{
 	@Override
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
-	public String getDetailedExamples(){ 
+	public String getDetailedExamples(){
 		String s = "```"+Constants.CMDPREFIXE+getName()+" "+QuestionList.getExampleQuestionList()+"\n```";
 		return s;
 	}

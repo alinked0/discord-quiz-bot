@@ -57,7 +57,7 @@ public class TagsCommand extends BotCommand {
 		List<AbstractMap.SimpleEntry<String, Integer>> list = user.getQuestionListPerTags().entrySet().stream().map(m -> new AbstractMap.SimpleEntry<String, Integer>(m.getKey(), m.getValue().size())).sorted((e, f) -> f.getValue()-e.getValue()).toList();
 		
 		for (AbstractMap.SimpleEntry<String, Integer> m : list){
-			response += String.format("`%d` %s %s\n", m.getValue(), user.getEmojiFomTagName(m.getKey()), m.getKey());
+			response += String.format("`%2d` %s %s\n", m.getValue(), user.getEmojiFomTagName(m.getKey()), m.getKey());
 		}
 		return output.add(response).build();
 	}

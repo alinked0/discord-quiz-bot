@@ -65,7 +65,7 @@ public class TestOption {
 	@DisplayName("Test getExplication method - without explanation")
 	void testGetExplication_NoExplanation() {
 		Option option = new Option("Option without Expl.", true);
-		assertEquals(option.getExplication(), Constants.NOEXPLICATION); 
+		assertEquals(option.getExplication(), Constants.NOEXPLICATION);
 	}
 	
 	@Test

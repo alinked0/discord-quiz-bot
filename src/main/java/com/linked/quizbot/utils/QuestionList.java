@@ -423,7 +423,7 @@ public class QuestionList implements Iterable<Question>{
 		public static QuestionList.Builder fromJsonFile(String filePathToJson) throws IOException{
 			File f = new File(filePathToJson);
 			if (!f.exists()){
-				System.err.println("[\u001b[33mERROR\u001b[0m] File not found"+ f.getAbsoluteFile());
+				System.err.println(Constants.ERROR + "File not found"+ f.getAbsoluteFile());
 				return null;
 			}
 			JsonParser jp =  new JsonFactory().createParser(new File(filePathToJson));
@@ -514,7 +514,7 @@ public class QuestionList implements Iterable<Question>{
 			String imgSrc= null, fieldName;
 			List <Option>opts = null;
 			if(jp.currentToken() != JsonToken.START_OBJECT) {
-				throw new IOException(String.format("[\u001b[33mERROR\u001b[0m] QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
+				throw new IOException(String.format(Constants.ERROR + "QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
 			}
 			while(!jp.isClosed()){
 				if(jp.currentToken() == JsonToken.FIELD_NAME) {
@@ -939,7 +939,7 @@ public class QuestionList implements Iterable<Question>{
 			buff.write(this.toJson());
 			buff.close();
 		} catch (IOException e) {
-			System.err.println("[\u001b[33mERROR\u001b[0m] An error occurred while exporting a List of questions.");
+			System.err.println(Constants.ERROR + "An error occurred while exporting a List of questions.");
 			e.printStackTrace();
 		}
 	}
@@ -948,22 +948,29 @@ public class QuestionList implements Iterable<Question>{
 	/** 
 	 * Comparator to compare two QuestionList instances by their creation date.
 	 */
-	public static Comparator<? super QuestionList> comparatorByDate() {
-		return (e, f)->(Long.compare(e.getTimeCreatedMillis(),f.getTimeCreatedMillis()));
+	public static Comparator<QuestionList> comparatorByDate() {
+		return Comparator.comparingLong(QuestionList::getTimeCreatedMillis);
+	}
+
+	/** 
+	 * Comparator to compare two QuestionList instances by their size.
+	 */
+	public static Comparator<QuestionList> comparatorBySize() {
+		return Comparator.comparingInt(QuestionList::size);
 	}
 	
 	/** 
 	 * Comparator to compare two QuestionList instances by their name.
 	 */
-	public static Comparator<? super QuestionList> comparatorByName() {
-		return (e, f)->(e.getName().compareTo(f.getName()));
+	public static Comparator<QuestionList> comparatorByName() {
+		return Comparator.comparing(QuestionList::getName);
 	}
 	
 	/** 
 	 * Comparator to compare two QuestionList instances by their id.
 	 */
-	public static Comparator<? super QuestionList> comparatorById() {
-		return (e, f)->(e.getId().compareTo(f.getId()));
+	public static Comparator<QuestionList> comparatorById() {
+		return Comparator.comparing(QuestionList::getId);
 	}
 	
 	/**
@@ -980,7 +987,7 @@ public class QuestionList implements Iterable<Question>{
 	 * Converts this QuestionList to a JSON string using the Jackson ObjectMapper.
 	 */
 	private String toJsonUsingMapper() throws JsonProcessingException{
-		String res="", 
+		String res="",
 			tab="",
 			spc1 = "  ",
 			spc2 = spc1+spc1,
@@ -1063,7 +1070,7 @@ public class QuestionList implements Iterable<Question>{
 		try {
 			res = toJsonUsingMapper();
 		} catch (Exception e){
-			System.err.println("[\u001b[33mERROR\u001b[0m] [toJsonUsingMapper() failed]"+e.getMessage());
+			System.err.println(Constants.ERROR + "[toJsonUsingMapper() failed]"+e.getMessage());
 		}
 		return res;
 	}
@@ -1099,7 +1106,7 @@ public class QuestionList implements Iterable<Question>{
 	 * Utility method to compare two strings for equality, handling null values.
 	 */
 	private static boolean areStringsEqual(String s1, String s2) {
-		if (s1 == s2){ 
+		if (s1 == s2){
 			return true;
 		}
 		if (s1 == null || s2 == null){

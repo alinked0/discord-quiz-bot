@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.JDA;
  * by measuring the internal processing time and the WebSocket latency to Discord.
  * It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
  * <p>
- * This command allows users to verify that the bot is online and responsive, 
+ * This command allows users to verify that the bot is online and responsive,
  * providing feedback on both internal processing time and gateway ping.
  * </p>
  * @author alinked0
@@ -40,7 +40,7 @@ public class PingCommand extends BotCommand {
 		// Calculate the internal processing time.
 		double internalProcessingTimeMs = (System.nanoTime() - start) / 1000000.00;
 		// Combine both internal processing time and gateway ping into the response
-		String res = String.format("Pong! Internal processing: %.3fms | Gateway Ping: %dms", 
+		String res = String.format("Pong! Internal processing: %.3fms | Gateway Ping: %dms",
 									internalProcessingTimeMs, gatewayPing);
 		return new CommandOutput.Builder()
 				.add(res)

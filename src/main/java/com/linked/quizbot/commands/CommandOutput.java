@@ -37,7 +37,7 @@ public class CommandOutput {
 	private final boolean ephemeral;
 	private final boolean clearReactions;
 	private final long delayMillis;
-	private boolean useButtons = true;	
+	private boolean useButtons = true;
 	private String userId;
 	private Message message;
 	
@@ -63,7 +63,7 @@ public class CommandOutput {
 			}
 			return this;
 		}
-		public Builder useButtons(boolean b){ 
+		public Builder useButtons(boolean b){
 			this.useButtons= b;
 			return this;
 		}

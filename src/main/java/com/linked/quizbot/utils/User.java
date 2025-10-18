@@ -57,7 +57,7 @@ public class User implements Iterable<QuestionList>{
 		private String userId = null;
 		private String prefixe = null;
 		protected List<QuestionList> list = new ArrayList<>();
-		private boolean useButtons = true;	
+		private boolean useButtons = true;
 		private boolean useAutoNext = false;
 		private int numberOfGamesPlayed=0;
 		private double totalPointsEverGained=0;
@@ -72,7 +72,7 @@ public class User implements Iterable<QuestionList>{
 		 * @requires userId != null
 		 * @ensures this.userId == userId
 		 */
-		public Builder id(String userId){ 
+		public Builder id(String userId){
 			if (userId == null){
 				throw new NullPointerException();
 			}
@@ -86,7 +86,7 @@ public class User implements Iterable<QuestionList>{
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.prefixe == prefixe
 		 */
-		public Builder prefixe(String prefixe){ 
+		public Builder prefixe(String prefixe){
 			this.prefixe= prefixe;
 			return this;
 		}
@@ -97,7 +97,7 @@ public class User implements Iterable<QuestionList>{
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.useButtons == b
 		 */
-		public Builder useButtons(boolean b){ 
+		public Builder useButtons(boolean b){
 			this.useButtons= b;
 			return this;
 		}
@@ -108,7 +108,7 @@ public class User implements Iterable<QuestionList>{
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.useAutoNext == b
 		 */
-		public Builder useAutoNext(boolean b){ 
+		public Builder useAutoNext(boolean b){
 			this.useAutoNext= b;
 			return this;
 		}
@@ -120,7 +120,7 @@ public class User implements Iterable<QuestionList>{
 		 * @requires n >= 0
 		 * @ensures this.numberOfGamesPlayed == n
 		 */
-		public Builder numberOfGamesPlayed(int n){ 
+		public Builder numberOfGamesPlayed(int n){
 			this.numberOfGamesPlayed=n;
 			return this;
 		}
@@ -132,7 +132,7 @@ public class User implements Iterable<QuestionList>{
 		 * @requires points >= 0.0
 		 * @ensures this.totalPointsEverGained == points
 		 */
-		public Builder totalPointsEverGained(double points){ 
+		public Builder totalPointsEverGained(double points){
 			this.totalPointsEverGained = points;
 			return this;
 		}
@@ -283,7 +283,7 @@ public class User implements Iterable<QuestionList>{
 		for(QuestionList l: listsSortedById){
 			QuestionList.Hasher.addGeneratedCode(l.getId());
 		}
-		if (new File(getPathToUserData()).exists()){ 
+		if (new File(getPathToUserData()).exists()){
 			try {
 				User.Builder builder = UserDataParser.fromJsonFile(getPathToUserData());
 				this.prefixe = builder.prefixe;
@@ -294,7 +294,7 @@ public class User implements Iterable<QuestionList>{
 				this.useButtons = builder.useButtons;
 				this.useAutoNext = builder.useAutoNext;
 			} catch (IOException e){
-				System.err.println(String.format("[\u001b[33mERROR\u001b[0m] %s %s", getPathToUserData(), e.getMessage()));
+				System.err.println(String.format(Constants.ERROR + "%s %s", getPathToUserData(), e.getMessage()));
 			}
 		}
 		for(QuestionList l: importLists().values()){
@@ -571,7 +571,7 @@ public class User implements Iterable<QuestionList>{
 		return true;
 	}
 
-		/**
+	/**
 	 * Creates a new tag with an associated emoji and exports the user data.
 	 * @param tagName The name of the new tag.
 	 * @param emoji The emoji to associate with the tag.
@@ -587,6 +587,7 @@ public class User implements Iterable<QuestionList>{
 		tagEmojiPerTagName.put(tagName, emoji);
 		questionListPerTags.put(tagName, new ArrayList<>());
 		exportUserData();
+		Users.update(this);
 		return true;
 	}
 
@@ -935,7 +936,7 @@ public class User implements Iterable<QuestionList>{
 		try {
 			res = toJsonUsingMapper(false);
 		} catch (Exception e){
-			System.err.println("[\u001b[33mERROR\u001b[0m] [toJsonUsingMapper() failed]"+e.getMessage());
+			System.err.println(Constants.ERROR + "[toJsonUsingMapper() failed]"+e.getMessage());
 		}
 		return res;
 	}
@@ -957,7 +958,7 @@ public class User implements Iterable<QuestionList>{
 			buff.write(this.toJson());
 			buff.close();
 		} catch (IOException e) {
-			System.err.println("[\u001b[33mERROR\u001b[0m] An error occurred while exporting UserData."+destFilePath);
+			System.err.println(Constants.ERROR + "An error occurred while exporting UserData."+destFilePath);
 			e.printStackTrace();
 		}
 	}
@@ -974,7 +975,7 @@ public class User implements Iterable<QuestionList>{
 		try {
 			res = toJsonUsingMapper(true);
 		} catch (Exception e){
-			System.err.println("[\u001b[33mERROR\u001b[0m] [toJsonUsingMapper() failed]"+e.getMessage());
+			System.err.println(Constants.ERROR + "[toJsonUsingMapper() failed]"+e.getMessage());
 		}
 		return res;
 	}

@@ -1,6 +1,6 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.utils.*; 
+import com.linked.quizbot.utils.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -212,8 +212,11 @@ public class TestUser {
 		String userId = "newUser";
 		
 		User user = Users.get(userId); // No pre-existing files or stub data for this user
+		assertNull(user);
 
+		user = Users.addUser(new User(userId));
 		assertNotNull(user);
+
 		assertEquals(userId, user.getId());
 		assertNull(user.getPrefix()); // Default prefix if no user-data.json
 		assertEquals(0.0, user.getTotalPointsEverGained());
@@ -440,7 +443,7 @@ public class TestUser {
 		list1.exportListQuestionAsJson(); // Make sure file exists for Users.importUserLists
 		
 		Users.clear();
-		User user = Users.get(userId); // Constructor will load list1
+		User user = Users.addUser(userId); // Constructor will load list1
 
 		QuestionList foundList = user.getById(id);
 		assertNotNull(foundList);
@@ -451,7 +454,7 @@ public class TestUser {
 	@DisplayName("Test getUserQuestionListById - not found")
 	void testGetUserQuestionListById_NotFound() throws IOException {
 		String userId = "searchUser2";
-		User user = Users.get(userId); // No lists for this user
+		User user = Users.addUser(userId); // No lists for this user
 		QuestionList foundList = user.getById("nonExistentId");
 		assertNull(foundList);
 	}
@@ -479,7 +482,7 @@ public class TestUser {
 	@DisplayName("Test getUserQuestionListByName - not found")
 	void testGetUserQuestionListByName_NotFound() throws IOException {
 		String userId = "searchUser4";
-		User user = Users.get(userId);
+		User user = Users.addUser(userId);
 		QuestionList foundList = user.getByName("Non Existent Name");
 		assertNull(foundList);
 	}
@@ -569,8 +572,8 @@ public class TestUser {
 		
 		String expectedJsonPart1 = "{\n  "+Constants.MAPPER.writeValueAsString("userId")+":"+Constants.MAPPER.writeValueAsString("stringUser")+"";
 		// Order of tags in map can vary, so check for both permutations
-		String expectedTag1 = ""+Constants.MAPPER.writeValueAsString("sport")+":"+Constants.MAPPER.writeValueAsString("⚽")+", \n    "+Constants.MAPPER.writeValueAsString("art")+":"+Constants.MAPPER.writeValueAsString("🎨")+"";
-		String expectedTag2 = ""+Constants.MAPPER.writeValueAsString("art")+":"+Constants.MAPPER.writeValueAsString("🎨")+", \n    "+Constants.MAPPER.writeValueAsString("sport")+":"+Constants.MAPPER.writeValueAsString("⚽")+"";
+		String expectedTag1 = ""+Constants.MAPPER.writeValueAsString("sport")+":"+Constants.MAPPER.writeValueAsString("⚽")+", \n	"+Constants.MAPPER.writeValueAsString("art")+":"+Constants.MAPPER.writeValueAsString("🎨")+"";
+		String expectedTag2 = ""+Constants.MAPPER.writeValueAsString("art")+":"+Constants.MAPPER.writeValueAsString("🎨")+", \n	"+Constants.MAPPER.writeValueAsString("sport")+":"+Constants.MAPPER.writeValueAsString("⚽")+"";
 
 		String expectedJsonPart2 = "},\n" +
 								   "  "+Constants.MAPPER.writeValueAsString("prefixe")+":"+Constants.MAPPER.writeValueAsString(">>")+",\n" +
@@ -578,12 +581,12 @@ public class TestUser {
 								   "  "+Constants.MAPPER.writeValueAsString("useAutoNext")+":false,\n" +
 								   "  "+Constants.MAPPER.writeValueAsString("totalPointsEverGained")+":300.75,\n" +
 								   "  "+Constants.MAPPER.writeValueAsString("numberOfGamesPlayed")+":30\n" +
-								   "}";
+								   "}".replaceAll("[\n\t\s]*", "");
 		
-		String result = user.toJson();
-		assertTrue(result.startsWith(expectedJsonPart1));
-		assertTrue(result.endsWith(expectedJsonPart2));
-		assertTrue(result.contains(expectedTag1) || result.contains(expectedTag2));
+		String result = user.toJson().replaceAll("[\n\t\s]*", "");
+		assertTrue(result.startsWith(expectedJsonPart1.replaceAll("[\n\t\s]*", "")));
+		assertTrue(result.endsWith(expectedJsonPart2.replaceAll("[\n\t\s]*", "")));
+		assertTrue(result.contains(expectedTag1.replaceAll("[\n\t\s]*", "")) || result.contains(expectedTag2.replaceAll("[\n\t\s]*", "")));
 	}
 
 	@Test

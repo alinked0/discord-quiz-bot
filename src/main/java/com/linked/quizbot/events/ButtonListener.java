@@ -6,6 +6,7 @@ import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
 import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
+import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 
@@ -56,7 +57,7 @@ public class ButtonListener extends ListenerAdapter {
 				output.build(),
 				event
 			);
-			if (!BotCore.isBugFree()) System.out.printf("[\u001b[34mINFO\u001b[0m] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
+			if (!BotCore.isBugFree()) System.out.printf(Constants.INFO + "%s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
 			return;
 		}
 		Emoji reaction = Emoji.fromFormatted(event.getButton().getLabel());

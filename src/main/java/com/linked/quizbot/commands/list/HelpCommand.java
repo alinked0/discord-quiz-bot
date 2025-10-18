@@ -25,15 +25,15 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  *
  * <h2>Usage:</h2>
  * <ul>
- *     <li>Typing {@code /help} displays a list of all available commands.</li>
- *     <li>Typing {@code /help [command_name]} provides details about the specified command.</li>
+ *	 <li>Typing {@code /help} displays a list of all available commands.</li>
+ *	 <li>Typing {@code /help [command_name]} provides details about the specified command.</li>
  * </ul>
  *
  * <h2>Features:</h2>
  * <ul>
- *     <li>Supports abbreviations for easier command access (e.g., {@code h} for help).</li>
- *     <li>Uses Discord's EmbedBuilder for a structured and visually appealing message format.</li>
- *     <li>Automatically deletes the response after a predefined time to keep channels clean.</li>
+ *	 <li>Supports abbreviations for easier command access (e.g., {@code h} for help).</li>
+ *	 <li>Uses Discord's EmbedBuilder for a structured and visually appealing message format.</li>
+ *	 <li>Automatically deletes the response after a predefined time to keep channels clean.</li>
  * </ul>
  *
  * <h2>Example:</h2>
@@ -92,7 +92,7 @@ public class HelpCommand extends BotCommand {
 		embed.setTitle("Command Info: `"+cmd.getName()+"`");
 		int n = cmd.getAbbreviations().size();
 		String s = "";
-		for (int j=0; j<n; j++){ 
+		for (int j=0; j<n; j++){
 			s+="`"+cmd.getAbbreviations().get(j)+"`";
 			if (j+1<n) {
 				s+= ", ";
@@ -131,4 +131,4 @@ public class HelpCommand extends BotCommand {
 		}
 		return embed;
 	}
-}    
+}	
