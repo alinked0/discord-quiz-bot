@@ -67,7 +67,7 @@ public class LeaderBoardCommand extends BotCommand {
 					BotCore.explicationRequest.remove(sentMessage.getId());
 				},
 				clearFailure -> {
-					System.err.println("[\u001b[33mERROR\u001b[0m] Failed to clear reactions for message " + sentMessage.getId() + ": " + clearFailure.getMessage());
+					System.err.println(Constants.ERROR + "Failed to clear reactions for message " + sentMessage.getId() + ": " + clearFailure.getMessage());
 					BotCore.explicationRequest.remove(sentMessage.getId()); // Still try to remove from tracking
 				}
 			);

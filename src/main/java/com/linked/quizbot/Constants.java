@@ -43,8 +43,13 @@ public class Constants {
 		EMOJINEXTQUESTION = Emoji.fromUnicode("▶️").getFormatted(),
 		EMOJIPREVQUESTION = Emoji.fromUnicode("◀️").getFormatted(),
 		EMOJISTOP = Emoji.fromUnicode("⏹️").getFormatted(),
-		EMOJIWHITESQUARE = Emoji.fromUnicode("U+2B1C").getFormatted(),
+		EMOJIWHITESQUARE = Emoji.fromUnicode("⬜").getFormatted(),
+		EMOJIBLACKSQUARE = Emoji.fromUnicode("⬛").getFormatted(),
 		EMOJIEXPLICATION = Emoji.fromUnicode("❓").getFormatted(),
 		EMOJIBOX = Emoji.fromUnicode("🔲").getFormatted(),
 		EMOJICHECKEDBOX = Emoji.fromUnicode("🔳").getFormatted();
+	public static String 
+		ERROR="[\u001b[33mERROR\u001b[0m] ",
+		INFO="[\u001b[34mINFO\u001b[0m] ",
+		IO="[\u001b[35mIO\u001b[0m] ";
 }

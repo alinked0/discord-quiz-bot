@@ -74,17 +74,17 @@ public class BotCore {
 			return getJDA();
 		}
 		JDA jda = JDABuilder.createDefault(Constants.TOKEN,
-			GatewayIntent.GUILD_MESSAGES, 
+			GatewayIntent.GUILD_MESSAGES,
 			GatewayIntent.MESSAGE_CONTENT,
-			GatewayIntent.GUILD_MEMBERS, 
-			GatewayIntent.DIRECT_MESSAGES, 
+			GatewayIntent.GUILD_MEMBERS,
+			GatewayIntent.DIRECT_MESSAGES,
 			GatewayIntent.DIRECT_MESSAGE_REACTIONS,
 			GatewayIntent.GUILD_MESSAGE_REACTIONS
 		).setActivity(Activity.playing(Constants.CMDPREFIXE+HelpCommand.CMDNAME)).build();
 		BotCore.jda = jda;
 		jda.addEventListener(
-			new SlashCommandListener(), 
-			new ReactionListener(), 
+			new SlashCommandListener(),
+			new ReactionListener(),
 			new ButtonListener(),
 			new MessageListener(),
 			new ReadyEventListener()

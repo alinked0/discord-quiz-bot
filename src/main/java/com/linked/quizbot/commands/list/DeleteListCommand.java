@@ -56,7 +56,7 @@ public class DeleteListCommand extends BotCommand{
 		}
 		CommandOutput.Builder output = new CommandOutput.Builder();
 		l = Users.getById(args.get(0));
-		ownerId = l.getAuthorId(); 
+		ownerId = l.getAuthorId();
 		if (ownerId.equals(userId)){
 			output.add(String.format("Are you sure you want to delete :`%s`**%s**?",l.getId(), l.getName()))
 				.addReaction(Emoji.fromFormatted(Constants.EMOJIDEL))

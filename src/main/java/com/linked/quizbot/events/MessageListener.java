@@ -1,6 +1,10 @@
 package com.linked.quizbot.events;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.CommandLineInterface;
@@ -9,6 +13,7 @@ import com.linked.quizbot.utils.Users;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -42,8 +47,19 @@ public class MessageListener extends ListenerAdapter {
 		if (!content.startsWith(Constants.CMDPREFIXE) && userPrefixe!=null && !content.startsWith(userPrefixe)){
 			return;
 		}
-		
-		CommandOutput output= CommandLineInterface.execute(content, userId);
+		List<String> h;
+		List<String> attachements=null;
+		List<Attachment> att = message.getAttachments();
+		if (att !=null){
+			attachements=new ArrayList<>();
+			for (Attachment a : att) {
+				h=BotCommand.getArgFromAttachment(userId, a);
+				if (!h.isEmpty()){
+					attachements.addAll(h);
+				}
+			}
+		}
+		CommandOutput output= CommandLineInterface.execute(content, userId, attachements);
 		MessageSender.sendCommandOutput(
 			output,
 			channel,

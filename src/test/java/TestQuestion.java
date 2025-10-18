@@ -255,13 +255,13 @@ public class TestQuestion {
 		Question q = new Question("Simple Question", opt1, opt2);
 
 		String expectedJson = "{\n" +
-				              "\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Simple Question")+",\n" +
-				              "\t"+Constants.MAPPER.writeValueAsString("explication")+":null,\n" +
-				              "\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":null,\n" +
-				              "\t"+Constants.MAPPER.writeValueAsString("options")+": [\n" +
-				              "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("True option")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n},\n" +
-				              "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("False option")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":false,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}\n" +
-				              "\t]\n}";
+							  "\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Simple Question")+",\n" +
+							  "\t"+Constants.MAPPER.writeValueAsString("explication")+":null,\n" +
+							  "\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":null,\n" +
+							  "\t"+Constants.MAPPER.writeValueAsString("options")+": [\n" +
+							  "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("True option")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n},\n" +
+							  "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("False option")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":false,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}\n" +
+							  "\t]\n}";
 		// Normalize whitespace for comparison if necessary, but direct comparison is usually fine
 		assertEquals(expectedJson.replaceAll("[\\n \\s \\t]", ""), q.toString().replaceAll("[\\n \\s \\t]", ""));
 	}
@@ -276,13 +276,13 @@ public class TestQuestion {
 		q.setImageSrc("http://example.com/question.jpg");
 
 		String expectedJson = "{\n" +
-				              "\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Advanced Question")+",\n" +
-				              "\t"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("Full explanation for the question.")+",\n" +
-				              "\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":"+Constants.MAPPER.writeValueAsString("http://example.com/question.jpg")+",\n" +
-				              "\t"+Constants.MAPPER.writeValueAsString("options")+": [\n" +
-				              "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Correct")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("This is correct")+"\n},\n" +
-				              "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Incorrect")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":false,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}\n" +
-				              "\t]\n}";
+							  "\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString("Advanced Question")+",\n" +
+							  "\t"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("Full explanation for the question.")+",\n" +
+							  "\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":"+Constants.MAPPER.writeValueAsString("http://example.com/question.jpg")+",\n" +
+							  "\t"+Constants.MAPPER.writeValueAsString("options")+": [\n" +
+							  "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Correct")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":true,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":"+Constants.MAPPER.writeValueAsString("This is correct")+"\n},\n" +
+							  "\t\t{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString("Incorrect")+",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":false,\n\t"+Constants.MAPPER.writeValueAsString("explication")+":null\n}\n" +
+							  "\t]\n}";
 		assertEquals(expectedJson.replaceAll("[\\n \\s \\t]", ""), q.toString().replaceAll("[\\n \\s \\t]", ""));
 	}
 

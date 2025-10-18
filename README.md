@@ -86,15 +86,15 @@ Question lists are stored as JSON files. Example:
   "timeCreatedMillis": 1700000000000,
   "emojiPerTagName": { "science": "🧪" },
   "questions": [
-    {
-      "question": "What is the chemical symbol for water?",
-      "explication": "H2O is the chemical formula for water.",
-      "imageSrc": null,
-      "options": [
-        { "text": "H2O", "isCorrect": true, "explication": null },
-        { "text": "CO2", "isCorrect": false, "explication": null }
-      ]
-    }
+	{
+	  "question": "What is the chemical symbol for water?",
+	  "explication": "H2O is the chemical formula for water.",
+	  "imageSrc": null,
+	  "options": [
+		{ "text": "H2O", "isCorrect": true, "explication": null },
+		{ "text": "CO2", "isCorrect": false, "explication": null }
+	  ]
+	}
   ]
 }
 ```

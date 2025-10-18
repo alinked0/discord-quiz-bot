@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
@@ -61,55 +63,53 @@ public class CommandLineInterface {
 					BotCore.shutDown();
 					scanner.close();
 					exiting = true;
-					System.out.println("[\u001b[34mINFO\u001b[0m] Exited.");
+					System.out.println(Constants.INFO + "Exited.");
 					return;
 				}
 				case "shutdown", "stop", "disconnectjda", "disconnect" -> {
 					BotCore.shutDown();
 					BotCore.SHUTINGDOWN = false;
-					System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot nolonger online.", BotCore.isBugFree()?"publicly":"privately"));
+					System.out.println(String.format(Constants.INFO + "Bot nolonger online.", BotCore.isBugFree()?"publicly":"privately"));
 				}
 				case "public" -> {
 					BotCore.areWeTesting = false;
-					System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
+					System.out.println(String.format(Constants.INFO + "Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
 				}
 				case "private" -> {
 					BotCore.areWeTesting = true;
-					System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
+					System.out.println(String.format(Constants.INFO + "Bot is %s %s.", BotCore.isBugFree()?"publicly":"privately", BotCore.isOnline()?"online":"offline"));
 				}
 				case "connectjda", "connect", "startjda", "start" -> {
 					if (BotCore.jda == null){
-					    BotCore.startJDA();
-					    System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot is %s online.", BotCore.isBugFree()?"publicly":"privately"));
+						BotCore.startJDA();
+						System.out.println(String.format(Constants.INFO + "Bot is %s online.", BotCore.isBugFree()?"publicly":"privately"));
 					} else {
-				        System.out.println(String.format("[\u001b[34mINFO\u001b[0m] Bot is already %s online.", BotCore.isBugFree()?"publicly":"privately"));
-				    }
+						System.out.println(String.format(Constants.INFO + "Bot is already %s online.", BotCore.isBugFree()?"publicly":"privately"));
+					}
 				}
 				case "status", "stat"-> {
 					System.out.print(getStatus());
 				}
 				case "load", "reload"-> {
 					Users.loadAllUsers();
-					System.out.println("[\u001b[35mIO\u001b[0m] Loaded All data from disk.");
+					System.out.println(Constants.IO + "Loaded All data from disk.");
 				}
 				case "help" -> {
 					System.out.println(usage());
 				}
 				default -> {
 					try {
-						List<String> out = execute(input, Constants.ADMINID).getAsText();
-						for (String s: out){
-							System.out.println(s);
-						}
+						List<String> out = execute(input, Constants.ADMINID, null).getAsText();
+						for (String s: out){System.out.println(s);}
 					}catch(Exception e){
-						System.err.printf("[\u001b[33mERROR\u001b[0m] %s\n",e.getMessage());
+						System.err.printf(Constants.ERROR + "an error occured while executing :%s",input);e.printStackTrace();
 					}
 					
 				}
 			}
 		}
 	}
-	public static CommandOutput execute(String message, String userId) {
+	public static CommandOutput execute(String message, String userId, @Nullable List<String> attachements) {
 		long start = System.nanoTime();
 		CommandOutput.Builder ouitput = new CommandOutput.Builder();
 		List<String> arguments=new ArrayList<>();
@@ -117,14 +117,14 @@ public class CommandLineInterface {
 		if (tmp.isEmpty()){
 			return ouitput.add("help").build();
 		}
-		message = tmp.getLast();
-		arguments.add(tmp.get(0));
-		tmp = parseBotCommand(message);
+		
+		arguments.add(tmp.getFirst());
+		tmp = parseBotCommand(tmp.getLast());
 		if (tmp.isEmpty()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of());
 		}
-		message = tmp.getLast();
-		arguments.add(tmp.get(0));
+		
+		arguments.add(tmp.getFirst());
 		BotCommand cmd = BotCommand.getCommandByName(arguments.get(1));
 
 		if(BotCore.isShutingDown()){
@@ -133,20 +133,26 @@ public class CommandLineInterface {
 				return ouitput.add(Constants.UPDATEEXPLANATION).build();
 			}
 		}
-		
-		String cmndLineArgs = message;
-		arguments = cmd.parseArguments(cmndLineArgs);
-
-		System.out.printf("[\u001b[34mINFO\u001b[0m] cmd=%s, Time_elapsed=`%.3f ms`, Argc-1=%d;\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
-		if (!BotCore.isBugFree()) {
-			for (int i=0; i<arguments.size(); i++) {
-				System.out.print(arguments.get(i).replace("[\\n \\t]", ""));
-				if (i!=arguments.size()-1){System.out.print("::");}
-				else {System.out.print(";\n");}
+		arguments = (tmp.size()>=2)?cmd.parseArguments(tmp.getLast()):new ArrayList<>();
+		if(attachements!=null)
+		for (List<String> l :attachements.stream().map(a-> cmd.parseArguments(a)).toList()) {
+			if (!l.isEmpty() && !l.getFirst().isBlank()){
+				arguments.addAll(l);
 			}
 		}
+
+		System.out.printf(Constants.INFO + "%s, time=`%.3f ms`, argc=%d",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
+		if (!BotCore.isBugFree() && !arguments.isEmpty()) {
+			System.out.print(";");
+			for (int i=0; i<arguments.size(); i++) {
+				System.out.print(arguments.get(i).replace("[\\n \\t]", ""));
+				if (i==arguments.size()-1) {System.out.print(";\n");}
+				else {System.out.print("::");}
+			}
+		}else {System.out.print(";\n");}
 		return cmd.execute(userId, arguments);
 	}
+	
 	public static List<String> parsePrefixe(String userId, String message){
 		String prefixe;
 		String userPrefixe = Users.get(userId).getPrefix();
@@ -171,16 +177,25 @@ public class CommandLineInterface {
 		// return a list containing the prefixe that was found and the rest of the unprocessed arguments
 		return List.of(prefixe, remainingMessage);
 	}
+
 	public static List<String> parseBotCommand(String message){
-		String userCmdName = null;
 		if (message.length()<=0) {
 			return List.of();
 		}
-		userCmdName = message.split(" ")[0].toLowerCase();
-		BotCommand cmd = BotCommand.getCommandByName(userCmdName);
-		if (cmd!=null){
-			String remainingMessage = message.substring(userCmdName.length()).trim();
-			return List.of(cmd.getName(), remainingMessage);
+		String[] tab = message.split("\\s+");
+		if (tab.length>0){
+			String userCmdName = tab[0].trim().toLowerCase();
+			BotCommand cmd = BotCommand.getCommandByName(userCmdName);
+			if (cmd!=null){
+				if (tab.length>1){
+					String remainingMessage ="";
+					for(int i=1; i<tab.length; ++i){
+						remainingMessage+= " "+tab[i];
+					}
+					return List.of(cmd.getName(), remainingMessage);
+				}
+				return List.of(cmd.getName());
+			}
 		}
 		return List.of();
 	}

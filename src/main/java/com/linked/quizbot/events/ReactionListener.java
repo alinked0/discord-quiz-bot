@@ -24,9 +24,9 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 
 /**
- * The ReactionListener class is a specialized {@link ListenerAdapter} class, 
+ * The ReactionListener class is a specialized {@link ListenerAdapter} class,
  * designed to keep track of reactions that are added or removed on any message that was sent by the bot. 
- * The messages are tracked through a list of {@link QuizBot} found in the {@link BotCore} class; 
+ * The messages are tracked through a list of {@link QuizBot} found in the {@link BotCore} class;
  * every {@link QuizBot} class contains the message on which the current game is being played.
  */
 public class ReactionListener extends ListenerAdapter {
@@ -63,7 +63,7 @@ public class ReactionListener extends ListenerAdapter {
 					channel,
 					message 
 				);
-			if (!BotCore.isBugFree()) System.out.printf("[\u001b[34mINFO\u001b[0m] %s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
+			if (!BotCore.isBugFree()) System.out.printf(Constants.INFO + "%s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
 				return;
 			}
 

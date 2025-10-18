@@ -37,7 +37,7 @@ public class CreateListCommand extends BotCommand {
 	}
 	public String getName(){ return CMDNAME;}
 	public String getDescription(){ return cmdDesrciption;}
-	public String getDetailedExamples(){ 
+	public String getDetailedExamples(){
 		String s = "```js \n"+Constants.CMDPREFIXE+getName()+" "+QuestionList.getExampleQuestionList()+"\n```";
 		return s;
 	}
@@ -52,6 +52,12 @@ public class CreateListCommand extends BotCommand {
 	public List<String> parseArguments(String cmndLineArgs){
 		List<String> res = new ArrayList<>();
 		res.addAll(splitJson(cmndLineArgs));
+
+		System.out.print("Original("+cmndLineArgs+"):Parsed(");
+		for (int i=0; i<res.size(); ++i){
+			System.out.print(res.get(i));
+			if (i+1<res.size())System.out.print("::");
+		}System.out.print(")\n");
 		return res;
 	}
 	public CommandOutput execute(String userId,  List<String> args){

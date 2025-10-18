@@ -20,24 +20,24 @@ import net.dv8tion.jda.api.utils.TimeFormat;
 
 /**
  * The {@code EmbedCommand} class is a test command for creating and sending Discord embeds.
- * It retrieves a user's first question list and displays a formatted embed containing a question, 
+ * It retrieves a user's first question list and displays a formatted embed containing a question,
  * its possible answers, and a countdown timer.
  *
  * <h2>Usage:</h2>
  * <ul>
- *     <li>When executed, the bot retrieves the first question from the user's saved lists.</li>
- *     <li>An embed is created with the question, its options, and a 30-second expiration time.</li>
- *     <li>The bot adds numbered emoji reactions (e.g., 1️⃣, 2️⃣, 3️⃣) for user interaction.</li>
- *     <li>The message auto-deletes after 30 seconds.</li>
+ *	 <li>When executed, the bot retrieves the first question from the user's saved lists.</li>
+ *	 <li>An embed is created with the question, its options, and a 30-second expiration time.</li>
+ *	 <li>The bot adds numbered emoji reactions (e.g., 1️⃣, 2️⃣, 3️⃣) for user interaction.</li>
+ *	 <li>The message auto-deletes after 30 seconds.</li>
  * </ul>
  *
  * <h2>Features:</h2>
  * <ul>
- *     <li>Uses {@link EmbedBuilder} to format the question and answers.</li>
- *     <li>Retrieves question data from {@link User} and {@link QuestionList}.</li>
- *     <li>Includes a timestamp and a themed description.</li>
- *     <li>Adds emoji reactions based on the number of available answer options.</li>
- *     <li>Deletes the message after 30 seconds to prevent clutter.</li>
+ *	 <li>Uses {@link EmbedBuilder} to format the question and answers.</li>
+ *	 <li>Retrieves question data from {@link User} and {@link QuestionList}.</li>
+ *	 <li>Includes a timestamp and a themed description.</li>
+ *	 <li>Adds emoji reactions based on the number of available answer options.</li>
+ *	 <li>Deletes the message after 30 seconds to prevent clutter.</li>
  * </ul>
  *
  * <h2>Example:</h2>
@@ -97,7 +97,7 @@ public class EmbedCommand extends BotCommand {
 		embed.addField("time: ","" + TimeFormat.RELATIVE.after(30*1000) , false);
 	
 		embed.setColor(Color.RED);
-		List<Emoji> emojis = new ArrayList<>(); 
+		List<Emoji> emojis = new ArrayList<>();
 					for (int j=1; j<=question.size(); j++) {
 						emojis.add(Emoji.fromUnicode("U+3"+j+"U+fe0fU+20e3"));
 					}

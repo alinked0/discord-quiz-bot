@@ -185,7 +185,7 @@ public class Question{
 	 * @ensures getNumberTrue() == numberTrue
 	 * @ensures getQuestion().equals(question)
 	 * @ensures (\forall int k; k >= 0 && k < optionsForAnswer.length;
-	 *          optionsForAnswer[k].equals(getOptions().get(k)))
+	 *		  optionsForAnswer[k].equals(getOptions().get(k)))
 	 */
 	public Question(String question, int numberTrue, String... optionsForAnswer) {
 		int i = 1;
@@ -294,7 +294,7 @@ public class Question{
 	 *
 	 * @return the explanation,  or {@link Constants#NOEXPLICATION} if none is defined.
 	 */
-	public String getExplication() { 
+	public String getExplication() {
 		List<String> censored = List.of("null", "nope");
 		if (explication==null || censored.contains(explication)){
 			return Constants.NOEXPLICATION;
