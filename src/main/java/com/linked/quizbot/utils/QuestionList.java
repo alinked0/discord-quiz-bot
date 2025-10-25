@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
 import java.util.Set;
+import java.util.Timer;
 import java.util.UUID;
 
 import javax.management.InvalidAttributeValueException;
@@ -1171,6 +1172,7 @@ public class QuestionList implements Iterable<Question>{
 		.id("abcdefg")
 		.add(Question.getExampleQuestion())
 		.addTag("Science", Emoji.fromUnicode("U+1F52D").getFormatted())
+		.timeCreatedMillis(1748458230337L)
 		.build();
 	}
 	

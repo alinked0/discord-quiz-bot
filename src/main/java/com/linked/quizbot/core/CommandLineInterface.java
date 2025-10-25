@@ -55,6 +55,7 @@ public class CommandLineInterface {
 	
 	public static void execute (Scanner scanner) {
 		boolean exiting = false;
+		CommandOutput output;
 		List<String> out;
 		while (!exiting) {
 			System.out.print("$ ");
@@ -100,8 +101,11 @@ public class CommandLineInterface {
 				}
 				default -> {
 					try {
-						out = execute(input, Constants.ADMINID, null).getAsText();
-						for (String s: out){System.out.println(s);}
+						output = execute(input, Constants.ADMINID, null);
+						if (output!=null){
+							out = output.getAsText();
+							for (String s: out){System.out.println(s);}
+						}
 					}catch(Exception e){
 						System.err.printf(Constants.ERROR + "An error occured while executing :%s\n",Constants.MAGENTA + input+ Constants.RESET);
 						e.printStackTrace();
@@ -117,7 +121,7 @@ public class CommandLineInterface {
 		List<String> arguments=new ArrayList<>();
 		List<String> tmp = parsePrefix(userId, message);
 		if (tmp.isEmpty()){
-			return ouitput.add("help").build();
+			return null;
 		}
 		
 		arguments.add(tmp.getFirst());
