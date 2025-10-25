@@ -17,32 +17,32 @@ import static org.junit.jupiter.api.Assertions.*;
  * Focuses on testing the equality implementation and the contains behavior 
  * for collections of QuestionList objects.
  */
-public class TestQuestionLists {
-
+public class QuestionListTest {
+	
 	private QuestionList questionList1;
 	private QuestionList questionList2;
 	private QuestionList questionList3;
 	private List<QuestionList> questionListCollection;
-
+	
 	@BeforeEach
 	public void setUp() {
 		// Create the first QuestionList with specific attributes and questions
 		questionList1 = new QuestionList("author1", "Test Questions");
 		questionList1.add(new Question("What is H2O?", createSampleOptions("Water", "Carbon Dioxide")));
 		questionList1.add(new Question("What is the capital of France?", createSampleOptions("Paris", "London")));
-
+		
 		// Create a second QuestionList with the same attributes and questions (should be equal)
 		questionList2 = new QuestionList.Builder().add(questionList1).build();
-
+		
 		// Create a third QuestionList with different attributes (should not be equal)
 		questionList3 = new QuestionList("author2", "Different Questions");
 		questionList3.add(new Question("Who was the first U.S. President?", createSampleOptions("George Washington", "Thomas Jefferson")));
-
+		
 		// Initialize the collection of QuestionLists
 		questionListCollection = new ArrayList<>();
 		questionListCollection.add(questionList1);
 	}
-
+	
 	/**
 	 * Helper method to create sample options for questions
 	 */
@@ -52,7 +52,7 @@ public class TestQuestionLists {
 		options.add(new Option(incorrectAnswer, false, "Incorrect explanation"));
 		return options;
 	}
-
+	
 	@Test
 	public void testQuestionListEquality() {
 		// Test equality between two QuestionLists with same attributes and questions
@@ -71,7 +71,7 @@ public class TestQuestionLists {
 		// Test inequality with a different type
 		assertNotEquals(questionList1, "Not a QuestionList", "A QuestionList should not be equal to an object of a different type");
 	}
-
+	
 	@Test
 	public void testQuestionListContains() {
 		// Test that the collection contains a QuestionList that is equal to questionList1
@@ -84,7 +84,7 @@ public class TestQuestionLists {
 		// Test that the collection does not contain a QuestionList that is not equal to any in the collection
 		assertFalse(questionListCollection.contains(questionList3), "Collection should not contain a QuestionList that wasn't added");
 	}
-
+	
 	@Test
 	public void testQuestionListHashCode() {
 		// Test that equal QuestionLists have the same hash code
@@ -95,7 +95,7 @@ public class TestQuestionLists {
 		assertNotEquals(questionList1.hashCode(), questionList3.hashCode(),
 			"Different QuestionLists are likely to have different hash codes");
 	}
-
+	
 	@Test
 	public void testQuestionListInCollection() {
 		// Create a new collection
@@ -115,7 +115,7 @@ public class TestQuestionLists {
 		assertTrue(newCollection.contains(questionList1Copy),
 			"Collection should contain a QuestionList that equals a copy with the same content");
 	}
-
+	
 	@Test
 	public void testQuestionListModification() {
 		// Create a copy of questionList1

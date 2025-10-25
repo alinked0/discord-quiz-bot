@@ -37,7 +37,7 @@ public class Viewer {
 	private final boolean useButtons;
 	private int currIndex;
 	private Message message = null;
-
+	
 	/**
 	 * Constructs a Viewer with a specified question list and button preference.
 	 *
@@ -48,63 +48,63 @@ public class Viewer {
 		this.questions = l;
 		this.useButtons = useButtons;
 	}
-
+	
 	/**
 	 * Constructs a Viewer with a specified question list, defaulting to using buttons.
 	 *
 	 * @param l The QuestionList to be viewed.
 	 */
 	public Viewer(QuestionList l){this(l, true);}
-
+	
 	/**
 	 * Sets the JDA message associated with this viewer.
 	 *
 	 * @param m The message to associate.
 	 */
 	public void setMessage(Message m) { message = m;}
-
+	
 	/**
 	 * Retrieves the current JDA message.
 	 *
 	 * @return The message object.
 	 */
 	public Message getMessage() { return message;}
-
+	
 	/**
 	 * Checks if the viewer is configured to use buttons.
 	 *
 	 * @return true if buttons are enabled, false otherwise.
 	 */
 	public boolean useButtons(){return useButtons;}
-
+	
 	 /**
 	 * Gets the ID of the current message.
 	 *
 	 * @return The message ID, or null if no message is set.
 	 */
 	public String getMessageId() { return getMessage()!=null?getMessage().getId(): null;}
-
+	
 	/**
 	 * Gets the channel of the current message.
 	 *
 	 * @return The message channel, or null if no message is set.
 	 */
 	public MessageChannel getChannel() { return getMessage()!=null?getMessage().getChannel(): null;}
-
+	
 	/**
 	 * Gets the ID of the channel of the current message.
 	 *
 	 * @return The channel ID, or null if no channel is set.
 	 */
 	public String getChannelId() { return getChannel()!=null?getChannel().getId(): null;}
-
+	
 	/**
 	 * Checks if the viewer session is active.
 	 *
 	 * @return true if the session is active, false otherwise.
 	 */
 	public Boolean isActive() { return active;}
-
+	
 	/**
 	 * A placeholder method for adding a reaction (not fully implemented in this class).
 	 *
@@ -112,7 +112,7 @@ public class Viewer {
 	 * @param emoji The emoji added.
 	 */
 	public void addReaction(String userId, Emoji emoji){};
-
+	
 	/**
 	 * A placeholder method for removing a reaction (not fully implemented in this class).
 	 *
@@ -120,7 +120,7 @@ public class Viewer {
 	 * @param emoji The emoji removed.
 	 */
 	public void removeReaction(String userId, Emoji emoji){};
-
+	
 	/**
 	 * Returns a Consumer to be executed after the initial message is sent.
 	 * This consumer updates the bot's internal state with the new message ID.
@@ -134,7 +134,7 @@ public class Viewer {
 			BotCore.viewerByMessageId.put(oldId, this);
 		};
 	}
-
+	
 	/**
 	 * Returns a Consumer to be executed after a message update.
 	 * This consumer replaces the old message ID with the new one in the bot's state.
@@ -149,10 +149,10 @@ public class Viewer {
 			BotCore.viewerByMessageId.put(msg.getId(), this);
 		};
 	}
-
+	
 	/** Placeholder method for additional processing on start. */
 	public void inBetweenProccessorStart(){}
-
+	
 	/**
 	 * Starts the viewer session.
 	 * <p>
@@ -172,7 +172,7 @@ public class Viewer {
 			.addPostSendAction(postSendActionStart())
 			.build();
 	}
-
+	
 	/**
 	 * Gets the current question object.
 	 *
@@ -182,21 +182,21 @@ public class Viewer {
 		if (!isActive() || getCurrentIndex()>=questions.size()) { return null;}
 		return questions.get(getCurrentIndex());
 	}
-
+	
 	/**
 	 * Gets the entire question list.
 	 *
 	 * @return The {@link QuestionList} object.
 	 */
 	public QuestionList getQuestionList(){return questions;}
-
+	
 	/**
 	 * Gets the index of the currently displayed question.
 	 *
 	 * @return The current index.
 	 */
 	public int getCurrentIndex() { return currIndex;}
-
+	
 	/**
 	 * Returns a list of emojis to be used as reactions for navigation.
 	 *
@@ -208,7 +208,7 @@ public class Viewer {
 		emojis.add(Emoji.fromFormatted(hasNext()?Constants.EMOJINEXTQUESTION:Constants.EMOJISTOP));
 		return emojis;
 	}
-
+	
 	/**
 	 * Navigates to the next question in the list.
 	 *
@@ -222,7 +222,7 @@ public class Viewer {
 		currIndex++;
 		return current();
 	}
-
+	
 	/**
 	 * Navigates to the previous question in the list.
 	 *
@@ -239,7 +239,7 @@ public class Viewer {
 		}
 		return current();
 	}
-
+	
 	/**
 	 * Gets the header text for the question list.
 	 *
@@ -249,7 +249,7 @@ public class Viewer {
 		return String.format("%s**Author:** <@%s>\n**Date created:** %s\n", questions.header(),
 			questions.getAuthorId(), TimeFormat.DATE_TIME_LONG.atTimestamp(questions.getTimeCreatedMillis()));
 	}
-
+	
 	/**
 	 * Gets the formatted text for the current question.
 	 *
@@ -258,17 +258,17 @@ public class Viewer {
 	public String getFormatedQuestion(){
 		return questions.getFormatedCorrection(currIndex);
 	}
-
+	
 	/** Placeholder method for additional processing on moving to the current question. */
 	public void inBetweenProccessorCurrent(){}
-
+	
 	/**
 	 * Sets whether to send updates in the original message.
 	 *
 	 * @param b The boolean value to set.
 	 */
 	public void setSendInOriginalMessage(boolean b){ sendInOriginalMessage=b;}
-
+	
 	/**
 	 * Generates a CommandOutput for the current state of the viewer.
 	 * <p>
@@ -299,21 +299,21 @@ public class Viewer {
 			.addPostSendAction(postSendActionCurrent())
 			.build();
 	}
-
+	
 	/**
 	 * Checks if there is a next question to view.
 	 *
 	 * @return true if a next question exists, false otherwise.
 	 */
 	public boolean hasNext(){ return getCurrentIndex()+1 < questions.size();}
-
+	
 	/**
 	 * Checks if there is a previous question to view.
 	 *
 	 * @return true if a previous question exists, false otherwise.
 	 */
 	public boolean hasPrevious(){ return -1 <= getCurrentIndex()-1;}
-
+	
 	/** Ends the viewer session by setting the active flag to false. */
 	public void end() {active = false;}
 }

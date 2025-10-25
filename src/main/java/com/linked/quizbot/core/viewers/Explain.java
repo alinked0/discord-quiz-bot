@@ -58,7 +58,7 @@ public class Explain extends Viewer{
 	public Explain(QuizBot view, String userId){
 		this(view.getQuestionList(), view.getAwsersByQuestion(userId), userId, view.getUserScore(userId), view.useButtons());
 	}
-
+	
 	/**
 	 * Constructs an Explain viewer from an active {@link QuizBot} and starts it at a specific index.
 	 * @param view The active QuizBot instance.
@@ -89,7 +89,7 @@ public class Explain extends Viewer{
 	}
 	@Override
 	public String getFormatedQuestion(){
-		return getQuestionList().getFormatedCorrection(getCurrentIndex(), userAwnsersByQuestionIndex.get(getCurrentIndex()));
+		return getQuestionList().getFormatedCorrection(getCurrentIndex(), getCurrentIndex()<userAwnsersByQuestionIndex.size()?userAwnsersByQuestionIndex.get(getCurrentIndex()):null);
 	}
 	@Override
 	public List<Emoji> getReactions(){

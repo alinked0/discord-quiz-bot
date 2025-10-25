@@ -56,7 +56,7 @@ public class CommandOutput {
 		private boolean ephemeral = false;
 		private long delayMillis = 0;
 		private Message message=null;
-
+		
 		public Builder add(String message){
 			if (message !=null && !message.isEmpty()){
 				textMessages.add(message);

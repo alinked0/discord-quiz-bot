@@ -29,7 +29,7 @@ public class PreviousCommand extends BotCommand {
 	public static final String CMDNAME = "previous";
 	private String cmdDesrciption = "triggering the previous question to get sent if a quiz is ongoing";
 	private List<String> abbrevs = List.of("prev");
-
+	
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public BotCommand.CommandCategory getCategory(){

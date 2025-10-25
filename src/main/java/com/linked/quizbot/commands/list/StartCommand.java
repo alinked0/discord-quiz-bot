@@ -34,7 +34,7 @@ public class StartCommand extends BotCommand{
 	public static final String CMDNAME = "start";
 	private String cmdDesrciption = "starting a given quiz, whether its your own or another users";
 	private List<String> abbrevs = List.of("s", "play");
-
+	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override

@@ -37,7 +37,7 @@ public class BotCore {
 	public static boolean online = false;
 	public static JDA jda = null;
 	public static Random rand = new Random();
-	public static  String cmdPrefixe = Constants.CMDPREFIXE;
+	public static  String cmdPrefix = Constants.CMDPREFIXE;
 	public static Map<String, Viewer> viewerByMessageId = new HashMap<>();
 	public static Set<BotCommand> commands = new HashSet<>();
 	public static List<Viewer> listOfGames = new ArrayList<>();
@@ -60,7 +60,7 @@ public class BotCore {
 		return false;
 	}
 	public static Random getRandom(){ return rand;}
-	public static String getPrefixe() { return cmdPrefixe;}
+	public static String getPrefix() { return cmdPrefix;}
 	public static List<User> getAllUsers() { return new ArrayList<>(allUsers);}
 	public static void addUser(User u) { allUsers.add(u);}
 	public static List<Viewer> getListOfViewers() {

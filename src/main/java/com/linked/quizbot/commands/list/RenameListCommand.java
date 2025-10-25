@@ -51,7 +51,7 @@ public class RenameListCommand extends BotCommand{
 		List<String> res = new ArrayList<>();
 		String [] tmp = cmndLineArgs.split("\\s+");
 		if(tmp.length < 2){ return res;}
-
+		
 		k = cmndLineArgs.indexOf(" ");
 		if(k < 0){ return res;}
 		String a = cmndLineArgs.substring(0, k).trim();

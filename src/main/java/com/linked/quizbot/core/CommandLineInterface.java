@@ -21,12 +21,12 @@ public class CommandLineInterface {
 	public static String getStatus(){
 		String s = "";
 		s+= String.format("isBugFree:%s\n", BotCore.isBugFree());
-		s+= String.format("Prefixe:%s\n", Constants.CMDPREFIXE);
+		s+= String.format("Prefix:%s\n", Constants.CMDPREFIXE);
 		s+= String.format("IsOnline:%s\n", BotCore.isOnline());
 		s+= String.format("NumberOfUsers:%s\n", Users.allUsers.size());
 		return s;
 	}
-
+	
 	/**
 	 * Provides a detailed usage message for the command-line interface.
 	 * @return The usage string.
@@ -55,6 +55,7 @@ public class CommandLineInterface {
 	
 	public static void execute (Scanner scanner) {
 		boolean exiting = false;
+		List<String> out;
 		while (!exiting) {
 			System.out.print("$ ");
 			String input = scanner.nextLine().toLowerCase();
@@ -99,10 +100,11 @@ public class CommandLineInterface {
 				}
 				default -> {
 					try {
-						List<String> out = execute(input, Constants.ADMINID, null).getAsText();
+						out = execute(input, Constants.ADMINID, null).getAsText();
 						for (String s: out){System.out.println(s);}
 					}catch(Exception e){
-						System.err.printf(Constants.ERROR + "an error occured while executing :%s",input);e.printStackTrace();
+						System.err.printf(Constants.ERROR + "An error occured while executing :%s\n",Constants.MAGENTA + input+ Constants.RESET);
+						e.printStackTrace();
 					}
 					
 				}
@@ -113,7 +115,7 @@ public class CommandLineInterface {
 		long start = System.nanoTime();
 		CommandOutput.Builder ouitput = new CommandOutput.Builder();
 		List<String> arguments=new ArrayList<>();
-		List<String> tmp = parsePrefixe(userId, message);
+		List<String> tmp = parsePrefix(userId, message);
 		if (tmp.isEmpty()){
 			return ouitput.add("help").build();
 		}
@@ -126,7 +128,7 @@ public class CommandLineInterface {
 		
 		arguments.add(tmp.getFirst());
 		BotCommand cmd = BotCommand.getCommandByName(arguments.get(1));
-
+		
 		if(BotCore.isShutingDown()){
 			BotCommand.CommandCategory category = cmd.getCategory();
 			if(category.equals(BotCommand.CommandCategory.EDITING) || category.equals(BotCommand.CommandCategory.GAME)){
@@ -140,7 +142,7 @@ public class CommandLineInterface {
 				arguments.addAll(l);
 			}
 		}
-
+		
 		System.out.printf(Constants.INFO + "%s, time=`%.3f ms`, argc=%d",cmd.getName(), (System.nanoTime() - start) / 1000000.00, arguments.size());
 		if (!BotCore.isBugFree() && !arguments.isEmpty()) {
 			System.out.print(";");
@@ -153,31 +155,31 @@ public class CommandLineInterface {
 		return cmd.execute(userId, arguments);
 	}
 	
-	public static List<String> parsePrefixe(String userId, String message){
-		String prefixe;
-		String userPrefixe = Users.get(userId).getPrefix();
-		// Do not preccess if no known cmd prefixe can fit in message
-		if ((userPrefixe!=null && message.length() < userPrefixe.length()) && message.length() < Constants.CMDPREFIXE.length()){
+	public static List<String> parsePrefix(String userId, String message){
+		String prefix;
+		String userPrefix = Users.get(userId).getPrefix();
+		// Do not preccess if no known cmd prefix can fit in message
+		if ((userPrefix!=null && message.length() < userPrefix.length()) && message.length() < Constants.CMDPREFIXE.length()){
 			return List.of();
 		}
-		int cmdPrefixeLen;
-		// Prioritise user defined prefixe, if not found search for the default prefixe
-		if (userPrefixe!=null && userPrefixe.length()<=Constants.CMDPREFIXE.length() && Constants.CMDPREFIXE.startsWith(userPrefixe)
+		int cmdPrefixLen;
+		// Prioritise user defined prefix, if not found search for the default prefix
+		if (userPrefix!=null && userPrefix.length()<=Constants.CMDPREFIXE.length() && Constants.CMDPREFIXE.startsWith(userPrefix)
 			&& Constants.CMDPREFIXE.length()<=message.length() && message.startsWith(Constants.CMDPREFIXE)){
-			prefixe = Constants.CMDPREFIXE;
-		}else if (userPrefixe!=null && message.startsWith(userPrefixe)){
-			prefixe = userPrefixe;
+			prefix = Constants.CMDPREFIXE;
+		}else if (userPrefix!=null && message.startsWith(userPrefix)){
+			prefix = userPrefix;
 		}else if (message.startsWith(Constants.CMDPREFIXE)){
-			prefixe = Constants.CMDPREFIXE;
+			prefix = Constants.CMDPREFIXE;
 		}else {
 			return List.of();
 		}
-		cmdPrefixeLen = prefixe.length();
-		String remainingMessage = message.substring(cmdPrefixeLen).trim();
-		// return a list containing the prefixe that was found and the rest of the unprocessed arguments
-		return List.of(prefixe, remainingMessage);
+		cmdPrefixLen = prefix.length();
+		String remainingMessage = message.substring(cmdPrefixLen).trim();
+		// return a list containing the prefix that was found and the rest of the unprocessed arguments
+		return List.of(prefix, remainingMessage);
 	}
-
+	
 	public static List<String> parseBotCommand(String message){
 		if (message.length()<=0) {
 			return List.of();

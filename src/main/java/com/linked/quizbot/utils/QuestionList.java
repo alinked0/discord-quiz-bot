@@ -26,10 +26,13 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.management.InvalidAttributeValueException;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 
@@ -79,11 +82,11 @@ public class QuestionList implements Iterable<Question>{
 	public static double pointsForIncorrect = -0.25;
 	private long timeCreatedMillis;
 	private String id; //TODO the id should be made final
-
+	
 	static {
 		getExampleQuestionList().exportListQuestionAsJson();
 	}
-
+	
 	/**
 	 * Inner class implementing the **Builder pattern** for creating and initializing {@link QuestionList} objects.
 	 * <p>
@@ -97,7 +100,7 @@ public class QuestionList implements Iterable<Question>{
 		public String name= null;
 		public String id= null;
 		public long timeCreatedMillis= 0L;
-
+		
 		/**
 		 * Sets the ID of the author for the quiz list.
 		 * @param authorId The ID of the author (e.g., a user ID).
@@ -109,7 +112,7 @@ public class QuestionList implements Iterable<Question>{
 			this.authorId = authorId;
 			return this;
 		}
-
+		
 		/**
 		 * Adds a single tag-emoji pair to the list's tag map.
 		 * @param tagName The name of the tag (e.g., "Math", "Science").
@@ -122,8 +125,8 @@ public class QuestionList implements Iterable<Question>{
 			this.emojiPerTagName.put(tagName, emoji);
 			return this;
 		}
-
-
+		
+		
 		/**
 		 * Adds all tag-emoji pairs from a map to the list's tag map. Existing keys are overwritten.
 		 * @param emojiPerTagName A map of tags and their corresponding emoji icons.
@@ -135,8 +138,8 @@ public class QuestionList implements Iterable<Question>{
 			this.emojiPerTagName.putAll(emojiPerTagName);
 			return this;
 		}
-
-
+		
+		
 		/**
 		 * Sets the display name for the quiz list.
 		 * @param listName The name of the list.
@@ -148,8 +151,8 @@ public class QuestionList implements Iterable<Question>{
 			this.name = listName;
 			return this;
 		}
-
-
+		
+		
 		/**
 		 * Sets the unique identifier (ID) for the quiz list.
 		 * @param id The unique ID for the list.
@@ -161,7 +164,7 @@ public class QuestionList implements Iterable<Question>{
 			this.id = id;
 			return this;
 		}
-
+		
 		/**
 		 * Sets the creation timestamp for the quiz list.
 		 * @param timeCreatedMillis The time of creation in milliseconds.
@@ -173,7 +176,7 @@ public class QuestionList implements Iterable<Question>{
 			this.timeCreatedMillis = timeCreatedMillis;
 			return this;
 		}
-
+		
 		/**
 		 * Adds a single {@link Question} to the list of questions.
 		 * @param q The question to add.
@@ -183,10 +186,10 @@ public class QuestionList implements Iterable<Question>{
 		 * @ensures this.list.size() == \old(this.list.size()) + 1
 		 */
 		public Builder add(Question q){
-			list.add(q);
+			if (!list.contains(q))	list.add(q);
 			return this;
 		}
-
+		
 		/**
 		 * Merges content from an existing {@link QuestionList} into this builder.
 		 * <p>Questions are deep-cloned. Tags are merged. Metadata (ID, name, author) is only set if not already present in the builder.
@@ -198,7 +201,7 @@ public class QuestionList implements Iterable<Question>{
 		 */
 		public Builder add(QuestionList questions){
 			for (Question q : questions){
-				this.add(q.clone());
+				this.add(q);
 			}
 			this.addTags(questions.getEmojiPerTagName());
 			if (id == null)this.id(questions.getId());
@@ -207,7 +210,7 @@ public class QuestionList implements Iterable<Question>{
 			if (timeCreatedMillis==0L || questions.getTimeCreatedMillis()<timeCreatedMillis) this.timeCreatedMillis(questions.getTimeCreatedMillis());
 			return this;
 		}
-
+		
 		/**
 		 * Adds a collection of {@link Question} objects to the list.
 		 * @param c The list or collection of questions to add.
@@ -216,7 +219,7 @@ public class QuestionList implements Iterable<Question>{
 		 * @ensures this.list contains all elements from c.
 		 */
 		public Builder addAll(List<? extends Question> c){
-			list.addAll(c);
+			for (Question q : c)	if (!list.contains(q))	list.add(q);
 			return this;
 		}
 		/**
@@ -240,11 +243,11 @@ public class QuestionList implements Iterable<Question>{
 	 * </p>
 	 */
 	public static class Hasher {
-
+		
 		public static final char[] BASE36_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
 		public static final int DEFAULT_LENGTH = 7;
 		public static final Set<String> generatedCodes = new HashSet<>();
-
+		
 		/**
 		 * Adds a newly generated code to the set of codes currently in use.
 		 * @param code The code to add.
@@ -254,7 +257,7 @@ public class QuestionList implements Iterable<Question>{
 		public static void addGeneratedCode(String code){
 			Hasher.generatedCodes.add(code);
 		}
-
+		
 		/**
 		 * Clears the set of generated codes, allowing codes to be reused in a new session.
 		 * @ensures generatedCodes.isEmpty()
@@ -262,8 +265,8 @@ public class QuestionList implements Iterable<Question>{
 		public static void clearGeneratedCodes(){
 			generatedCodes.clear();
 		}
-
-
+		
+		
 		/**
 		 * Generates a unique, short hash code based on a string input and a timestamp.
 		 * <p>The method ensures the code is not already in {@link #generatedCodes} using random components and retries.</p>
@@ -278,23 +281,23 @@ public class QuestionList implements Iterable<Question>{
 		public static String generate(String input, long timestamp) {
 			String code;
 			int attempts = 0;
-
+			
 			do {
 				String randomComponent = UUID.randomUUID().toString();
 				String combined = input + "|" + timestamp + "|" + randomComponent;
 				code = createCode(combined);
 				attempts++;
-
+				
 				// Just in case something goes wrong
 				if (attempts > 10_000) {
 					throw new RuntimeException("Too many hash collisions. Aborting.");
 				}
 			} while (generatedCodes.contains(code));
-
+			
 			Hasher.addGeneratedCode(code);
 			return code;
 		}
-
+		
 		/**
 		 * Generates a unique, short hash code for a given {@link QuestionList} object.
 		 * <p>The hash is primarily based on the list's author ID and name, combined with the creation timestamp.</p>
@@ -309,23 +312,23 @@ public class QuestionList implements Iterable<Question>{
 			String code, input = l.getAuthorId() + l.getName();
 			long timestamp = l.getTimeCreatedMillis();
 			int attempts = 0;
-
+			
 			do {
 				String randomComponent = UUID.randomUUID().toString();
 				String combined = input + "|" + timestamp + "|" + randomComponent;
 				code = createCode(combined);
 				attempts++;
-
+				
 				// Just in case something goes wrong
 				if (attempts > 10_000) {
 					throw new RuntimeException("Too many hash collisions. Aborting.");
 				}
 			} while (generatedCodes.contains(code));
-
+			
 			Hasher.addGeneratedCode(code);
 			return code;
 		}
-
+		
 		/**
 		 * Internal method to create a Base-36 encoded, truncated code from a combined string input.
 		 * <p>Uses SHA-256 hashing on the input, converts the hash to Base-36, prepends 'a' if necessary, and truncates/pads to {@link #DEFAULT_LENGTH}.</p>
@@ -340,23 +343,23 @@ public class QuestionList implements Iterable<Question>{
 				MessageDigest digest = MessageDigest.getInstance("SHA-256");
 				byte[] hashBytes = digest.digest(combinedInput.getBytes(StandardCharsets.UTF_8));
 				BigInteger hashInt = new BigInteger(1, hashBytes);
-
+				
 				// Base-36 encoding
 				String base36 = toBase36(hashInt);
-
+				
 				// Ensure it starts with a letter
 				if (base36.length() > 0 && Character.isDigit(base36.charAt(0))) {
 					base36 = "a" + base36;
 				}
-
+				
 				// Truncate or pad the code
 				return base36.length() >= DEFAULT_LENGTH ? base36.substring(0, DEFAULT_LENGTH) : padToLength(base36, DEFAULT_LENGTH);
-
+			
 			} catch (NoSuchAlgorithmException e) {
 				throw new RuntimeException("SHA-256 not available", e);
 			}
 		}
-
+		
 		/**
 		 * Internal method to convert a {@link BigInteger} into a Base-36 encoded string.
 		 * @param value The BigInteger value to encode.
@@ -366,16 +369,16 @@ public class QuestionList implements Iterable<Question>{
 		private static String toBase36(BigInteger value) {
 			StringBuilder sb = new StringBuilder();
 			BigInteger base = BigInteger.valueOf(36);
-
+			
 			while (value.compareTo(BigInteger.ZERO) > 0) {
 				BigInteger[] divmod = value.divideAndRemainder(base);
 				sb.insert(0, BASE36_ALPHABET[divmod[1].intValue()]);
 				value = divmod[0];
 			}
-
+			
 			return sb.toString();
 		}
-
+		
 		/**
 		 * Internal method to pad an input string with the character 'a' until it reaches the specified length.
 		 * @param input The string to pad.
@@ -392,7 +395,7 @@ public class QuestionList implements Iterable<Question>{
 			}
 			return sb.toString();
 		}
-
+		
 		/**
 		 * Checks if the given ID is currently tracked in the set of generated codes.
 		 * @param id The ID to check.
@@ -404,21 +407,21 @@ public class QuestionList implements Iterable<Question>{
 			return Hasher.generatedCodes.contains(id);
 		}
 	}
-
+	
 	/**
 	 * QuestionList.Parser is a utility class dedicated to parsing {@link QuestionList} objects
 	 * from JSON input, supporting reading from files or direct strings.
 	 * <p>It uses Jackson's low-level {@link JsonParser} for efficient processing.</p>
 	 */
 	public static class Parser {
-
+		
 		/**
 		 * Parses a {@link QuestionList} from a JSON file specified by the file path.
 		 * @param filePathToJson The absolute or relative path to the JSON file.
 		 * @return A {@link QuestionList.Builder} pre-populated with data from the file, or {@code null} if the file is not found.
-		 * @throws IOException if an I/O error occurs during file reading or JSON parsing.
+		 * @throws IOExceptionif an I/O error occurs during file reading or JSON parsing.
 		 * @requires filePathToJson != null
-		 * @ensures \result == parser(new JsonFactory().createParser(f), filePathToJson) if file exists.
+		 * @ensures \result == parse(new JsonFactory().createParser(f), filePathToJson) if file exists.
 		 */
 		public static QuestionList.Builder fromJsonFile(String filePathToJson) throws IOException{
 			File f = new File(filePathToJson);
@@ -427,42 +430,43 @@ public class QuestionList implements Iterable<Question>{
 				return null;
 			}
 			JsonParser jp =  new JsonFactory().createParser(new File(filePathToJson));
-			return parser(jp, filePathToJson);
+			return parse(jp, filePathToJson);
 		}
-
+		
 		/**
 		 * Parses a {@link QuestionList} from a raw JSON string.
 		 * @param arg The JSON string content.
 		 * @return A {@link QuestionList.Builder} pre-populated with data from the string.
-		 * @throws IOException if an error occurs during JSON parsing.
+		 * @throws IOExceptionif an error occurs during JSON parsing.
 		 * @requires arg != null
-		 * @ensures \result == parser(new JsonFactory().createParser(arg), arg)
+		 * @ensures \result == parse(new JsonFactory().createParser(arg), arg)
 		 */
 		public static QuestionList.Builder fromString(String arg)throws IOException{
 			JsonParser jp =  new JsonFactory().createParser(arg);
-			return parser(jp, arg);
+			return parse(jp, arg);
 		}
-
-		public static QuestionList.Builder parser(JsonParser jp, String arg) throws IOException{
+		
+		public static QuestionList.Builder parse(JsonParser jp, String original) throws IOException{
 			QuestionList.Builder outputBuilder = new QuestionList.Builder();
 			String fieldName;
 			/*Check if outputBuilder file is a json */
-			if (jp.nextToken() != JsonToken.START_OBJECT) {
-				throw new IOException(String.format("Error QuestionList.Parser.parser, input is not a json: \n\t%s\n", arg));
+			if (jp.currentToken() != JsonToken.START_OBJECT && jp.nextToken() != JsonToken.START_OBJECT) {
+				throw new IOException(String.format(Constants.ERROR+Constants.RED+"QuestionList.Parser.parse, input is not a json: (%s, %s, %s) (%s, %s, %s) %s"+Constants.RESET,  jp.currentToken(), jp.currentName(), jp.getText(), jp.nextValue(), jp.nextFieldName(), jp.nextTextValue(), original));
 			}
 			/* first layer the ListQuestion 
 			* iterating over ListQuestion attributes
 			*/
-			do{
+			while (!jp.isClosed()){
 				if (jp.currentToken() == JsonToken.FIELD_NAME) {
 					fieldName = jp.currentName().toLowerCase();
 					jp.nextToken();
+					/* parsing System.out.print("QuestionList("+jp.currentToken()+", "+jp.currentName()+") "); */
 					switch (fieldName){
 						case "authorid","userid","user" -> {
 							outputBuilder.authorId(jp.getText());
 						}
 						case "emojipertagname" -> {
-							outputBuilder.addTags(parseEmojiPerTagName(jp, arg));
+							outputBuilder.addTags(parseEmojiPerTagName(jp, original));
 						}
 						case "name" -> {
 							outputBuilder.name(jp.getText());
@@ -474,157 +478,71 @@ public class QuestionList implements Iterable<Question>{
 							outputBuilder.id(jp.getText());
 						}
 						case "questions" -> {
-							outputBuilder.addAll(parseQuestionList(jp, arg));
+							outputBuilder.addAll(parseList(jp, original));
 						}
-					}
+						default -> {
+							jp.skipChildren();
+						}
+					} 
+				} else if(jp.currentToken() == JsonToken.END_OBJECT) {
+						jp.nextToken();
+						/* parsing System.out.print("QuestionList("+jp.currentToken()+", "+jp.currentName()+") "); */
+						break;
 				} else {
 					jp.nextToken();
+					/* parsing System.out.print("QuestionList("+jp.currentToken()+", "+jp.currentName()+") "); */
 				}
-			}while (!jp.isClosed());
-
+			};
+			
 			return outputBuilder;
 		}
-
-		public static Map<String, String> parseEmojiPerTagName(JsonParser jp, String arg) throws IOException {
+		
+		public static Map<String, String> parseEmojiPerTagName(JsonParser jp, String original) throws IOException {
 			Map<String, String> m = new HashMap<>();
 			String tagName, emojiCode;
-			if(jp.currentToken() != JsonToken.START_OBJECT){
-				throw new IOException(String.format("Error QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
+			if(jp.currentToken() != JsonToken.START_OBJECT && jp.nextToken() != JsonToken.START_OBJECT){
+				throw new IOException(String.format(Constants.ERROR+Constants.RED+"QuestionList.Parser.parseEmojiPerTagName, input is not a json: (%s, %s, %s) (%s, %s, %s) %s"+Constants.RESET,  jp.currentToken(), jp.currentName(), jp.getText(), jp.nextValue(), jp.nextFieldName(), jp.nextTextValue(), original));
 			}
 			while (!jp.isClosed()) {
-				jp.nextToken();
 				if (jp.currentToken() == JsonToken.FIELD_NAME) {
 					tagName = jp.currentName();
 					jp.nextToken();
 					emojiCode = jp.getText();
 					m.put(tagName, emojiCode);
-				}
-				if(jp.currentToken() == JsonToken.END_OBJECT) {
+				}else if(jp.currentToken() == JsonToken.END_OBJECT) {
 					jp.nextToken();
 					break;
+				} else {
+					jp.nextToken();
 				}
 			}
 			return m;
 		}
-
-		public static Question parseQuestion(JsonParser jp, String arg) throws IOException {
-			Question outputBuilder = null;
-			String q = null;
-			String expl = null;
-			String imgSrc= null, fieldName;
-			List <Option>opts = null;
-			if(jp.currentToken() != JsonToken.START_OBJECT) {
-				throw new IOException(String.format(Constants.ERROR + "QuestionList.Parser.parseEmojiPerTagName, input is not a json: \n\t%s\n", arg));
-			}
-			while(!jp.isClosed()){
-				if(jp.currentToken() == JsonToken.FIELD_NAME) {
-					fieldName = jp.currentName().toLowerCase();
-					jp.nextToken();
-					switch (fieldName){
-						case "question" -> {q = jp.getText();}
-						case "explication" -> {
-							expl = jp.getText();
-							if (expl!=null && expl.equals("null")){
-								expl = null;
-							}
-						}
-						case "img_src","imagesrc" -> {
-							imgSrc = jp.getText().equals("null")?null:jp.getText();
-						}
-						case "options" -> opts = parseOptionList(jp, arg);
-					}
-				} else if (jp.currentToken() == JsonToken.END_OBJECT) {
-					jp.nextToken();
-					break;
-				} else {
-					jp.nextToken();
-				}
-			};
-			if (q==null){
-				return null;
-			}
-			outputBuilder = new Question(q, opts);
-			outputBuilder.setExplication(expl);
-			outputBuilder.setImageSrc(imgSrc);
-			return outputBuilder;
-		}
-		public static List<Option> parseOptionList(JsonParser jp, String arg) throws IOException {
-			LinkedList<Option> opts = new LinkedList<>();
-			if(jp.currentToken() != JsonToken.START_ARRAY){
-				throw new IOException(String.format("Error QuestionList.Parser.parseOptionList, input is not a json: \n\t%s\n", arg));
-			}
-			jp.nextToken();
-			while(!jp.isClosed()){
-				if (jp.currentToken() == JsonToken.START_OBJECT){
-					opts.add(parseOption(jp, arg));
-				} else if (jp.currentToken() == JsonToken.END_ARRAY){
-					jp.nextToken();
-					break;
-				} else {
-					jp.nextToken();
-				}
-			};
-			return opts;
-		}
-		public static Option parseOption(JsonParser jp, String arg) throws IOException {
-			String optTxt = null;
-			String optExpl = null, fieldName;
-			Boolean isCorr = null;
-			Option res=null;
-			if(jp.currentToken() != JsonToken.START_OBJECT){
-				throw new IOException(String.format("Error QuestionList.Parser.parseOption, input is not a json: \n\t%s\n", arg));
-			}
-			while(!jp.isClosed()){
-				jp.nextToken();
-				if (jp.currentToken() == JsonToken.FIELD_NAME) {
-					fieldName = jp.currentName().toLowerCase();
-					jp.nextToken();
-					switch(fieldName){
-						case "text" -> optTxt = jp.getValueAsString();
-						case "explication" -> {
-							optExpl = jp.getText();
-							if (optExpl!=null && optExpl.equals("null")){
-								optExpl = null;
-							}
-						}
-						case "iscorrect" -> {
-							isCorr = jp.getBooleanValue();
-						}
-					}
-				} else if(jp.currentToken() != JsonToken.END_ARRAY){
-					jp.nextToken();
-					break;
-				}
-			};
-			if (optTxt!=null && isCorr!= null){
-				if (optExpl!=null){
-					res = new Option(optTxt, isCorr, optExpl);
-				} else {
-					res = new Option(optTxt, isCorr);
-				}
-			}
-			return res;
-		}
-
-		public static List<Question> parseQuestionList(JsonParser jp, String arg) throws IOException {
-			List<Question> outputBuilder = new LinkedList<>();
+				
+		public static List<Question> parseList(JsonParser jp, String original) throws IOException {
+			List<Question> questions = new LinkedList<>();
 			/* iterating over every Question attributes then Options*/
-			if(jp.currentToken() != JsonToken.START_ARRAY) {
-				return null;
+			if(jp.currentToken() != JsonToken.START_ARRAY && jp.nextToken() != JsonToken.START_ARRAY) {
+				throw new IOException(String.format(Constants.ERROR+Constants.RED+"QuestionList.Parser.parseList, input is not a json: (%s, %s, %s) (%s, %s, %s) %s"+Constants.RESET,  jp.currentToken(), jp.currentName(), jp.getText(), jp.nextValue(), jp.nextFieldName(), jp.nextTextValue(), original));
 			}
+			Question q;
 			while (!jp.isClosed()) {
 				if(jp.currentToken() == JsonToken.START_OBJECT) {
-					outputBuilder.add(parseQuestion(jp, arg));
+					q = Question.Parser.parse(jp, original);
+					if (q!=null)	questions.add(q);
 				} else if(jp.currentToken() == JsonToken.END_ARRAY) {
+					jp.nextToken();
+					///* parsing System.out.print("QuestionList.Parser.parseList("+jp.currentToken()+", "+jp.currentName()+") "); */
 					break;
 				}else {
 					jp.nextToken();
+					///* parsing System.out.print("QuestionList.Parser.parseList("+jp.currentToken()+", "+jp.currentName()+") "); */
 				}
 			}
-			return outputBuilder;
+			return questions;
 		}
 	}
-
+	
 	/**
 	 * Default constructor for QuestionList.
 	 * Initializes the list with default values for authorId, name, and emojiPerTagName.
@@ -633,7 +551,7 @@ public class QuestionList implements Iterable<Question>{
 		if (builder.timeCreatedMillis==0L){
 			builder.timeCreatedMillis = System.currentTimeMillis();
 		}
-		if (!(builder.id!=null && !builder.id.isEmpty()&& builder.id.length()>=QuestionList.Hasher.DEFAULT_LENGTH)){
+		if (builder.id==null || builder.id.isBlank() || builder.id.length()<QuestionList.Hasher.DEFAULT_LENGTH){
 			builder.id = QuestionList.Hasher.generate(builder.authorId+builder.name, builder.timeCreatedMillis);
 		}
 		this.questions= builder.list;
@@ -643,7 +561,7 @@ public class QuestionList implements Iterable<Question>{
 		this.id = builder.id;
 		this.timeCreatedMillis = builder.timeCreatedMillis;
 	}
-
+	
 	/**
 	 * Constructs a QuestionList with the specified authorId, name, and a collection of questions.
 	 *
@@ -654,7 +572,7 @@ public class QuestionList implements Iterable<Question>{
 	public QuestionList(String authorId, String name, List<? extends Question> c) {
 		this(new QuestionList.Builder().authorId(authorId).name(name).addAll(c));
 	}
-
+	
 	/**
 	 * Constructs a QuestionList with the specified authorId, and name.
 	 *
@@ -664,16 +582,16 @@ public class QuestionList implements Iterable<Question>{
 	public QuestionList(String authorId, String name){
 		this(new QuestionList.Builder().authorId(authorId).name(name));
 	}
-
+	
 	/**
 	 * Constructs a QuestionList from a JSON file located at the specified file path.
 	 *
 	 * @param filePath the file path of the JSON file to import the list from
 	 */
-	public QuestionList(String filePath) throws IOException {
+	public QuestionList(String filePath) throws IOException{
 		this(QuestionList.Parser.fromJsonFile(filePath));
 	}
-
+	
 	/**
 	 * Imports a QuestionList from a JSON file.
 	 *
@@ -744,7 +662,7 @@ public class QuestionList implements Iterable<Question>{
 			return true;
 		}
 		questions.add(e);
-
+		
 		return true;
 	}
 	
@@ -779,7 +697,7 @@ public class QuestionList implements Iterable<Question>{
 	public boolean isEmpty(){
 		return questions.isEmpty();
 	}
-
+	
 	/** 
 	 * @return the number of Questions in this list
 	 * @pure
@@ -787,7 +705,7 @@ public class QuestionList implements Iterable<Question>{
 	public int size(){
 		return questions.size();
 	}
-
+	
 	/**
 	 * Sets the author ID for this QuestionList.
 	 * Renames the associated directory if necessary.
@@ -797,7 +715,7 @@ public class QuestionList implements Iterable<Question>{
 	public void setAuthorId(String authorId) {
 		this.authorId= authorId;
 	}
-
+	
 	/**
 	 * Sets the name for this QuestionList.
 	 * Renames the associated file if necessary.
@@ -807,7 +725,7 @@ public class QuestionList implements Iterable<Question>{
 	public void setName(String name) {
 		this.name= name;
 	}
-
+	
 	/**
 	 * Sets the id for this QuestionList.
 	 * @param id the new id
@@ -815,7 +733,7 @@ public class QuestionList implements Iterable<Question>{
 	public void setId(String id){
 		this.id = id;
 	}
-
+	
 	/**
 	 * Gets the time this QuestionList was created in milliseconds.
 	 *
@@ -833,7 +751,7 @@ public class QuestionList implements Iterable<Question>{
 	public String getId() {
 		return id;
 	}
-
+	
 	/**
 	 * Gets the author ID for this QuestionList.
 	 *
@@ -842,7 +760,7 @@ public class QuestionList implements Iterable<Question>{
 	public String getAuthorId() {
 		return authorId;
 	}
-
+	
 	/**
 	 * Gets the name of this QuestionList.
 	 *
@@ -851,7 +769,7 @@ public class QuestionList implements Iterable<Question>{
 	public String getName() {
 		return name;
 	}
-
+	
 	/**
 	 * Gets the emojiPerTagName of this QuestionList.
 	 *
@@ -861,15 +779,15 @@ public class QuestionList implements Iterable<Question>{
 		HashMap<String, String> res = new HashMap<>(emojiPerTagName);
 		return res;
 	}
-
-	public Set<String> getTagNames() {
+	
+	public Set<String> tagNames() {
 		return emojiPerTagName.keySet();
 	}
-
+	
 	public String getEmoji(String tagName) {
 		return emojiPerTagName.getOrDefault(tagName, null);
 	}
-
+	
 	public void addTag(String tagName, String emoji) {
 		emojiPerTagName.put(tagName, emoji);
 	}
@@ -880,14 +798,14 @@ public class QuestionList implements Iterable<Question>{
 	/** 
 	 * Removes the tag with the specified name from this QuestionList.
 	 * @param tagName the name of the tag to remove
-	 * @ensures !this.getTagNames().contains(tagName)
+	 * @ensures !this.tagNames().contains(tagName)
 	 */
 	public void removeTag(String tagName) {
 		if (emojiPerTagName.containsKey(tagName)) {
 			emojiPerTagName.remove(tagName);
 		}
 	}
-
+	
 	/**
 	 * Returns the path to the list file for a given QuestionList.
 	 *
@@ -895,20 +813,20 @@ public class QuestionList implements Iterable<Question>{
 	 * @return the file path as a string
 	 */
 	public static String pathToList(QuestionList questions) {
-		return questions.getPathToList();
+		return questions.pathToList();
 	}
-
+	
 	/**
 	 * Returns the default path to the file for this QuestionList.
 	 *
 	 * @return the default file path as a string
 	 */
-	public String getPathToList(){
+	public String pathToList(){
 		String p = Constants.LISTSPATH+Constants.SEPARATOR+getAuthorId()+Constants.SEPARATOR;
 		p+=getId()+".json";
 		return p;
 	}
-
+	
 	/**
 	 * static method to export a QuestionList as a JSON file.
 	 * @param c the QuestionList to export.
@@ -916,13 +834,13 @@ public class QuestionList implements Iterable<Question>{
 	public static void exportListQuestionAsJson(QuestionList c){
 		c.exportListQuestionAsJson();
 	}
-
+	
 	/**
 	 * Exports this QuestionList as a JSON file.
 	 * Creates the file if it does not already exist.
 	 */
 	public void exportListQuestionAsJson(){
-		exportListQuestionAsJson(getPathToList());
+		exportListQuestionAsJson(pathToList());
 	}
 	
 	/** 
@@ -938,7 +856,7 @@ public class QuestionList implements Iterable<Question>{
 			BufferedWriter buff = Files.newBufferedWriter(Paths.get(destFilePath));
 			buff.write(this.toJson());
 			buff.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.err.println(Constants.ERROR + "An error occurred while exporting a List of questions.");
 			e.printStackTrace();
 		}
@@ -951,7 +869,7 @@ public class QuestionList implements Iterable<Question>{
 	public static Comparator<QuestionList> comparatorByDate() {
 		return Comparator.comparingLong(QuestionList::getTimeCreatedMillis);
 	}
-
+	
 	/** 
 	 * Comparator to compare two QuestionList instances by their size.
 	 */
@@ -980,101 +898,104 @@ public class QuestionList implements Iterable<Question>{
 	 */
 	@Override
 	public String toString() {
-		return toJson().replace("\n", "").replace("\t", "");
-	}
-	
-	/** 
-	 * Converts this QuestionList to a JSON string using the Jackson ObjectMapper.
-	 */
-	private String toJsonUsingMapper() throws JsonProcessingException{
-		String res="",
-			tab="",
-			spc1 = "  ",
-			spc2 = spc1+spc1,
-			spc3 = spc2+spc1,
-		seperatorParamOpt = "\n";
-
-
-
-		res += "{\n";
-		tab = "\t";
-		res += tab+Constants.MAPPER.writeValueAsString("authorId")+":"+Constants.MAPPER.writeValueAsString(""+getAuthorId()+"")+",\n";
-		res += tab + Constants.MAPPER.writeValueAsString("name")+":"+Constants.MAPPER.writeValueAsString(""+getName()+"")+",\n";
-		res += tab + Constants.MAPPER.writeValueAsString("id")+":"+Constants.MAPPER.writeValueAsString(""+getId()+"")+",\n";
-		res += tab + Constants.MAPPER.writeValueAsString("timeCreatedMillis")+":"+getTimeCreatedMillis()+",\n";
-
-		res += tab + Constants.MAPPER.writeValueAsString("emojiPerTagName")+":{";
-		Iterator<Entry<String, String>> iter = emojiPerTagName.entrySet().iterator();
-		Entry<String, String> entry;
-		while (iter.hasNext()) {
-			entry = iter.next();
-			res += ""+Constants.MAPPER.writeValueAsString(""+entry.getKey()+"")+" : "+Constants.MAPPER.writeValueAsString(""+entry.getValue()+"")+"";
-			if(iter.hasNext()){
-				res += ", ";
-			}
-		}
-		res += "},\n";
-
-		res += tab + Constants.MAPPER.writeValueAsString("questions")+": \n";
-		res += "\t[\n";
-		Iterator<Question> iterQuestion = this.iterator();
-		while (iterQuestion.hasNext()){
-			Question q = iterQuestion.next();
-			tab = "\t\t";
-			res += "\t{\n" + spc2 + Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString(q.getQuestion())+",\n";
-			res += spc2 + Constants.MAPPER.writeValueAsString("explication")+":";
-			if(q.getExplication()==null || q.getExplication().equals("null") || q.getExplication().equals(Constants.NOEXPLICATION)){
-				res +=null;
-			}else {
-				res += Constants.MAPPER.writeValueAsString(q.getExplication());
-			}
-			res += ",\n";
-			res +=spc2 + Constants.MAPPER.writeValueAsString("imageSrc")+":"+(q.getImageSrc()==null?null:Constants.MAPPER.writeValueAsString(q.getImageSrc()))+",\n";
-			res +=spc2 + Constants.MAPPER.writeValueAsString("options")+": [\n";
-			List<Option> opts = q.getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
-			Iterator<Option> iterOpt = opts.iterator();
-			while (iterOpt.hasNext()){
-				Option opt = iterOpt.next();
-				res += spc2+"{\n";
-				res += spc3+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString(opt.getText())+","+seperatorParamOpt;
-				res += spc3+Constants.MAPPER.writeValueAsString("isCorrect")+":"+opt.isCorrect()+","+seperatorParamOpt;
-				res += spc3+Constants.MAPPER.writeValueAsString("explication")+":";
-				if(opt.getExplication()==null || opt.getExplication().equals("null") || opt.getExplication().equals(Constants.NOEXPLICATION)){
-					res +=null+seperatorParamOpt;
-				}else {
-					res += Constants.MAPPER.writeValueAsString(opt.getExplication())+seperatorParamOpt;
-				}
-				res += spc2+"}";
-				if (iterOpt.hasNext()){
-					res += ",";
-				}
-				res += "\n";
-			}
-			res += spc2+"]\n";
-			res += spc1+"}";
-			if(iterQuestion.hasNext()) {
-				res+= ",";
-			}
-			res += "\n";
-		}
-		res += spc1+"]\n";
-		res +="}";
-		return res;
+		return toJson();
 	}
 	
 	/** 
 	 * Returns a string representation of this QuestionList in JSON format.
 	 */
 	public String toJson(){
-		String res=null;
-		try {
-			res = toJsonUsingMapper();
-		} catch (Exception e){
-			System.err.println(Constants.ERROR + "[toJsonUsingMapper() failed]"+e.getMessage());
-		}
-		return res;
+		/*try {
+			return Constants.MAPPER.writer(new DefaultPrettyPrinter()).writeValueAsString(this);
+		}catch(JsonProcessingException e){System.err.print(Constants.ERROR);e.printStackTrace();}*/
+		return toJsonUsingMapper();//Constants.MAPPER.writer(new DefaultPrettyPrinter()).writeValueAsString(this);
 	}
+	/** 
+	 * Converts this QuestionList to a JSON string using the Jackson ObjectMapper.
+	 */
+	private String toJsonUsingMapper() {
+		try {
+			
+			String res="",
+			tab="",
+			spc1 = "  ",
+			spc2 = spc1+spc1,
+			spc3 = spc2+spc1,
+			seperatorParamOpt = "\n";
 
+
+			
+			res += "{\n";
+			tab = "\t";
+			res += tab+"\"authorId\":"+Constants.MAPPER.writeValueAsString(getAuthorId())+",\n";
+			res += tab + "\"name\":"+Constants.MAPPER.writeValueAsString(getName())+",\n";
+			res += tab + "\"id\":"+Constants.MAPPER.writeValueAsString(getId())+",\n";
+			res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
+			
+			res += tab + "\"emojiPerTagName\":{";
+			Iterator<Entry<String, String>> iter = emojiPerTagName.entrySet().iterator();
+			Entry<String, String> entry;
+			while (iter.hasNext()) {
+				entry = iter.next();
+				res += Constants.MAPPER.writeValueAsString(entry.getKey())+" : "+Constants.MAPPER.writeValueAsString(entry.getValue());
+				if(iter.hasNext()){
+					res += ", ";
+				}
+			}
+			res += "},\n";
+			
+			res += tab + "\"questions\": \n";
+			res += "\t[\n";
+			Iterator<Question> iterQuestion = this.iterator();
+			while (iterQuestion.hasNext()){
+				Question q = iterQuestion.next();
+				tab = "\t\t";
+				res += "\t{\n" + spc2 + "\"question\":"+Constants.MAPPER.writeValueAsString(q.getQuestion())+",\n";
+				res += spc2 + "\"explication\":";
+				if(q.getExplication()==null || q.getExplication().equals("null") || q.getExplication().equals(Constants.NOEXPLICATION)){
+					res +=null;
+				}else {
+					res += Constants.MAPPER.writeValueAsString(q.getExplication());
+				}
+				res += ",\n";
+				res +=spc2 + "\"imageSrc\":"+(q.getImageSrc()==null?null:Constants.MAPPER.writeValueAsString(q.getImageSrc()))+",\n";
+				res +=spc2 + "\"options\": [\n";
+				List<Option> opts = q.getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
+				Iterator<Option> iterOpt = opts.iterator();
+				while (iterOpt.hasNext()){
+					Option opt = iterOpt.next();
+					res += spc2+"{\n";
+					res += spc3+"\"option\":"+Constants.MAPPER.writeValueAsString(opt.getText())+","+seperatorParamOpt;
+					res += spc3+"\"isCorrect\":"+opt.isCorrect()+","+seperatorParamOpt;
+					res += spc3+"\"explication\":";
+					if(opt.getExplication()==null || opt.getExplication().equals("null") || opt.getExplication().equals(Constants.NOEXPLICATION)){
+						res +=null+seperatorParamOpt;
+					}else {
+						res += Constants.MAPPER.writeValueAsString(opt.getExplication())+seperatorParamOpt;
+					}
+					res += spc2+"}";
+					if (iterOpt.hasNext()){
+						res += ",";
+					}
+					res += "\n";
+				}
+				res += spc2+"]\n";
+				res += spc1+"}";
+				if(iterQuestion.hasNext()) {
+					res+= ",";
+				}
+				res += "\n";
+			}
+			res += spc1+"]\n";
+			res +="}";
+			return res;
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
 	/**
 	 * Returns the hash code for this QuestionList.
 	 *
@@ -1190,7 +1111,7 @@ public class QuestionList implements Iterable<Question>{
 					awnsers = null;
 				}
 				if (awnsers != null && awnsers.contains(opt)) {
-					points += opt.isCorrect() ? pointsForCorrect / q.getTrueOptions().size() : pointsForIncorrect;
+					points += opt.isCorrect() ? pointsForCorrect / q.trueOptions().size() : pointsForIncorrect;
 					emoji = (opt.isCorrect() ? Constants.EMOJITRUE : Constants.EMOJIFALSE);
 				} else {
 					emoji = (opt.isCorrect() ? Constants.EMOJICORRECT : Constants.EMOJIINCORRECT);
@@ -1217,7 +1138,7 @@ public class QuestionList implements Iterable<Question>{
 		String questionText = String.format("### %d. %s %s\n", index+1, q.getQuestion(), pointStr);
 		return String.format("%s%s%s%s%s", header(), questionText, users, options, corrStr).replace("\\$([^\\$]*)\\$", "`$1`");
 	}	
-
+	
 	/** 
 	 * @param index the index of the question to format
 	 * @param opts a collection of options to mark as selected
@@ -1225,7 +1146,7 @@ public class QuestionList implements Iterable<Question>{
 	 */
 	public String getFormatedCorrection (int index, Collection<Option> opts) {
 		Map<String, Set<Option>> m = null;
-		if (opts!=null){
+		if (opts!=null && !opts.isEmpty()){
 			m=new HashMap<>();
 			m.put("unkown", new HashSet<>(opts));
 		}

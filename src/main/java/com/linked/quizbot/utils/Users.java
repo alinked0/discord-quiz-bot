@@ -29,11 +29,11 @@ import com.linked.quizbot.Constants;
  */
 public class Users {
 	public static final List<User> allUsers = new ArrayList<>();
-
+	
 	/*static {
 		loadAllUsers();
 	}*/
-
+	
 	public static User get(String userId) {
 		return Users.getUser(userId);
 	}
@@ -49,6 +49,7 @@ public class Users {
 		}else {
 			Users.allUsers.set(index, user);
 		}
+		user.exportUserData();
 		return Users.get(user.getId());
 	}
 	public static User addUser(String userId){
@@ -66,10 +67,10 @@ public class Users {
 		}
 		return null;
 	}
-	public static QuestionList getById(String id) {
+	public static QuestionList getById(String listId) {
 		QuestionList l=null;
 		for (User u : Users.allUsers){
-			l = u.getById(id);
+			l = u.getById(listId);
 			if (l!=null){
 				return l;
 			}
@@ -119,6 +120,16 @@ public class Users {
 		Users.update(user);
 		return b;
 	}
+	
+	/*TODO add docs */
+	public static void addAttempt(String userId, String listId, Attempt att){
+		Users.get(userId).addAttempt(listId, att);
+	}
+	
+	/*TODO add docs */
+	public List<Attempt> getAttempts(String userId, String ListId){
+		return Users.get(userId).getAttempts(ListId);
+	}
 	public static <T> int myBinarySearchIndexOf(List<T> tab, int start, int end, T q, Comparator<? super T> compare){
 		if (start > end){
 			return -1*start-1;
@@ -147,14 +158,16 @@ public class Users {
 		File[] listOfFiles = folder.listFiles();
 		if(listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
-				String listId = listOfFiles[i].getName();
+				listOfFiles[i].getName();
 				if (List.of("tmp").contains(listOfFiles[i].getName())) continue;
-				try{
-					QuestionList l = QuestionList.Parser.fromJsonFile(listOfFiles[i].getAbsolutePath()).build();
-					res.put(listId, l);
-				}catch (IOException e) {
-					System.err.println(String.format(Constants.ERROR + "An error occurred while importing a list. listid:%s , userId:%s",listId, userId));
-					e.printStackTrace();
+				if (listOfFiles[i].getName().endsWith(".json")){
+					try{
+						QuestionList l = QuestionList.Parser.fromJsonFile(listOfFiles[i].getAbsolutePath()).build();
+						res.put(l.getId(), l);
+					}catch (IOException e) {
+						System.err.println(String.format(Constants.ERROR + "An error occurred while importing a list. listid:%s , userId:%s",listOfFiles[i].getName(), userId));
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -180,7 +193,7 @@ public class Users {
 					}
 				}
 			}
-
+		
 		}
 	}
 	public static void exportAllUserData(){

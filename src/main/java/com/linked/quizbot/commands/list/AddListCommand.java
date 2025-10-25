@@ -90,13 +90,13 @@ public class AddListCommand extends BotCommand{
 		}
 		if (k!=null) {
 			String index = l.getId();
-
+			
 			if (QuestionList.getExampleQuestionList().getId().equals(index)) {
 				return "The example list cannot be modified.\n";
 			}
 			if (k.getAuthorId() == senderId){
 				Users.addListToUser(l.getAuthorId(), l);
-				return "Success, list has been added, use `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+index+"` command to verife.\n";
+				return "Success, list :"+l.header()+", has been added.\n";
 			} 
 			return String.format("Your are not the owner of `%s`, use `%s` `<your_list.json>`\nto create a new list.", index, Constants.CMDPREFIXE+CreateListCommand.CMDNAME);
 		}

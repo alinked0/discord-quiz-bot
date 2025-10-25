@@ -1,12 +1,16 @@
 package com.linked.quizbot.utils;
 
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linked.quizbot.Constants;
 
@@ -22,7 +26,77 @@ public class Option {
 	private String txt;
 	private String explication;
 	private boolean isCorrect;
-
+	
+	public static class Parser {
+		
+		public static Option parse(JsonParser jp, String original) throws IOException{
+			String optTxt = null;
+			String optExpl = null, fieldName;
+			Boolean isCorr = null;
+			Option res=null;
+			if(jp.currentToken() != JsonToken.START_OBJECT && jp.nextToken() != JsonToken.START_OBJECT){
+				throw new IOException(String.format(Constants.ERROR+Constants.RED+"Option.Parser.parse, input is not a json: (%s, %s, %s) (%s, %s, %s) %s"+Constants.RESET,  jp.currentToken(), jp.currentName(), jp.getText(), jp.nextValue(), jp.nextFieldName(), jp.nextTextValue(), original));
+			}
+			while(!jp.isClosed()){
+				if (jp.currentToken() == JsonToken.FIELD_NAME) {
+					fieldName = jp.currentName().toLowerCase();
+					jp.nextToken();
+					/* parsing System.out.print("Option.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
+					switch(fieldName){
+						case "text", "option" -> optTxt = jp.getValueAsString();
+						case "explication" -> {
+							optExpl = jp.getText();
+							if (optExpl!=null && optExpl.equals("null")){
+								optExpl = null;
+							}
+						}
+						case "iscorrect", "correct" -> {
+							isCorr = jp.getBooleanValue();
+						}
+						default -> {
+							jp.skipChildren();
+						}
+					}
+				} else if(jp.currentToken() == JsonToken.END_OBJECT){
+					jp.nextToken();
+					/* parsing System.out.println("Option.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
+					break;
+				} else {
+					jp.nextToken();
+					/* parsing System.out.print("Option.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
+				}
+			};
+			if (optTxt!=null && isCorr!= null){
+				if (optExpl!=null){
+					res = new Option(optTxt, isCorr, optExpl);
+				} else {
+					res = new Option(optTxt, isCorr);
+				}
+			}
+			return res;
+		}
+		public static List<Option> parseList(JsonParser jp, String original) throws IOException{
+			LinkedList<Option> opts = new LinkedList<>();
+			Option opt;
+			if(jp.currentToken() != JsonToken.START_ARRAY && jp.nextToken() != JsonToken.START_ARRAY){
+				throw new IOException(String.format(Constants.ERROR+Constants.RED+"Option.Parser.parseList, input is not a json: (%s, %s, %s) (%s, %s, %s) %s"+Constants.RESET,  jp.currentToken(), jp.currentName(), jp.getText(), jp.nextValue(), jp.nextFieldName(), jp.nextTextValue(), original));
+			}
+			while(!jp.isClosed()){
+				if (jp.currentToken() == JsonToken.START_OBJECT){
+					opt = Option.Parser.parse(jp, original);
+					if(opt!=null && opt.getText()!=null)	opts.add(opt);
+				} else if (jp.currentToken() == JsonToken.END_ARRAY){
+					jp.nextToken();
+					/* parsing System.out.println("Option.Parser.parseList("+jp.currentToken()+", "+jp.currentName()+") "); */
+					break;
+				} else {
+					jp.nextToken();
+					/* parsing System.out.print("Option.Parser.parseList("+jp.currentToken()+", "+jp.currentName()+") "); */
+				}
+			};
+			return opts;
+		}
+	}
 	/**
 	 * Constructs an Option with only text.
 	 *
@@ -35,7 +109,7 @@ public class Option {
 		explication = null;
 		this.isCorrect = isCorrect;
 	}
-
+	
 	/**
 	 * Constructs an Option with text and an explanation.
 	 *
@@ -48,7 +122,7 @@ public class Option {
 		this(text, isCorrect);
 		this.explication = explication;
 	}
-
+	
 	/**
 	 * Gets the text of the option.
 	 *
@@ -60,7 +134,7 @@ public class Option {
 	public boolean isCorrect() {
 		return isCorrect;
 	}
-
+	
 	/**
 	 * Retrieves the explanation of the option.
 	 *
@@ -77,7 +151,7 @@ public class Option {
 	public static Comparator<? super Option> comparator() {
 		return (e, f)->((e.isCorrect()^f.isCorrect())?(e.isCorrect()?-1:1):0);
 	}
-
+	
 	/**
 	 * Returns a string representation of this Option in JSON format.
 	 *
@@ -88,11 +162,11 @@ public class Option {
 		return toJson().replace("\n\t\"" ,"\"");
 	}
 	public String toJson() {
-
+		
 		try {
-			String s = "{\n\t"+Constants.MAPPER.writeValueAsString("text")+":"+Constants.MAPPER.writeValueAsString(getText());
-			s+= ",\n\t"+Constants.MAPPER.writeValueAsString("isCorrect")+":"+isCorrect();
-			s+= ",\n\t"+Constants.MAPPER.writeValueAsString("explication")+":";
+			String s = "{\n\t\"option\":"+Constants.MAPPER.writeValueAsString(getText());
+			s+= ",\n\t\"isCorrect\":"+isCorrect();
+			s+= ",\n\t\"explication\":";
 			if(getExplication()==null || getExplication().equals("null") || getExplication().equals(Constants.NOEXPLICATION)){
 				s+=null;
 			}else {s += Constants.MAPPER.writeValueAsString(getExplication());}

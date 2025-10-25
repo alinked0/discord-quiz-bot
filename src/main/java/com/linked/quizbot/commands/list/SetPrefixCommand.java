@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code SetPrefixeCommand} class allows users to set their preferred command prefix for the bot.
+ * The {@code SetPrefixCommand} class allows users to set their preferred command prefix for the bot.
  * It extends {@link BotCommand} and provides functionality to change the prefix used for bot commands.
  * <p>
  * This command is part of a Discord bot that manages user interactions and preferences.
@@ -24,9 +24,9 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see BotCommand
  * @see Users
  */
-public class SetPrefixeCommand extends BotCommand{
-	public static final String CMDNAME = "setprefixe";
-	private String cmdDesrciption = "choose your perffere prefixe";
+public class SetPrefixCommand extends BotCommand{
+	public static final String CMDNAME = "setprefix";
+	private String cmdDesrciption = "choose your perffere prefix";
 	private List<String> abbrevs = List.of();
 	
 	@Override
@@ -40,7 +40,7 @@ public class SetPrefixeCommand extends BotCommand{
 	@Override
 	public List<OptionData> getOptionData(){
 		List<OptionData> res = new ArrayList<>();
-		res.add(new OptionData(OptionType.STRING, "prefixe", "youtr perfered prefixe", true));
+		res.add(new OptionData(OptionType.STRING, "prefix", "youtr perfered prefix", true));
 		return res;
 	}
 	@Override
@@ -48,9 +48,9 @@ public class SetPrefixeCommand extends BotCommand{
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		String prefixe=args.get(0);
-		Users.get(userId).setPrefix(prefixe);
-		String res = BotCore.getEffectiveNameFromId(userId)+"'s prefixe has been set to '"+prefixe+"'";
+		String prefix=args.get(0);
+		Users.get(userId).setPrefix(prefix);
+		String res = BotCore.getEffectiveNameFromId(userId)+"'s prefix has been set to '"+prefix+"'";
 		return new CommandOutput.Builder()
 				.add(res)
 				.build();

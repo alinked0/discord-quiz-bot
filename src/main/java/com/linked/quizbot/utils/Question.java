@@ -4,11 +4,17 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+
+import javax.management.InvalidAttributeValueException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 
@@ -27,8 +33,8 @@ public class Question{
 	private final String question;
 	private String explication;
 	private List<Option> options = new LinkedList<>();
-
-
+	
+	
 	private String imageSrc = null;// TODO impl a way to attach images
 	
 	/**
@@ -42,7 +48,7 @@ public class Question{
 		private  String question = null;
 		private String explication= null;
 		private String imageSrc = null;
-
+		
 		/**
 		 * Sets the text of the question.
 		 * @param question The main text of the question.
@@ -54,7 +60,7 @@ public class Question{
 			this.question = question;
 			return this;
 		}
-
+		
 		/**
 		 * Sets the optional explanation or reasoning for the answer.
 		 * @param explication The explanation text.
@@ -89,7 +95,7 @@ public class Question{
 			}
 			return this;
 		}
-
+		
 		/**
 		 * Copies the content (question text, explanation, image source, and all options) from an existing {@link Question}.
 		 * @param question The existing question to copy from.
@@ -101,8 +107,8 @@ public class Question{
 		public Builder add(Question question){
 			return this.question(question.getQuestion()).explication(question.getExplication()).imageSrc(question.getImageSrc()).addAll(question.getOptions());
 		}
-
-
+		
+		
 		/**
 		 * Adds a collection of {@link Option} objects to the list of possible answers.
 		 * @param c The collection of options to add.
@@ -114,7 +120,7 @@ public class Question{
 			list.addAll(c);
 			return this;
 		}
-
+		
 		/**
 		 * Constructs the final {@link Question} object.
 		 * <p>Before constructing, the options are sorted with correct answers preceding incorrect answers.</p>
@@ -128,8 +134,58 @@ public class Question{
 			return new Question(this);
 		}
 	}
-
-
+	
+	public static class Parser {
+		public static Question parse(JsonParser jp, String original) throws IOException{
+			Question outputBuilder = null;
+			String q = null;
+			String expl = null;
+			String imgSrc= null, fieldName;
+			List <Option>opts = null;
+			if(jp.currentToken() != JsonToken.START_OBJECT && jp.nextToken() != JsonToken.START_OBJECT) {
+				throw new IOException(String.format(Constants.ERROR+Constants.RED+"Question.Parser.parse, input is not a json: (%s, %s, %s) (%s, %s, %s) %s"+Constants.RESET,  jp.currentToken(), jp.currentName(), jp.getText(), jp.nextValue(), jp.nextFieldName(), jp.nextTextValue(), original));
+			}
+			while(!jp.isClosed()){
+				if(jp.currentToken() == JsonToken.FIELD_NAME) {
+					fieldName = jp.currentName().toLowerCase();
+					jp.nextToken();
+					/* parsing System.out.print("Question.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
+					switch (fieldName){
+						case "question" -> {q = jp.getText();}
+						case "explication" -> {
+							expl = jp.getText();
+							if (expl!=null && expl.equals("null")){
+								expl = null;
+							}
+						}
+						case "img_src","imagesrc" -> {
+							imgSrc = jp.getText().equals("null")?null:jp.getText();
+						}
+						case "options" ->{
+							opts = Option.Parser.parseList(jp, original);
+						}
+						default -> {
+							jp.skipChildren();
+						}
+					}
+				} else if (jp.currentToken() == JsonToken.END_OBJECT) {
+					jp.nextToken();
+					/* parsing System.out.println("Question.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
+					break;
+				} else {
+					jp.nextToken();
+					/* parsing System.out.print("Question.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
+				}
+			};
+			if (q==null || opts==null || opts.isEmpty() || opts.stream().filter(o -> o.isCorrect()).count()==0){
+				return null; //TODO create custom exceptions
+			}
+			outputBuilder = new Question(q, opts);
+			outputBuilder.setExplication(expl);
+			outputBuilder.setImageSrc(imgSrc);
+			return outputBuilder;
+		}
+	}
 	/**
 	 * Constructs a {@code Question} object from a {@link Builder}.
 	 * @param builder The {@link Question.Builder} containing the question data.
@@ -172,7 +228,7 @@ public class Question{
 		this.options.addAll(optionsForAnswer);
 		this.question = question;
 	}
-
+	
 	/**
 	 * Constructs a multiple-choice question with the specified number of correct options.
 	 *
@@ -195,7 +251,7 @@ public class Question{
 		}
 		this.question = question;
 	}
-
+	
 	/**
 	 * Constructs a multiple-choice question directly from an array of pre-built {@link Option} objects.
 	 *
@@ -213,7 +269,7 @@ public class Question{
 			add(option);
 		}
 	}
-
+	
 	/**
 	 * Adds a single {@link Option} to the question's list of possible answers.
 	 * @param opt The answer option to add.
@@ -223,10 +279,11 @@ public class Question{
 	 * @ensures options.size() == \old(options.size()) + 1
 	 */
 	public boolean add(Option opt) {
+		if (opt==null) throw new NullPointerException();
 		options.add(opt);
 		return true;
 	}
-
+	
 	/**
 	 * Adds all {@link Option} objects from a collection to the question's list of possible answers.
 	 * @param opt The collection of options to add.
@@ -235,10 +292,11 @@ public class Question{
 	 * @ensures options.containsAll(opt)
 	 */
 	public boolean addAll(Collection<? extends Option> opt) {
+		if (opt==null) throw new NullPointerException();
 		options.addAll(opt);
 		return true;
 	}
-
+	
 	/**
 	 * Checks if this question's options list contains the specified object.
 	 * @param o The object to be checked for containment.
@@ -248,8 +306,8 @@ public class Question{
 	public boolean contains(Object o) {
 		return options.contains(o);
 	}
-
-
+	
+	
 	/**
 	 * Returns the number of options (correct and incorrect) associated with this question.
 	 * @return The number of options.
@@ -258,7 +316,7 @@ public class Question{
 	public int size(){
 		return options.size();
 	}
-
+	
 	/**
 	 * Returns the option at the specified index.
 	 *
@@ -271,7 +329,7 @@ public class Question{
 	public Option get(int index){
 		return options.get(index);
 	}
-
+	
 	/**
 	 * Returns the number of correct options.
 	 *
@@ -282,13 +340,13 @@ public class Question{
 	public int getNumberTrue() {
 		int t = 0;
 		for (Option opt:getOptions()) {
-			if (opt.isCorrect()) {
+			if (opt!=null && opt.isCorrect()) {
 				++t;
 			}
 		}
 		return t;
 	}
-
+	
 	/**
 	 * Returns the explanation for the question, if any.
 	 *
@@ -321,21 +379,7 @@ public class Question{
 		List<Option> res = new LinkedList<>(options);
 		return res;
 	}
-
-	/**
-	 * Returns a new, randomly sorted list of all options for the question.
-	 * <p>Uses the internal {@link BotCore#getRandom()} instance for shuffling.</p>
-	 * @return A randomly sorted list of options.
-	 * @ensures \result is a new List instance
-	 * @ensures \result.size() == size()
-	 */
-	public List<Option> getOptionsRearraged() {
-		Random r = BotCore.getRandom();
-		List<Option> res = getOptions();
-		res.sort((a,b)->r.nextBoolean()?-1:1);
-		return res;
-	}
-
+	
 	/**
 	 * Rearranges the internal list of options using a random comparator.
 	 * @return The current Question object, with options shuffled.
@@ -345,7 +389,7 @@ public class Question{
 		Random r = BotCore.getRandom();
 		return rearrageOptions((a,b)->r.nextBoolean()?-1:1);
 	}
-
+	
 	/**
 	 * Rearranges the internal list of options using the specified {@link Comparator}.
 	 * @param comp The comparator to determine the new order of options.
@@ -357,59 +401,59 @@ public class Question{
 		options.sort(comp);
 		return this;
 	}
-
+	
 	/**
 	 * Returns the optional image source URL or path associated with the question.
 	 * @return The image source string, or {@code null} if not set.
 	 * @ensures \result == imageSrc
 	 */
 	public String getImageSrc (){ return imageSrc;}
-
-
+	
+	
 	/**
 	 * Sets the optional image source URL or path associated with the question.
 	 * @param imageSrc The image source string.
 	 * @ensures this.imageSrc == imageSrc
 	 */
 	public void setImageSrc(String imageSrc){ this.imageSrc = imageSrc;}
-
+	
 	/**
 	 * Returns the text of the question.
 	 * @return The question text.
 	 * @ensures \result == question
 	 */
 	public String getQuestion() { return question;}
-
+	
 	/**
 	 * Returns a new list containing only the correct options.
 	 * @return The list of correct options.
 	 * @ensures (\forall Option opt; \result.contains(opt); opt.isCorrect())
 	 */
-	public List<Option> getTrueOptions() {
+	public List<Option> trueOptions() {
 		List<Option> res = new ArrayList<>();
 		for (Option opt:getOptions()) {
-			if (opt.isCorrect()) {
+			if (opt!=null && opt.isCorrect()) {
 				res.add(opt);
 			}
 		}
 		return res;
 	}
-
+	
 	/**
 	 * Returns a new list containing only the incorrect options.
 	 * @return The list of incorrect options.
 	 * @ensures (\forall Option opt; \result.contains(opt); !opt.isCorrect())
 	 */
-	public List<Option> getFalseOptions() {
+	public List<Option> falseOptions() {
 		List<Option> res = new ArrayList<>();
 		for (Option opt:getOptions()) {
-			if (!opt.isCorrect()) {
+			if (opt!=null && !opt.isCorrect()) {
 				res.add(opt);
 			}
 		}
 		return res;
 	}
-
+	
 	/**
 	 * Checks if a given option is one of the correct options.
 	 * <p>This method simply delegates to {@link Option#isCorrect()}.</p>
@@ -421,7 +465,7 @@ public class Question{
 	public boolean isCorrect(Option option){
 		return option.isCorrect();
 	}
-
+	
 	/**
 	 * Returns a string representation of this Question in JSON format.
 	 *
@@ -429,37 +473,29 @@ public class Question{
 	 */
 	@Override
 	public String toString() {
+		return toJson();
+	}
+	public String toJson() {
 		try {
-			String s = "{\n\t"+Constants.MAPPER.writeValueAsString("question")+":"+Constants.MAPPER.writeValueAsString(""+getQuestion()+"")+"";
-			s+= ",\n\t"+Constants.MAPPER.writeValueAsString("explication")+":";
+			String s = "{\n\t\"question\":"+Constants.MAPPER.writeValueAsString(""+getQuestion()+"")+"";
+			s+= ",\n\t\"explication\":";
 			if(getExplication()==null || getExplication().equals("null") || getExplication().equals(Constants.NOEXPLICATION)){
 				s+=null;
 			}else {s+=""+Constants.MAPPER.writeValueAsString(""+getExplication()+"")+"";}
 			s+=",";
-			s+= "\n\t"+Constants.MAPPER.writeValueAsString("imageSrc")+":"+(getImageSrc()==null?null:""+Constants.MAPPER.writeValueAsString(""+getImageSrc()+"")+"")+",";
-			s+="\n\t"+Constants.MAPPER.writeValueAsString("options")+": [";
+			s+= "\n\t\"imageSrc\":"+(getImageSrc()==null?null:""+Constants.MAPPER.writeValueAsString(""+getImageSrc()+"")+"")+",";
+			s+="\n\t\"options\": [";
 			List<Option> opts = getOptions(); opts.sort((a,b)->(a.isCorrect()?-1:1));
+			//s+= String.format("\n\t"+"\"%s\":%s", "options", Constants.MAPPER.writeValueAsString(opts));
 			for (Iterator<Option> iter = opts.iterator(); iter.hasNext(); ) {
 				s+="\n\t\t"+iter.next().toString();
-				if(iter.hasNext()) {
-					s+= ",";
-				}
+				if(iter.hasNext()) {s+= ",";}
 			}
-			s+= "\n\t]\n}";
+			s+= "\n\t]";
+			s+="\n}";
 			return s;
 		}catch(JsonProcessingException e){e.printStackTrace();}
 		return null;
-	}
-
-
-	/**
-	 * Creates and returns a deep clone of this {@code Question} object.
-	 * @return A new {@code Question} object with identical content and options.
-	 * @ensures \result != this
-	 * @ensures \result.equals(this)
-	 */
-	public Question clone(){
-		return new Question.Builder().add(this).build();
 	}
 	
 	/**

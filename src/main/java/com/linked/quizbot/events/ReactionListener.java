@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.core.CommandLineInterface;
 import com.linked.quizbot.core.MessageSender;
 import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
@@ -30,7 +31,7 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
  * every {@link QuizBot} class contains the message on which the current game is being played.
  */
 public class ReactionListener extends ListenerAdapter {
-
+	
 	@Override
 	public void onMessageReactionAdd(MessageReactionAddEvent event){
 		long start = System.nanoTime();
@@ -58,15 +59,15 @@ public class ReactionListener extends ListenerAdapter {
 		event.getChannel().retrieveMessageById(messageId).queue(message -> {
 			BotCommand cmd = BotCommand.getCommandFromEmoji(reaction.getFormatted());
 			if(cmd!=null){
+				CommandOutput output= CommandLineInterface.execute(Constants.CMDPREFIXE+cmd.getName()+" "+messageId, userId, null);
 				MessageSender.sendCommandOutput(
-					cmd.execute(userId, List.of(messageId)),
+					output,
 					channel,
 					message 
-				);
-			if (!BotCore.isBugFree()) System.out.printf(Constants.INFO + "%s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
+				);				
 				return;
 			}
-
+			
 			Viewer viewer = BotCore.getViewer(messageId);
 			if (viewer!=null && viewer.isActive() && viewer.getReactions().contains(reaction)){
 				viewer.addReaction(userId, reaction);
@@ -85,7 +86,7 @@ public class ReactionListener extends ListenerAdapter {
 			);
 		});
 	}
-
+	
 	public static void autoNext(String userId, Message message, QuizBot quizBot){
 		if(!quizBot.useAutoNext()){
 			return;

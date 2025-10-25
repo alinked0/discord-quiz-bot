@@ -67,7 +67,7 @@ The bot supports both **slash commands** and **message commands** (e.g., `q!help
 - `q!addtag <tag-name> <list-id>` — Tag a list for easier organization.
 - `q!createtag <tag-name> <emoji>` — Create a new tag.
 - `q!renamelist <list-id> <new-name>` — Rename a question list.
-- `q!setprefixe <prefix>` — Change your command prefix.
+- `q!setprefix <prefix>` — Change your command prefix.
 - `q!userinfo [user-id]` — Show user info in JSON format.
 
 For a full list and detailed help, use `q!help` or `/help`.
@@ -155,7 +155,7 @@ This project is licensed under the MIT License.
 - **Bot not responding?**  
   Check your bot token, permissions, and that the bot is invited to your server.
 - **Command not recognized?**  
-  Use the correct prefix (default `q!`), or check your custom prefix with `q!setprefixe`.
+  Use the correct prefix (default `q!`), or check your custom prefix with `q!setprefix`.
 - **Need help?**  
   Use `q!help` or `/help` for command documentation.
 

@@ -75,9 +75,7 @@ public class EmbedCommand extends BotCommand {
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
-		//Liste de l'utilisateur
-		User user = Users.get(userId);
-		QuestionList list = user.get(0);
+		QuestionList list = QuestionList.getExampleQuestionList();
 		Question question = list.get(0);
 		// Créer l'embed
 		EmbedBuilder embed = new EmbedBuilder()
@@ -86,7 +84,7 @@ public class EmbedCommand extends BotCommand {
 					.setFooter("Java Bot Server Test")
 					.setAuthor("Java Bot Server Test")
 					.setTimestamp(java.time.Instant.now());
-
+		
 		int i = 1;
 		List<Option> listOpts = question.getOptions();
 		for(Option opt : listOpts) {
@@ -101,7 +99,7 @@ public class EmbedCommand extends BotCommand {
 					for (int j=1; j<=question.size(); j++) {
 						emojis.add(Emoji.fromUnicode("U+3"+j+"U+fe0fU+20e3"));
 					}
-
+		
 		return new CommandOutput.Builder()
 				.addEmbed(embed.build())
 				.addReactions(emojis)

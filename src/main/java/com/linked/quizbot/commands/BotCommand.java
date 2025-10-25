@@ -27,6 +27,7 @@ import com.linked.quizbot.commands.list.EmbedCommand;
 import com.linked.quizbot.commands.list.EndCommand;
 import com.linked.quizbot.commands.list.ExplainCommand;
 import com.linked.quizbot.commands.list.HelpCommand;
+import com.linked.quizbot.commands.list.HistoryCommand;
 import com.linked.quizbot.commands.list.InviteCommand;
 import com.linked.quizbot.commands.list.LeaderBoardCommand;
 import com.linked.quizbot.commands.list.UseAutoNextCommand;
@@ -37,7 +38,7 @@ import com.linked.quizbot.commands.list.RawListCommand;
 import com.linked.quizbot.commands.list.RemoveListCommand;
 import com.linked.quizbot.commands.list.RemoveTagCommand;
 import com.linked.quizbot.commands.list.RenameListCommand;
-import com.linked.quizbot.commands.list.SetPrefixeCommand;
+import com.linked.quizbot.commands.list.SetPrefixCommand;
 import com.linked.quizbot.commands.list.StartCommand;
 import com.linked.quizbot.commands.list.TagsCommand;
 import com.linked.quizbot.commands.list.AddTagCommand;
@@ -67,12 +68,12 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 public abstract class BotCommand {
 	private final static Map<BotCommand.CommandCategory, Set<BotCommand>> commandByCategory = new HashMap<>();
 	public static Random rand = new Random();
-
+	
 	// Static set to hold all command instances, initialized once.
 	private static final Set<BotCommand> ALL_COMMANDS;
 	private static final Set<BotCommand> PUBLIC_COMMANDS;
 	private static final Set<BotCommand> PRIVATE_COMMANDS;
-
+	
 	// Static block to initialize the command sets.
 	static {
 		PUBLIC_COMMANDS = new HashSet<>();
@@ -89,6 +90,7 @@ public abstract class BotCommand {
 			new EndCommand(),
 			new ExplainCommand(),
 			new HelpCommand(),
+			new HistoryCommand(),
 			new InviteCommand(),
 			new LeaderBoardCommand(),
 			new NextCommand(),
@@ -97,7 +99,7 @@ public abstract class BotCommand {
 			new RawListCommand(),
 			new RenameListCommand(),
 			new RemoveTagCommand(),
-			new SetPrefixeCommand(),
+			new SetPrefixCommand(),
 			new StartCommand(),
 			new TagsCommand(),
 			new UseAutoNextCommand(),
@@ -133,7 +135,7 @@ public abstract class BotCommand {
 			return name;
 		}
 	}
-
+	
 	/**
 	 * Executes the command with the given userId and arguments.
 	 * @param userId The ID of the user who is executing the command.
@@ -141,14 +143,14 @@ public abstract class BotCommand {
 	 * @return The output of the command execution.
 	 */
 	public abstract CommandOutput execute(String userId,  List<String> args);
-
+	
 	/**
 	 * This is a getter method that returns the name of the command.
 	 * @return The name of the command as a String.
 	 * @pure
 	 */
 	public abstract String getName();
-
+	
 	/**
 	 * @return The category of the command as a CommandCategory enum.
 	 * @pure
@@ -156,7 +158,7 @@ public abstract class BotCommand {
 	public BotCommand.CommandCategory getCategory(){
 		return BotCommand.CommandCategory.OTHER;
 	}
-
+	
 	/**
 	 * @return A list of abbreviations as Strings.
 	 * @pure
@@ -164,7 +166,7 @@ public abstract class BotCommand {
 	public List<String> getAbbreviations(){
 		return List.of();
 	}
-
+	
 	/**
 	 * Returns a list of OptionData objects that represent the options for the command.
 	 * It is mainly use to create the slash command.
@@ -175,13 +177,13 @@ public abstract class BotCommand {
 		List<OptionData> res = new ArrayList<>();
 		return res;
 	}
-
+	
 	/**
 	 * @return A String that describes the command.
 	 * @pure
 	 */
 	public abstract String getDescription();
-
+	
 	/**
 	 * @return A String that contains detailed examples of the command or a message indicating that no examples were found.
 	 * @pure
@@ -189,7 +191,7 @@ public abstract class BotCommand {
 	public String getDetailedExamples(){
 		return "no examples found.";
 	}
-
+	
 	/**
 	 * @return A set of BotCommand objects that represent all commands.
 	 * @pure
@@ -197,7 +199,7 @@ public abstract class BotCommand {
 	public static Set<BotCommand> getCommands() {
 		return PUBLIC_COMMANDS;
 	}
-
+	
 	/**
 	 * Parses the command line arguments and returns a list of non-empty arguments.
 	 * @param cmndLineArgs The command line arguments as a String.
@@ -216,7 +218,7 @@ public abstract class BotCommand {
 		}
 		return res;
 	}
-
+	
 	/** 
 	 * Splits a JSON-like string into a list of JSON objects.
 	 * It handles nested JSON objects by keeping track of the opening and closing braces.
@@ -249,7 +251,7 @@ public abstract class BotCommand {
 		}
 		return res;
 	}
-
+	
 	/**
 	 * Retrieves arguments from an attachment associated with a user.
 	 * It downloads the attachment from the provided URL, reads its content, and splits it into a list of arguments.
@@ -294,7 +296,7 @@ public abstract class BotCommand {
 		}
 		return res;
 	}
-
+	
 	/**
 	 * Retrieves arguments from a list of attachments associated with a user.
 	 * @param userId
@@ -314,7 +316,7 @@ public abstract class BotCommand {
 		}
 		return res;
 	}
-
+	
 	/**
 	 * Retrieves a command by its name or abbreviation.
 	 * @param name The name or abbreviation of the command to retrieve.
@@ -329,7 +331,7 @@ public abstract class BotCommand {
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Attempts to parse the argument as an emoji using the JDA library.
 	 * @param arg The argument string that may contain an emoji.
@@ -343,7 +345,7 @@ public abstract class BotCommand {
 			return null;
 		}
 	}
-
+	
 	/**
 	 * Retrieves the ID of a user from a given argument string.
 	 * It checks if the argument starts with "<@" to identify a user mention,
@@ -362,10 +364,10 @@ public abstract class BotCommand {
 		if (arg.startsWith("<@")) {
 			return arg.substring(2, arg.length()-1);
 		}
-
+		
 		String approxiUserId = null;
 		int minDistTo0 = Integer.MAX_VALUE;
-
+		
 		Set<User> allUsers = new HashSet<>();
 		allUsers.addAll(jda.getUsers());
 		allUsers.addAll(BotCore.getAllUsers());
@@ -377,11 +379,11 @@ public abstract class BotCommand {
 				String userEffectiveName = u.getEffectiveName().toLowerCase(); // Nickname in server
 				String userTag = u.getAsTag().toLowerCase(); // Username#Discriminator (if not new system)
 				identifiers.addAll(List.of(userId, userName, userEffectiveName, userTag));
-
+				
 				if (!BotCore.isBugFree()) { // Debug logging
 					System.out.printf(Constants.INFO + "%s %s %s %s;\n", userId, userName, userEffectiveName,userTag);
 				}
-
+				
 				String lowerArg = arg.toLowerCase();
 				for (String s : identifiers){
 					// Exact match first
@@ -402,14 +404,14 @@ public abstract class BotCommand {
 			System.out.printf(Constants.INFO + "approxiUserId %s;\n", approxiUserId);
 			System.out.printf(Constants.INFO + "time getIdFromArg = %.3f ms%n", (System.nanoTime() - start) / 1000000.00);
 		}
-
+		
 		// If the arg itself is a raw ID of the correct length
 		if (Constants.DISCORDIDLENMIN<=arg.length() && arg.length()<=Constants.DISCORDIDLENMAX){
 			return arg;
 		}
 		return approxiUserId;
 	}
-
+	
 	/**
 	 * Returns the slash command data for this command.
 	 * It creates a SlashCommandData object with the command's name, description, and options.
@@ -419,7 +421,7 @@ public abstract class BotCommand {
 	public SlashCommandData getSlashCommandData(){
 		return Commands.slash(getName(), getDescription()).addOptions(getOptionData());
 	}
-
+	
 	/**
 	 * @return A list of SlashCommandData objects representing all commands.
 	 * @pure
@@ -431,7 +433,7 @@ public abstract class BotCommand {
 		}
 		return commandData;
 	}
-
+	
 	/**
 	 * Returns a set of all commands that belong to the specified category.
 	 * If the category is not found, it returns an empty set.
@@ -451,7 +453,7 @@ public abstract class BotCommand {
 		}
 		return commandByCategory.getOrDefault(cat, Collections.emptySet());
 	}
-
+	
 	/**
 	 * Returns a list of OptionData objects that are required for the command.
 	 * It filters the options to include only those that are marked as required.
@@ -467,7 +469,7 @@ public abstract class BotCommand {
 		}
 		return res;
 	}
-
+	
 	/**
 	 * Returns a BotCommand object based on the provided emoji formattedEmoji.
 	 * It checks the formattedEmoji against predefined emojis and returns the corresponding command.
@@ -496,7 +498,7 @@ public abstract class BotCommand {
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Returns a string representation of the command in JSON format.
 	 * It includes the command's name, description, and category.
@@ -507,7 +509,7 @@ public abstract class BotCommand {
 	public int hashCode() {
 		return getName().hashCode()*7 + getDescription().hashCode()*2 + getCategory().hashCode();
 	}
-
+	
 	/**
 	 * Checks if this command is equal to another object.
 	 * Two commands are considered equal if they have the same name, description, and category.

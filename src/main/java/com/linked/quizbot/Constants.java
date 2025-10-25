@@ -49,6 +49,12 @@ public class Constants {
 		EMOJIBOX = Emoji.fromUnicode("🔲").getFormatted(),
 		EMOJICHECKEDBOX = Emoji.fromUnicode("🔳").getFormatted();
 	public static String 
+		RED="\u001b[31m",
+		ORANGE="\u001b[33m",
+		BLUE="\u001b[34m",
+		MAGENTA="\u001b[35m ",
+		RESET="\u001b[0m";
+	public static String 
 		ERROR="[\u001b[33mERROR\u001b[0m] ",
 		INFO="[\u001b[34mINFO\u001b[0m] ",
 		IO="[\u001b[35mIO\u001b[0m] ";

@@ -49,7 +49,7 @@ public class SlashCommandListener extends ListenerAdapter {
 			event.reply(String.format("Command %s could not be found.", event.getName())).queue();
 			return;
 		}
-
+		
 		if(BotCore.isShutingDown()){
 			BotCommand.CommandCategory category = cmd.getCategory();
 			if(category.equals(BotCommand.CommandCategory.EDITING) || category.equals(BotCommand.CommandCategory.GAME)){

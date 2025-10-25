@@ -33,18 +33,18 @@ public class MessageListener extends ListenerAdapter {
 		if (!BotCore.isBugFree() && !(BotCore.canIRunThisHere(event.getChannel().getId()))){
 			return;
 		}
-
+		
 		// log User
 		BotCore.addUser(sender);
 		String userId = sender.getId();
 		
 		MessageChannel channel = event.getChannel();
 		String channelId = channel.getId();
-		//vefifier si le message contient notre prefixe
+		//vefifier si le message contient notre prefix
 		Message message = event.getMessage();
 		String content = message.getContentRaw();
-		String userPrefixe = Users.get(userId).getPrefix();
-		if (!content.startsWith(Constants.CMDPREFIXE) && userPrefixe!=null && !content.startsWith(userPrefixe)){
+		String userPrefix = Users.get(userId).getPrefix();
+		if (!content.startsWith(Constants.CMDPREFIXE) && userPrefix!=null && !content.startsWith(userPrefix)){
 			return;
 		}
 		List<String> h;

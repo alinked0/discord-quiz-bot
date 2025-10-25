@@ -25,7 +25,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class EndCommand extends BotCommand {
 	public static final String CMDNAME = "end";
 	private String cmdDesrciption = "ending an already ongoing viewer, quiz, or explanation.";
-
+	
 	@Override
 	public BotCommand.CommandCategory getCategory(){
 		return BotCommand.CommandCategory.GAME;

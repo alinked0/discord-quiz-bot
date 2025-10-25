@@ -2,6 +2,7 @@ package com.linked.quizbot.utils;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -11,12 +12,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.linked.quizbot.Constants;
 
 /**
@@ -38,15 +41,14 @@ import com.linked.quizbot.Constants;
  */
 public class User implements Iterable<QuestionList>{
 	private final String userId;
-	private final List<QuestionList> listsSortedById= new ArrayList<>();
-	private  final Map<String, String> tagEmojiPerTagName= new HashMap<>();
-	private final Map<String, List<QuestionList>> questionListPerTags= new HashMap<>();
-	private String prefixe;
-	private int numberOfGamesPlayed;
-	private double totalPointsEverGained;
-	private boolean useButtons;
-	private boolean useAutoNext;
-
+	private final Map<String, QuestionList> lists= new HashMap<>();
+	private final Map<String, String> tagEmojiByTagName= new HashMap<>();
+	private final Map<String, List<String>> questionListPerTags= new HashMap<>();
+	private final Map<String, List<Attempt>> attemptsByListId= new HashMap<>();
+	private String prefix;
+	private Boolean useButtons;
+	private Boolean useAutoNext;
+	
 	/**
 	 * Inner class implementing the Builder pattern for creating and initializing {@link User} objects.
 	 * <p>
@@ -55,14 +57,13 @@ public class User implements Iterable<QuestionList>{
 	 */
 	public static class Builder {
 		private String userId = null;
-		private String prefixe = null;
-		protected List<QuestionList> list = new ArrayList<>();
-		private boolean useButtons = true;
-		private boolean useAutoNext = false;
-		private int numberOfGamesPlayed=0;
-		private double totalPointsEverGained=0;
-		private Map<String, String> tagEmojiPerTagName= new HashMap<>();
-		private Map<String, List<QuestionList>> questionListPerTags= new HashMap<>();
+		public String prefix = null;
+		private List<QuestionList> list = new ArrayList<>();
+		private Boolean useButtons = true;
+		private Boolean useAutoNext = false;
+		private Map<String, String> tagEmojiByTagName= new HashMap<>();
+		private Map<String, List<String>> questionListPerTags= new HashMap<>();
+		private Map<String, List<Attempt>> attemptsByListId= new HashMap<>();
 		
 		/**
 		 * Sets the mandatory user ID.
@@ -79,111 +80,91 @@ public class User implements Iterable<QuestionList>{
 			this.userId = userId;
 			return this;
 		}  
-
+		
 		/**
 		 * Sets the command prefix for the user.
-		 * @param prefixe The custom command prefix.
+		 * @param prefix The custom command prefix.
 		 * @return The current Builder instance for chaining.
-		 * @ensures this.prefixe == prefixe
+		 * @ensures this.prefix == prefix
 		 */
-		public Builder prefixe(String prefixe){
-			this.prefixe= prefixe;
+		public Builder prefix(String prefix){
+			this.prefix= prefix;
 			return this;
 		}
-
+		
 		/**
 		 * Sets the preference for using interactive buttons in the bot.
 		 * @param b {@code true} to use buttons, {@code false} otherwise. Defaults to {@code true}.
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.useButtons == b
 		 */
-		public Builder useButtons(boolean b){
+		public Builder useButtons(Boolean b){
 			this.useButtons= b;
 			return this;
 		}
-
+		
 		/**
 		 * Sets the preference for automatically advancing to the next question.
 		 * @param b {@code true} to use auto-next, {@code false} otherwise. Defaults to {@code false}.
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.useAutoNext == b
 		 */
-		public Builder useAutoNext(boolean b){
+		public Builder useAutoNext(Boolean b){
 			this.useAutoNext= b;
 			return this;
 		}
-
-		/**
-		 * Sets the total number of games played by the user.
-		 * @param n The number of games played. Defaults to 0.
-		 * @return The current Builder instance for chaining.
-		 * @requires n >= 0
-		 * @ensures this.numberOfGamesPlayed == n
-		 */
-		public Builder numberOfGamesPlayed(int n){
-			this.numberOfGamesPlayed=n;
-			return this;
-		}
-
-		/**
-		 * Sets the total points ever gained by the user.
-		 * @param points The total points. Defaults to 0.0.
-		 * @return The current Builder instance for chaining.
-		 * @requires points >= 0.0
-		 * @ensures this.totalPointsEverGained == points
-		 */
-		public Builder totalPointsEverGained(double points){
-			this.totalPointsEverGained = points;
-			return this;
-		}
-
+		
 		/**
 		 * Sets the map of tag names to their associated emojis.
-		 * @param tagEmojiPerTagName A map of tag names (String) to emoji representations (String).
+		 * @param tagEmojiByTagName A map of tag names (String) to emoji representations (String).
 		 * @return The current Builder instance for chaining.
-		 * @ensures this.tagEmojiPerTagName.equals(tagEmojiPerTagName)
+		 * @ensures this.tagEmojiByTagName.equals(tagEmojiByTagName)
 		 */
-		public Builder tagEmojiPerTagName(Map<String, String> tagEmojiPerTagName){
-			this.tagEmojiPerTagName = tagEmojiPerTagName;
+		public Builder tagEmojiByTagName(Map<String, String> tagEmojiByTagName){
+			this.tagEmojiByTagName = tagEmojiByTagName;
 			return this;
 		}
-
+		public Builder attemptsByListId(Map<String, List<Attempt>>attemptsByListId){
+			this.attemptsByListId = attemptsByListId;
+			return this;
+		}
+		
 		/**
 		 * Adds a single tag name and its emoji to the map.
 		 * @param tagName The name of the tag.
 		 * @param emoji The emoji associated with the tag.
 		 * @return The current Builder instance for chaining.
 		 * @requires tagName != null && emoji != null
-		 * @ensures this.tagEmojiPerTagName.containsKey(tagName)
+		 * @ensures this.tagEmojiByTagName.containsKey(tagName)
 		 */
 		public  Builder addTag(String tagName, String emoji){
-			this.tagEmojiPerTagName.put(tagName, emoji);
+			this.tagEmojiByTagName.put(tagName, emoji);
 			return this;
 		}
-
+		
 		/**
 		 * Adds all entries from a map of tags to the current tag map.
 		 * @param tags A map of tag names (String) to emoji representations (String).
 		 * @return The current Builder instance for chaining.
 		 * @requires tags != null
-		 * @ensures this.tagEmojiPerTagName.keySet().containsAll(tags.keySet())
+		 * @ensures this.tagEmojiByTagName.keySet().containsAll(tags.keySet())
 		 */
 		public  Builder addTags(Map<String,String> tags){
-			this.tagEmojiPerTagName.putAll(tags);
+			this.tagEmojiByTagName.putAll(tags);
 			return this;
 		}
-
+		
 		/**
 		 * Sets the map associating tag names with lists of questions lists that have that tag.
-		 * @param questionListPerTags A map where the key is the tag name (String) and the value is a list of {@link QuestionList}.
+		 * @param questionListPerTags A map where the key is the tag name (String) and the value is a list of ids of {@link QuestionList}.
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.questionListPerTags.equals(questionListPerTags)
 		 */
-		public Builder questionListPerTags(Map<String, List<QuestionList>> questionListPerTags){
+		public Builder questionListPerTags(Map<String, List<String>> questionListPerTags){
 			this.questionListPerTags = questionListPerTags;
 			return this;
 		}
-
+		
 		/**
 		 * Sets the initial list of quiz lists for the user.
 		 * @param listsSortedById A list of {@link QuestionList} objects.
@@ -195,7 +176,7 @@ public class User implements Iterable<QuestionList>{
 			this.list = new ArrayList<>(listsSortedById);
 			return this;
 		}
-
+		
 		 /**
 		 * Adds a single {@link QuestionList} to the user's collection.
 		 * @param l The {@link QuestionList} to add.
@@ -207,7 +188,7 @@ public class User implements Iterable<QuestionList>{
 			this.list.add(l);
 			return this;
 		}
-
+		
 		/**
 		 * Adds a collection of {@link QuestionList} objects to the user's collection.
 		 * @param c The collection of {@link QuestionList} objects to add.
@@ -219,7 +200,7 @@ public class User implements Iterable<QuestionList>{
 			this.list.addAll(c);
 			return this;
 		}
-
+		
 		/**
 		 * Constructs the final {@link User} object.
 		 * <p>The constructor will automatically call {@link User#syncWithLocal()} to load and merge
@@ -233,7 +214,123 @@ public class User implements Iterable<QuestionList>{
 			return new User(this);
 		}
 	}
-
+	
+	public static class Parser {
+		public static User.Builder fromJsonFile(String filePathToJson)throws IOException{
+			File f = new File(filePathToJson);
+			if (!f.exists()){
+				throw new FileNotFoundException(filePathToJson);
+			}
+			JsonParser jp =  new JsonFactory().createParser(f);
+			return parse(jp, filePathToJson);
+		}
+		
+		public static User.Builder fromString(String arg) throws IOException{
+			JsonParser jp =  new JsonFactory().createParser(arg);
+			return parse(jp, arg);
+		}
+		
+		public static User.Builder parse(JsonParser jp, String original) throws IOException{
+			if (jp.currentToken() != JsonToken.START_OBJECT && jp.nextToken() != JsonToken.START_OBJECT){
+				throw new IOException(String.format(Constants.ERROR+Constants.RED+"User.Parser.parse, input is not a json: (%s, %s, %s) (%s, %s, %s) \n%s\n"+Constants.RESET,  jp.currentToken(), jp.currentName(), jp.getText(), jp.nextValue(), jp.nextFieldName(), jp.nextTextValue(), original));
+			}
+			User.Builder userBuilder = new User.Builder();
+			String fieldName;
+			while (!jp.isClosed()){
+				if (jp.currentToken() == JsonToken.FIELD_NAME) {
+					fieldName = jp.currentName();
+					jp.nextToken();
+					/* parsing System.out.print("User.Parser.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
+					switch (fieldName){
+						case "userId", "id" -> {
+							userBuilder.id(jp.getText());
+						}
+						case "prefix", "prefixe" -> {
+							userBuilder.prefix(jp.getText());
+						}
+						case "tagEmojiByTagName" -> {
+							userBuilder.tagEmojiByTagName(parseEmojiPerTagName(jp, original));
+						}
+						case "attemptsByListId", "attempts" -> {
+							userBuilder.attemptsByListId(parseAttempts(jp, original));
+						}
+						case "useButtons" -> {
+							userBuilder.useButtons(jp.getValueAsBoolean());
+						}
+						case "useAutoNext" -> {
+							userBuilder.useAutoNext(jp.getValueAsBoolean());
+						}
+						default -> {
+							jp.skipChildren();
+						}
+					}
+				} else if (jp.currentToken() == JsonToken.END_OBJECT){
+					jp.nextToken();
+					/* parsing System.out.println("User.Parser.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
+					break;
+				} else {
+					jp.nextToken();
+					/* parsing System.out.print("User.Parser.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
+				}
+			}
+			return userBuilder;
+		}
+		public static Map<String, String> parseEmojiPerTagName(JsonParser jp, String original) throws IOException{
+			String tagName;
+			String emoji;
+			Map<String, String> m = new HashMap<>();
+			if (jp.currentToken() != JsonToken.START_OBJECT && jp.nextToken() != JsonToken.START_OBJECT) {
+				throw new IOException(String.format(Constants.ERROR+Constants.RED+"User.Parser.parseEmojiPerTagName, input is not a json: (%s, %s, %s) (%s, %s, %s) \n%s\n"+Constants.RESET,  jp.currentToken(), jp.currentName(), jp.getText(), jp.nextValue(), jp.nextFieldName(), jp.nextTextValue(), original));
+			}
+			while (!jp.isClosed()) {
+				/* parsing System.out.print("User.Parser.Parser.parseEmojiPerTagName("+jp.currentToken()+", "+jp.currentName()+") "); */
+				if (jp.currentToken() == JsonToken.FIELD_NAME) {
+					tagName = jp.currentName();
+					jp.nextToken();
+					/* parsing System.out.print("User.Parser.Parser.parseEmojiPerTagName("+jp.currentToken()+", "+jp.currentName()+") "); */
+					emoji = jp.getText();
+					m.put(tagName, emoji);
+				} else if(jp.currentToken() == JsonToken.END_OBJECT){
+					jp.nextToken();
+					/* parsing System.out.println("User.Parser.Parser.parseEmojiPerTagName("+jp.currentToken()+", "+jp.currentName()+") "); */
+					break;
+				} else{
+					jp.nextToken();
+					/* parsing System.out.print("User.Parser.Parser.parseEmojiPerTagName("+jp.currentToken()+", "+jp.currentName()+") "); */
+				}
+			}
+			return m;
+		}
+		public static Map<String, List<Attempt>> parseAttempts(JsonParser jp, String original) throws IOException{
+			Map<String, List<Attempt>> attemptsByListId= new HashMap<>();
+			String listId;
+			List<Attempt> att;
+			if (jp.currentToken() != JsonToken.START_OBJECT && jp.nextToken() != JsonToken.START_OBJECT) {
+				throw new IOException(String.format(Constants.ERROR+Constants.RED+"User.Parser.parseAttempts, input is not a json: (%s, %s, %s) (%s, %s, %s) %s"+Constants.RESET,  jp.currentToken(), jp.currentName(), jp.getText(), jp.nextValue(), jp.nextFieldName(), jp.nextTextValue(), original));
+			}
+			
+			while (!jp.isClosed()) {
+				/* parsing System.out.print("User.Parser.Parser.parseAttempts("+jp.currentToken()+", "+jp.currentName()+") "); */
+				if (jp.currentToken() == JsonToken.FIELD_NAME) {
+					listId = jp.currentName();
+					jp.nextToken();
+					/* parsing System.out.print("User.Parser.Parser.parseAttempts("+jp.currentToken()+", "+jp.currentName()+") "); */
+					att = Attempt.Parser.parseList(jp, original);
+					attemptsByListId.put(listId, att);
+				}else if(jp.currentToken() == JsonToken.END_OBJECT){
+					jp.nextToken();
+					/* parsing System.out.println("User.Parser.Parser.parseAttempts("+jp.currentToken()+", "+jp.currentName()+") "); */
+					break;
+				}  else{
+					jp.nextToken();
+					/* parsing System.out.print("User.Parser.Parser.parseAttempts("+jp.currentToken()+", "+jp.currentName()+") "); */
+				}
+			}
+			return attemptsByListId;
+		}
+	}
+	
+	
 	/**
 	 * Constructs a {@code User} object from a {@link Builder}.
 	 * <p>
@@ -251,67 +348,49 @@ public class User implements Iterable<QuestionList>{
 			throw new NullPointerException();
 		}
 		this.userId = builder.userId;
-		this.prefixe = builder.prefixe;
-		this.numberOfGamesPlayed = builder.numberOfGamesPlayed;
-		this.totalPointsEverGained = builder.totalPointsEverGained;
-		this.tagEmojiPerTagName.putAll(builder.tagEmojiPerTagName);
-		this.questionListPerTags.putAll(builder.questionListPerTags);
-		this.listsSortedById.addAll(builder.list);
-		this.useButtons = builder.useButtons;
-		this.useAutoNext = builder.useAutoNext;
-		syncWithLocal();
-	}
-
-	/**
-	 * Synchronizes the in-memory user data with local files.
-	 * <p>
-	 * This method:
-	 * <ol>
-	 * <li>Sorts the current list of quizzes by ID.</li>
-	 * <li>Loads general user data (prefix, stats, preferences, and tags) from the local JSON file, overriding in-memory defaults.</li>
-	 * <li>Imports all {@link QuestionList} objects from their respective local files, merging with or adding to existing ones.</li>
-	 * <li>Updates the internal tag-to-quiz map based on the tags present in all loaded quiz lists.</li>
-	 * </ol>
-	 * </p>
-	 * @ensures this.listsSortedById is sorted by ID.
-	 * @ensures this.prefixe, stats, and preferences are updated from local JSON if the file exists.
-	 * @ensures all local quiz lists are loaded and merged into {@code this.listsSortedById}.
-	 */
-	public void syncWithLocal() {
-		Map<String, String> tags;
-		listsSortedById.sort(QuestionList.comparatorById());
-		for(QuestionList l: listsSortedById){
-			QuestionList.Hasher.addGeneratedCode(l.getId());
-		}
 		if (new File(getPathToUserData()).exists()){
 			try {
-				User.Builder builder = UserDataParser.fromJsonFile(getPathToUserData());
-				this.prefixe = builder.prefixe;
-				this.numberOfGamesPlayed = builder.numberOfGamesPlayed;
-				this.totalPointsEverGained = builder.totalPointsEverGained;
-				this.tagEmojiPerTagName.putAll(builder.tagEmojiPerTagName);
-				this.questionListPerTags.putAll(builder.questionListPerTags);
-				this.useButtons = builder.useButtons;
-				this.useAutoNext = builder.useAutoNext;
+				User.Builder builder0 = User.Parser.fromJsonFile(getPathToUserData());
+				this.prefix = builder0.prefix;
+				this.tagEmojiByTagName.putAll(builder0.tagEmojiByTagName);
+				this.questionListPerTags.putAll(builder0.questionListPerTags);
+				this.attemptsByListId.putAll(builder0.attemptsByListId);
+				this.useButtons = builder0.useButtons;
+				this.useAutoNext = builder0.useAutoNext;
 			} catch (IOException e){
-				System.err.println(String.format(Constants.ERROR + "%s %s", getPathToUserData(), e.getMessage()));
+				System.err.printf(Constants.ERROR + Constants.RED+"Import failed: %s", getPathToUserData());
+				e.printStackTrace();
+				System.err.print(Constants.RESET);
 			}
+		}
+		if (builder.prefix!=null)this.prefix = builder.prefix;
+		this.tagEmojiByTagName.putAll(builder.tagEmojiByTagName);
+		this.questionListPerTags.putAll(builder.questionListPerTags);
+		this.attemptsByListId.putAll(builder.attemptsByListId);
+		for (QuestionList q : builder.list){
+			this.lists.put(q.getId(), q);
+		}
+		this.useButtons = builder.useButtons;
+		this.useAutoNext = builder.useAutoNext;
+		Map<String, String> tags;
+		for(String l: lists.keySet()){
+			QuestionList.Hasher.addGeneratedCode(l);
 		}
 		for(QuestionList l: importLists().values()){
 			addList(l);
 		}
-		for(QuestionList l: listsSortedById){
+		for(QuestionList l: lists.values()){
 			tags = l.getEmojiPerTagName();
-			tagEmojiPerTagName.putAll(tags);
+			tagEmojiByTagName.putAll(tags);
 			for (String tagName : tags.keySet()){
 				if (questionListPerTags.get(tagName)==null){
-					questionListPerTags.put(tagName, new ArrayList<QuestionList>());
+					questionListPerTags.put(tagName, new ArrayList<>());
 				}
-				questionListPerTags.get(tagName).add(l);
+				questionListPerTags.get(tagName).add(l.getId());
 			}
 		}
 	}
-
+	
 	/**
 	 * Constructs a {@code User} object with only the required user ID.
 	 * <p>
@@ -324,56 +403,94 @@ public class User implements Iterable<QuestionList>{
 	 * @ensures syncWithLocal() is called
 	 */
 	public User(@NotNull String userId){
-		this(new User.Builder().id(userId));
+		this.userId = userId;
+		String pathToUserData = Constants.USERDATAPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"user-data.json";
+		if (new File(pathToUserData).exists()){
+			try {
+				User.Builder builder0 = User.Parser.fromJsonFile(pathToUserData);
+				this.prefix = builder0.prefix;
+				this.tagEmojiByTagName.putAll(builder0.tagEmojiByTagName);
+				this.questionListPerTags.putAll(builder0.questionListPerTags);
+				this.attemptsByListId.putAll(builder0.attemptsByListId);
+				this.useButtons = builder0.useButtons;
+				this.useAutoNext = builder0.useAutoNext;
+				for (QuestionList q : builder0.list){
+					this.lists.put(q.getId(), q);
+				}
+			} catch (IOException e){
+				System.err.printf(Constants.ERROR + Constants.RED+"Import failed: %s", getPathToUserData());
+				e.printStackTrace();
+				System.err.print(Constants.RESET);
+			}
+		}
+		Map<String, String> tags;
+		for(String l: lists.keySet()){
+			QuestionList.Hasher.addGeneratedCode(l);
+		}
+		for(QuestionList l: importLists().values()){
+			addList(l);
+		}
+		for(QuestionList l: lists.values()){
+			tags = l.getEmojiPerTagName();
+			tagEmojiByTagName.putAll(tags);
+			for (String tagName : tags.keySet()){
+				if (questionListPerTags.get(tagName)==null){
+					questionListPerTags.put(tagName, new ArrayList<>());
+				}
+				questionListPerTags.get(tagName).add(l.getId());
+			}
+		}
 	}
-
+	
 	/**
 	 * Checks if the user has enabled the use of buttons for interaction.
 	 * @return {@code true} if buttons are enabled, {@code false} otherwise.
 	 * @ensures \result == useButtons
 	 */
-	public boolean useButtons(){return useButtons;}
-
+	public Boolean useButtons(){return useButtons;}
+	public Boolean getUseButtons(){return useButtons;}
+	
 	/**
 	 * Sets the preference for using interactive buttons and does not automatically export data.
 	 * @param b {@code true} to enable buttons.
 	 * @ensures this.useButtons == b
 	 */
-	public void useButtons(boolean b){ useButtons = b;}
-
+	public void useButtons(Boolean b){ useButtons = b;}
+	
 	/**
 	 * Checks if the user has enabled the auto-next feature.
 	 * @return {@code true} if auto-next is enabled, {@code false} otherwise.
 	 * @ensures \result == useAutoNext
 	 */
-	public boolean useAutoNext(){return useAutoNext;}
-
+	public Boolean useAutoNext(){return useAutoNext;}
+	public Boolean getUseAutoNext(){return useAutoNext;}
+	
 	/**
 	 * Sets the preference for automatically advancing to the next question and does not automatically export data.
 	 * @param b {@code true} to enable auto-next.
 	 * @ensures this.useAutoNext == b
 	 */
-	public void useAutoNext(boolean b){ useAutoNext = b;}
-
+	public void useAutoNext(Boolean b){ useAutoNext = b;}
+	
 	/**
 	 * Gets the custom command prefix for the user.
 	 * @return The command prefix string.
-	 * @ensures \result == prefixe
+	 * @ensures \result == prefix
 	 * @pure
 	 */
-	public String getPrefix(){return prefixe;}
-
+	public String getPrefix(){return prefix;}
+	
 	/**
 	 * Sets a new custom command prefix for the user and immediately exports the user data.
-	 * @param prefixe The new command prefix.
-	 * @ensures this.prefixe == prefixe
+	 * @param prefix The new command prefix.
+	 * @ensures this.prefix == prefix
 	 * @ensures exportUserData() is called
 	 */
-	public void setPrefix(String prefixe){
-		this.prefixe= prefixe;
+	public void setPrefix(String prefix){
+		this.prefix= prefix;
 		exportUserData();
 	}
-
+	
 	/**
 	 * Gets a copy of the user's sorted list of quiz lists.
 	 * @return A new {@code List<QuestionList>} containing all of the user's quizzes, sorted by ID.
@@ -381,18 +498,18 @@ public class User implements Iterable<QuestionList>{
 	 * @ensures \result.size() == listsSortedById.size()
 	 * @pure
 	 */
-	public List<QuestionList> getLists() {
-		List<QuestionList> res = new ArrayList<>(listsSortedById);
+	public Map<String, QuestionList> getLists() {
+		Map<String, QuestionList> res = new HashMap<>(lists);
 		return res;
 	}
-
+	
 	 /**
 	 * Gets the unique ID of the user.
 	 * @return The user ID string.
 	 * @ensures \result == userId
 	 */
 	public String getId(){ return userId;}
-
+	
 	/**
 	 * Gets the absolute file path to the user's data JSON file.
 	 * @return The file path string.
@@ -402,51 +519,25 @@ public class User implements Iterable<QuestionList>{
 	public String getPathToUserData(){
 		return Constants.USERDATAPATH+Constants.SEPARATOR+getId()+Constants.SEPARATOR+"user-data.json";
 	}
-
-	/**
-	 * Gets a {@link QuestionList} by its index in the internal, ID-sorted list.
-	 * @param index The index of the quiz list.
-	 * @return The {@link QuestionList} at the specified index.
-	 * @requires 0 <= index < listsSortedById.size()
-	 * @ensures \result == listsSortedById.get(index)
-	 */
-	public QuestionList get(int index) {
-		return listsSortedById.get(index);
-	}
-
-	public double getTotalPointsEverGained(){
-		return totalPointsEverGained;
-	}
-	public int getNumberOfGamesPlayed(){
-		return numberOfGamesPlayed;
-	}
-	public void incrTotalPointsEverGained(double numberOfPointsGained){
-		totalPointsEverGained+=numberOfPointsGained;
-		this.exportUserData();
-	}
-	public void incrNumberOfGamesPlayed(){
-		numberOfGamesPlayed+=1;
-		this.exportUserData();
-	}
-
+	
 	/**
 	 * Gets a copy of the map linking tag names to their associated emojis.
 	 * @return A new {@code Map<String, String>} containing all user tags and emojis.
-	 * @ensures \result.size() == tagEmojiPerTagName.size()
+	 * @ensures \result.size() == tagEmojiByTagName.size()
 	 */
 	public Map<String, String> getEmojiPerTagName() {
-		return new HashMap<>(tagEmojiPerTagName);
+		return new HashMap<>(tagEmojiByTagName);
 	}
-
+	
 	/**
-	 * Gets a copy of the map linking tag names to the quiz lists that have that tag.
-	 * @return A new {@code Map<String, List<QuestionList>>} mapping tags to lists.
+	 * Gets a copy of the map linking tag names to the quiz list ids that have that tag.
+	 * @return A new {@code Map<String, List<String>>} mapping tags to listIds.
 	 * @ensures \result.size() == questionListPerTags.size()
 	 */
-	public Map<String, List<QuestionList>> getQuestionListPerTags() {
+	public Map<String, List<String>> getQuestionListPerTags() {
 		return new HashMap<>(questionListPerTags);
 	}
-
+	
 	/**
 	 * Retrieves all {@link QuestionList} objects associated with a given tag name.
 	 * @param tagName The name of the tag to search for.
@@ -455,38 +546,18 @@ public class User implements Iterable<QuestionList>{
 	 * @ensures \result.size() <= listsSortedById.size()
 	 */
 	public List<QuestionList> getListsByTag(String tagName) {
-		List<QuestionList> res = questionListPerTags.get(tagName);
-		if (res == null) {
-			return new ArrayList<>();
-		}
-		return new ArrayList<>(res);
+		return questionListPerTags.getOrDefault(tagName, new ArrayList<>()).stream().map(id -> getById(id)).toList();
 	}
-
+	
 	/**
 	 * Gets a set of all tag names defined by the user.
 	 * @return A {@code Set<String>} of all tag names.
-	 * @ensures \result.equals(tagEmojiPerTagName.keySet())
+	 * @ensures \result.equals(tagEmojiByTagName.keySet())
 	 */
-	public Set<String> getTagNames() {
-		return tagEmojiPerTagName.keySet();
+	public Set<String> tagNames() {
+		return tagEmojiByTagName.keySet();
 	}
-
-	/**
-	 * Retrieves all {@link QuestionList} objects associated with a given tag name.
-	 * <p>This is an alias for {@link #getListsByTag(String)}.</p>
-	 * @param tagName The name of the tag to search for.
-	 * @return A new {@code List<QuestionList>} of quizzes with the specified tag, or an empty list if the tag doesn't exist.
-	 * @ensures \result is a new list instance
-	 * @ensures \result.size() <= listsSortedById.size()
-	 */
-	public List<QuestionList> getQuestionListsFromTagName(String tagName){
-		List<QuestionList> res = questionListPerTags.get(tagName);
-		if (res == null){
-			return new ArrayList<>();
-		}
-		return new ArrayList<>(res);
-	}
-
+	
 	/**
 	 * Retrieves a {@link QuestionList} by its unique ID.
 	 * <p>Performs a binary search on the internally ID-sorted list. Checks for a static example list first.</p>
@@ -494,21 +565,11 @@ public class User implements Iterable<QuestionList>{
 	 * @return The matching {@link QuestionList}, or {@code null} if not found.
 	 * @ensures (\result == null) || (\result.getId().equals(id))
 	 */
-	public QuestionList getById(String id) {
-		if (QuestionList.getExampleQuestionList().getId().equals(id)){
-			return QuestionList.getExampleQuestionList();
-		} else {
-			QuestionList searched = new QuestionList.Builder().id(id).build();
-			int i=-1;
-			List<QuestionList> l=getLists();
-			i = Users.myBinarySearchIndexOf(l, searched, QuestionList.comparatorById());
-			if (i>=0){
-				return l.get(i);
-			}
-		}
-		return null;
+	public QuestionList getById(String listId) {
+		if (QuestionList.getExampleQuestionList().getId().equals(listId)) return QuestionList.getExampleQuestionList();
+		return lists.get(listId);
 	}
-
+	
 	/**
 	 * Retrieves a {@link QuestionList} by its name.
 	 * <p>Temporarily sorts a copy of the list by name to perform a binary search.</p>
@@ -517,21 +578,21 @@ public class User implements Iterable<QuestionList>{
 	 * @ensures (\result == null) || (\result.getName().equals(listName))
 	 */
 	public QuestionList getByName(String listName){
-		List<QuestionList> listsSortedByName = new ArrayList<>(listsSortedById);
+		List<QuestionList> listsSortedByName = new ArrayList<>(lists.values());
 		listsSortedByName.sort(QuestionList.comparatorByName());
 		int index = QuestionList.myBinarySearchIndexOf(listsSortedByName, listName);
 		if (index<0) return null;
 		return listsSortedByName.get(index);
 	}
-
+	
 	/**
 	 * Retrieves the emoji associated with a given tag name for this user.
 	 * @param tagName The name of the tag.
 	 * @return The emoji string, or {@code null} if the tag is not defined.
-	 * @ensures \result == tagEmojiPerTagName.getOrDefault(tagName, null)
+	 * @ensures \result == tagEmojiByTagName.get(tagName)
 	 */
 	public String getEmojiFomTagName(String tagName){
-		return tagEmojiPerTagName.getOrDefault(tagName, null);
+		return tagEmojiByTagName.get(tagName);
 	}
 	
 	/**
@@ -546,12 +607,11 @@ public class User implements Iterable<QuestionList>{
 	 * @ensures l.exportListQuestionAsJson() is called.
 	 * @ensures Users.update(this) is called.
 	 */
-	public boolean addList(@NotNull QuestionList l){
-		int index;
+	public Boolean addList(@NotNull QuestionList l){
 		QuestionList k = getById(l.getId());
 		
 		if (k==null){
-			k = getByName(l.getId());
+			k = getByName(l.getName());
 			if (k==null){
 				k = l;
 			} 
@@ -559,38 +619,32 @@ public class User implements Iterable<QuestionList>{
 		
 		k.addAll(l);
 		k.rearrageOptions((e, f) -> e.isCorrect()?-1:1);
-		
-		index = myBinarySearchIndexOf(listsSortedById, k, QuestionList.comparatorById());
-		if (index>=0) {
-			listsSortedById.set(index, k);
-		} else{
-			listsSortedById.add(index*-1 -1,k);
-		}
+		lists.put(k.getId(), k);
 		k.exportListQuestionAsJson();
 		Users.update(this);
 		return true;
 	}
-
+	
 	/**
 	 * Creates a new tag with an associated emoji and exports the user data.
 	 * @param tagName The name of the new tag.
 	 * @param emoji The emoji to associate with the tag.
 	 * @return {@code true} if the tag was created, {@code false} if a tag with that name already exists.
 	 * @requires tagName != null && emoji != null
-	 * @ensures \result == !tagEmojiPerTagName.containsKey(tagName)
-	 * @ensures (\result == true) ==> tagEmojiPerTagName.containsKey(tagName) && questionListPerTags.containsKey(tagName) && exportUserData() is called.
+	 * @ensures \result == !tagEmojiByTagName.containsKey(tagName)
+	 * @ensures (\result == true) ==> tagEmojiByTagName.containsKey(tagName) && questionListPerTags.containsKey(tagName) && exportUserData() is called.
 	 */
-	public boolean createTag(@NotNull String tagName, @NotNull String emoji) {
-		if (tagEmojiPerTagName.containsKey(tagName)) {
+	public Boolean createTag(@NotNull String tagName, @NotNull String emoji) {
+		if (tagEmojiByTagName.containsKey(tagName)) {
 			return false; // Tag already exists
 		}
-		tagEmojiPerTagName.put(tagName, emoji);
+		tagEmojiByTagName.put(tagName, emoji);
 		questionListPerTags.put(tagName, new ArrayList<>());
 		exportUserData();
 		Users.update(this);
 		return true;
 	}
-
+	
 	/**
 	 * Adds an existing user-level tag (name and emoji) to a specific {@link QuestionList} by its ID.
 	 * @param tagName The name of the tag to add.
@@ -598,11 +652,11 @@ public class User implements Iterable<QuestionList>{
 	 * @param id The ID of the {@link QuestionList} to tag.
 	 * @return {@code true} if the tag was successfully added to the list, {@code false} if the tag has not been created at the user level.
 	 * @requires id != null && tagName != null && emoji != null
-	 * @ensures \result == tagEmojiPerTagName.containsKey(tagName)
-	 * @ensures (\result == true) ==> getById(id).getTagNames().contains(tagName) && exportUserData() is called.
+	 * @ensures \result == tagEmojiByTagName.containsKey(tagName)
+	 * @ensures (\result == true) ==> getById(id).tagNames().contains(tagName) && exportUserData() is called.
 	 */
-	public boolean addTagToQuestionList(String tagName, String emoji, String id) {
-		if (!tagEmojiPerTagName.containsKey(tagName)) {
+	public Boolean addTagToQuestionList(String tagName, String emoji, String id) {
+		if (!tagEmojiByTagName.containsKey(tagName)) {
 			return false; // Tag hasnt been created
 		}
 		getById(id).addTag(tagName, emoji);
@@ -610,26 +664,26 @@ public class User implements Iterable<QuestionList>{
 		Users.update(this);
 		return true;
 	}
-
+	
 	/**
-	 * Deletes a tag from the user's master list, removing it from the {@code tagEmojiPerTagName} and {@code questionListPerTags} maps.
+	 * Deletes a tag from the user's master list, removing it from the {@code tagEmojiByTagName} and {@code questionListPerTags} maps.
 	 * <p>It is important to note this method does *not* remove the tag from individual {@link QuestionList} objects.</p>
 	 * @param tagName The name of the tag to delete.
 	 * @return {@code true} if the tag was deleted, {@code false} if the tag did not exist.
 	 * @requires tagName != null
-	 * @ensures \result == tagEmojiPerTagName.containsKey(tagName)
-	 * @ensures (\result == true) ==> !tagEmojiPerTagName.containsKey(tagName) && !questionListPerTags.containsKey(tagName) && exportUserData() is called.
+	 * @ensures \result == tagEmojiByTagName.containsKey(tagName)
+	 * @ensures (\result == true) ==> !tagEmojiByTagName.containsKey(tagName) && !questionListPerTags.containsKey(tagName) && exportUserData() is called.
 	 */
-	public boolean deleteTag(String tagName) {
-		if (!tagEmojiPerTagName.containsKey(tagName)) {
+	public Boolean deleteTag(String tagName) {
+		if (!tagEmojiByTagName.containsKey(tagName)) {
 			return false; // Tag does not exist
 		}
-		tagEmojiPerTagName.remove(tagName);
+		tagEmojiByTagName.remove(tagName);
 		questionListPerTags.remove(tagName);
 		exportUserData();
 		return true;
 	}
-
+	
 	/**
 	 * Renames a {@link QuestionList} and re-adds it to the user's collection to maintain correct sorting and data integrity.
 	 * @param l The {@link QuestionList} to rename.
@@ -639,17 +693,15 @@ public class User implements Iterable<QuestionList>{
 	 * @ensures \result == (getByName(newName) == null)
 	 * @ensures (\result == true) ==> l.getName().equals(newName) && addList(l) is called.
 	 */
-	public boolean renameList(QuestionList l, String newName){
+	public Boolean renameList(QuestionList l, String newName){
 		QuestionList k = this.getByName(newName);
 		if (k!=null){
 			return false;
 		}
-		int oldIndex = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorById());
-		listsSortedById.remove(oldIndex);
 		l.setName(newName);
 		return addList(l);
 	}
-
+	
 	/**
 	 * Adds an existing user-level tag to a specific {@link QuestionList}.
 	 * <p>Updates the list, exports it, updates the internal {@code questionListPerTags} map, and exports the user data.</p>
@@ -657,29 +709,26 @@ public class User implements Iterable<QuestionList>{
 	 * @param tagName The name of the tag to add.
 	 * @return {@code true} if the tag was successfully added to the list, {@code false} if the list is not in the user's collection or the tag is not defined at the user level.
 	 * @requires l != null && tagName != null
-	 * @ensures \result == (getById(l.getId()) != null && tagEmojiPerTagName.containsKey(tagName))
-	 * @ensures (\result == true) ==> l.getTagNames().contains(tagName) && exportUserData() is called.
+	 * @ensures \result == (getById(l.getId()) != null && tagEmojiByTagName.containsKey(tagName))
+	 * @ensures (\result == true) ==> l.tagNames().contains(tagName) && exportUserData() is called.
 	 */
-	public boolean addTagToList(QuestionList l, String tagName) {
-		int index = myBinarySearchIndexOf(getLists(), l, QuestionList.comparatorById());
+	public Boolean addTagToList(QuestionList l, String tagName) {
 		String emoji;
-		List<QuestionList> listsTagged;
-		if (index >= 0) {
-			emoji = tagEmojiPerTagName.getOrDefault(tagName,null);
-			if (emoji != null) {
-				l = get(index);
-				l.addTag(tagName, emoji);
-				l.exportListQuestionAsJson();
-				listsTagged = questionListPerTags.get(tagName);
-				if (listsTagged==null){
-					listsTagged = new ArrayList<>();
-				}
-				listsTagged.add(l);
-				questionListPerTags.put(tagName, listsTagged);
-				listsSortedById.set(index, l);
-				exportUserData();
-				return true;
+		List<String> listsTagged;
+		if (tagNames().contains(tagName)) {
+			emoji = tagEmojiByTagName.get(tagName);
+			l.addTag(tagName, emoji);
+			listsTagged = questionListPerTags.get(tagName);
+			if (listsTagged==null){
+				listsTagged = new ArrayList<>();
 			}
+			listsTagged.add(l.getId());
+			questionListPerTags.put(tagName, listsTagged);
+			lists.put(l.getId(), l);
+			l.exportListQuestionAsJson();
+			exportUserData();
+			Users.update(this);
+			return true;
 		}
 		return false;
 	}
@@ -693,21 +742,21 @@ public class User implements Iterable<QuestionList>{
 	 * @param tagName The name of the tag to remove.
 	 * @return {@code true} if the tag was successfully removed, {@code false} if the list did not have the tag.
 	 * @requires l != null && tagName != null
-	 * @ensures \result == l.getTagNames().contains(tagName)
-	 * @ensures (\result == true) ==> !l.getTagNames().contains(tagName) && tagEmojiPerTagName.remove(tagName) is called.
+	 * @ensures \result == l.tagNames().contains(tagName)
+	 * @ensures (\result == true) ==> !l.tagNames().contains(tagName) && tagEmojiByTagName.remove(tagName) is called.
 	 */
-	public boolean removeTagFromList(QuestionList l, String tagName) {
-		if (!l.getTagNames().contains(tagName)) {
+	public Boolean removeTagFromList(QuestionList l, String tagName) {
+		if (!l.tagNames().contains(tagName)) {
 			return false; // Tag does not exist in the list
 		}
 		l.removeTag(tagName);
 		l.exportListQuestionAsJson();
-		tagEmojiPerTagName.remove(tagName);
+		tagEmojiByTagName.remove(tagName);
 		questionListPerTags.remove(tagName);
 		exportUserData();
 		return true;
 	}
-
+	
 	/**
 	 * Deletes a {@link QuestionList} from the user's collection and attempts to delete its local file.
 	 * <p>
@@ -716,24 +765,24 @@ public class User implements Iterable<QuestionList>{
 	 * @param l The {@link QuestionList} to delete.
 	 * @return {@code true} if the list was removed from the collection and its file was deleted, {@code false} otherwise.
 	 * @requires l != null
-	 * @ensures (\result == true) ==> !listsSortedById.contains(l) && the file at l.getPathToList() is deleted.
+	 * @ensures (\result == true) ==> !listsSortedById.contains(l) && the file at l.pathToList() is deleted.
 	 * @ensures tag and list maps are rebuilt.
 	 */
-	public boolean deleteList(QuestionList l){ // TODO one deletion really shouldnt be O(n^2) operation
-		this.listsSortedById.remove(l);
-		tagEmojiPerTagName.clear();
+	public Boolean deleteList(QuestionList l){ // TODO one deletion really shouldnt be O(n^2) operation
+		this.lists.remove(l.getId());
+		tagEmojiByTagName.clear();
 		questionListPerTags.clear();
-		for(QuestionList l1: listsSortedById){
+		for(QuestionList l1: lists.values()){
 			Map<String, String> tags = l1.getEmojiPerTagName();
-			tagEmojiPerTagName.putAll(l1.getEmojiPerTagName());
+			tagEmojiByTagName.putAll(l1.getEmojiPerTagName());
 			for (String tagName : tags.keySet()){
 				if (questionListPerTags.get(tagName)==null){
-					questionListPerTags.put(tagName, new ArrayList<QuestionList>());
+					questionListPerTags.put(tagName, new ArrayList<>());
 				}
-				questionListPerTags.get(tagName).add(l1);
+				questionListPerTags.get(tagName).add(l1.getId());
 			}
 		}
-		File f = new File(l.getPathToList());
+		File f = new File(l.pathToList());
 		File dest = new File(f.getParentFile().getAbsolutePath()+Constants.SEPARATOR+"tmp"+Constants.SEPARATOR+f.getName());
 		
 		dest.mkdirs();
@@ -742,7 +791,26 @@ public class User implements Iterable<QuestionList>{
 		while(!f.delete()){if (++t>20){return false;}};
 		return true;
 	}
-
+	
+	/*TODO add docs */
+	public void addAttempt(String listId, Attempt att){
+		List<Attempt> last = attemptsByListId.getOrDefault(listId, new ArrayList<>());
+		last.addFirst(att);
+		attemptsByListId.put(listId, last);
+		
+		Users.update(this);
+	}
+	
+	/*TODO add docs */
+	public List<Attempt> getAttempts(String listId){
+		return attemptsByListId.getOrDefault(listId, List.of());
+	}
+	
+	/*TODO add docs */
+	public Map<String, List<Attempt>> getAttemptsByListId(){
+		return attemptsByListId;
+	}
+	
 	/**
 	 * **Static Utility Method.** Performs a custom recursive binary search on a sorted list to find the index of an element using a provided {@link Comparator}.
 	 * @param <T> The type of elements in the list.
@@ -769,7 +837,7 @@ public class User implements Iterable<QuestionList>{
 		}
 		return myBinarySearchIndexOf(tab, m+1, end, q, compare);
 	}
-
+	
 	/**
 	 * **Static Utility Method.** Performs a custom binary search on a sorted list to find the index of an element using a provided {@link Comparator}.
 	 * <p>Searches the full range of the list ($0$ to $tab.size() - 1$).</p>
@@ -784,7 +852,7 @@ public class User implements Iterable<QuestionList>{
 	public static <T> int myBinarySearchIndexOf(List<T> tab, T q, Comparator<? super T> compare){
 		return myBinarySearchIndexOf(tab, 0, tab.size()-1, q, compare);
 	}
-
+	
 	/**
 	 * **Static Utility Method.** Performs a custom binary search on a list of {@link User} objects to find the index of a user by their ID.
 	 * <p>Assumes the list is sorted by User ID and searches the specified range.</p>
@@ -810,7 +878,7 @@ public class User implements Iterable<QuestionList>{
 		}
 		return myBinarySearchUserId(tab, m+1, end, userId);
 	}
-
+	
 	/**
 	 * **Static Utility Method.** Performs a custom binary search on a list of {@link User} objects to find the index of a user by their ID.
 	 * <p>Assumes the list is sorted by User ID and searches the full range of the list ($0$ to $tab.size() - 1$).</p>
@@ -831,9 +899,9 @@ public class User implements Iterable<QuestionList>{
 	 */
 	@Override
 	public Iterator<QuestionList> iterator(){
-		return getLists().iterator();
+		return getLists().values().iterator();
 	}
-
+	
 	/**
 	 * Provides a {@link Comparator} to sort {@link User} objects based on their user ID.
 	 * @return A {@code Comparator<? super User>} that compares users by their ID string.
@@ -842,7 +910,7 @@ public class User implements Iterable<QuestionList>{
 	public static Comparator<? super User> comparatorByUserId() {
 		return (e, f)->(e.getId().compareTo(f.getId()));
 	}
-
+	
 	/**
 	 * Imports all local {@link QuestionList} files associated with this user ID.
 	 * <p>Delegates the import logic to the {@link Users} utility class.</p>
@@ -851,18 +919,17 @@ public class User implements Iterable<QuestionList>{
 	public Map<String, QuestionList> importLists() {
 		return Users.importLists(getId());
 	}
-
+	
 	/**
 	 * Exports all of the user's {@link QuestionList} objects to their respective local JSON files.
 	 * @ensures all QuestionList objects in listsSortedById have been exported to JSON.
 	 */
 	public void exportUserLists() {
-		List<QuestionList> listsSortedById = getLists();
-		for (QuestionList l : listsSortedById) {
+		for (QuestionList l : getLists().values()) {
 			l.exportListQuestionAsJson();
 		}
 	}
-
+	
 	/**
 	 * Generates a hash code for the {@code User} object based on the user ID.
 	 * @return The hash code of the user ID.
@@ -872,7 +939,7 @@ public class User implements Iterable<QuestionList>{
 	public int hashCode(){
 		return getId().hashCode();
 	}
-
+	
 	/**
 	 * Compares this {@code User} object to another object for equality.
 	 * <p>A user is equal to another user if their IDs match. A user is also equal to a {@link String} if the string matches the user ID.</p>
@@ -893,7 +960,20 @@ public class User implements Iterable<QuestionList>{
 		}
 		return false;
 	}
-
+		
+	/**
+	 * Converts the user's data into a pretty-printed, multi-line JSON string.
+	 * <p>A convenience method that calls {@code toJsonUsingMapper(false)}.</p>
+	 * @return The user data as a JSON string, or {@code null} if a serialization error occurred.
+	 * @ensures \result is a pretty-printed JSON string of user data.
+	 */
+	public String toJson(){
+		/*try {
+			return Constants.MAPPER.writer(new DefaultPrettyPrinter()).writeValueAsString(this);
+		}catch(JsonProcessingException e){System.err.print(Constants.ERROR);e.printStackTrace();}*/
+		return toJsonUsingMapper(false);
+	}
+	
 	/**
 	 * Converts the user's data into a JSON string format, with options for single-line or pretty-printed output.
 	 * @param oneLine {@code true} for a compact, single-line JSON string; {@code false} for a pretty-printed, multi-line format.
@@ -902,45 +982,23 @@ public class User implements Iterable<QuestionList>{
 	 * @requires Constants.MAPPER is initialized.
 	 * @ensures \result is a valid JSON string representation of the user data (ID, tags, prefix, stats, preferences).
 	 */
-	private String toJsonUsingMapper(boolean oneLine) throws JsonProcessingException{
+	private String toJsonUsingMapper(Boolean oneLine) {
 		String nextLine = oneLine?"":"\n";
 		String res="", spc = oneLine?" ":"  ";
+		try {
 		res += "{"+nextLine;
-
-		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("userId"), Constants.MAPPER.writeValueAsString(getId()), ","+nextLine);
-		res += String.format("%s:%s%s",spc+Constants.MAPPER.writeValueAsString("tagEmojiPerTagName"), "{", nextLine);
-		Iterator<Entry<String, String>> iter = tagEmojiPerTagName.entrySet().iterator();
-		Entry<String, String> entry2;
-		while (iter.hasNext()) {
-			entry2 = iter.next();
-			res += String.format("%s:%s%s", spc+spc+Constants.MAPPER.writeValueAsString(entry2.getKey()), Constants.MAPPER.writeValueAsString(entry2.getValue()), (iter.hasNext()?", ":"")+nextLine);
-		}
-		res += spc+"},"+nextLine;
-		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("prefixe"), Constants.MAPPER.writeValueAsString(getPrefix()), ","+nextLine);
-		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("useButtons"), useButtons(), ","+nextLine);
-		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("useAutoNext"), useAutoNext(), ","+nextLine);
-		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("totalPointsEverGained"), getTotalPointsEverGained(), ","+nextLine);
-		res += String.format("%s:%s%s", spc+Constants.MAPPER.writeValueAsString("numberOfGamesPlayed"), getNumberOfGamesPlayed(), nextLine);
+		res += String.format(spc+"\"%s\":%s%s", "id", Constants.MAPPER.writeValueAsString(getId()), ","+nextLine);
+		res += String.format(spc+"\"%s\":%s%s", "tagEmojiByTagName",Constants.MAPPER.writeValueAsString(tagEmojiByTagName), ","+nextLine);
+		if (getPrefix()!=null) res += String.format(spc+"\"%s\":%s%s", "prefix", Constants.MAPPER.writeValueAsString(getPrefix()), ","+nextLine);
+		res += String.format(spc+"\"%s\":%s%s", "useButtons", useButtons(), ","+nextLine);
+		res += String.format(spc+"\"%s\":%s%s", "useAutoNext", useAutoNext(), ","+nextLine);
+		res += String.format(spc+"\"%s\":%s%s", "attemptsByListId", Constants.MAPPER.writeValueAsString(attemptsByListId), nextLine);
 		res +="}";
 		return res;
+		}catch(JsonProcessingException e){System.err.print(Constants.ERROR);e.printStackTrace();}
+		return null;
 	}
-
-	/**
-	 * Converts the user's data into a pretty-printed, multi-line JSON string.
-	 * <p>A convenience method that calls {@code toJsonUsingMapper(false)}.</p>
-	 * @return The user data as a JSON string, or {@code null} if a serialization error occurred.
-	 * @ensures \result is a pretty-printed JSON string of user data.
-	 */
-	public String toJson(){
-		String res=null;
-		try {
-			res = toJsonUsingMapper(false);
-		} catch (Exception e){
-			System.err.println(Constants.ERROR + "[toJsonUsingMapper() failed]"+e.getMessage());
-		}
-		return res;
-	}
-
+	
 	/**
 	 * Exports the user's data (prefix, stats, preferences, and tags) to the local JSON file specified by {@link #getPathToUserData()}.
 	 * <p>Creates the directory structure if it does not exist.</p>
@@ -962,7 +1020,7 @@ public class User implements Iterable<QuestionList>{
 			e.printStackTrace();
 		}
 	}
-
+	
 	/**
 	 * Returns a compact, single-line JSON string representation of the user's data.
 	 * <p>A convenience method that calls {@code toJsonUsingMapper(true)}.</p>
@@ -973,7 +1031,7 @@ public class User implements Iterable<QuestionList>{
 	public String toString() {
 		String res=null;
 		try {
-			res = toJsonUsingMapper(true);
+			res = toJson();//Constants.MAPPER.writeValueAsString(this);
 		} catch (Exception e){
 			System.err.println(Constants.ERROR + "[toJsonUsingMapper() failed]"+e.getMessage());
 		}

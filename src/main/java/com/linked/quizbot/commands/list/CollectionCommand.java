@@ -11,6 +11,7 @@ import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.utils.Attempt;
 import com.linked.quizbot.utils.CollectionManager;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
@@ -80,7 +81,7 @@ public class CollectionCommand extends BotCommand {
 		String order = "";
 		String[] tmp = cmndLineArgs.toLowerCase().trim().replaceAll("sort( by|[\\s:=<>!]+)\\s*", "o=").replaceAll("\\s*([:=<>!]+)\\s*", "$1").split("\\s+");
 		String prev = "";
-
+		
 		for(int k = 0; k < tmp.length; ++k) {
 			if (!tmp[k].isBlank()){
 				if (tmp[k].matches(".*[!<>=:]+.*")) {
@@ -97,7 +98,7 @@ public class CollectionCommand extends BotCommand {
 				}
 			}
 		}
-
+		
 		if (!prev.isBlank()) {
 			res.add(prev);
 		}
@@ -105,7 +106,7 @@ public class CollectionCommand extends BotCommand {
 		if (!order.isBlank()) {
 			res.add(order);
 		}
-
+		
 		return res;
 	}
 	@Override
@@ -117,7 +118,7 @@ public class CollectionCommand extends BotCommand {
 		for (String arg : args) {
 			if (arg.matches("o[=:]+.*")) {
 				sortFieldToken = arg;
-			} else if (arg.matches("asc|a|desc|d")) {
+			} else if (arg.matches("asc|desc")) {
 				sortDirection = arg;
 			} else if (Users.get(arg) != null && targetUserId.equals(userId)) {
 				targetUserId = arg;
@@ -125,26 +126,33 @@ public class CollectionCommand extends BotCommand {
 				filterTokens.add(arg);
 			}
 		}
-
+		
+		if (sortFieldToken.isBlank()){
+			sortFieldToken="o=date";
+			if (sortDirection.isBlank()){
+				sortDirection="d";
+			}
+		}
+		
+		
 		User user = Users.get(targetUserId);
 		if (user == null) {user = Users.get(userId);}
-
+		
 		String tmp = String.format("Collection of <@%s>\n", targetUserId);
 		Predicate<QuestionList> predicate = filterTokens.stream().map(a -> CollectionManager.parseFilter(a)).reduce(list->true, Predicate::and);
-		Stream<QuestionList> list = user.getLists().stream().filter(predicate);
-
+		List<QuestionList> collection = new ArrayList<>(user.getLists().values());
+		collection.add(QuestionList.getExampleQuestionList());
+		Stream<QuestionList> list = collection.stream().filter(predicate);
+		
 		if (!sortFieldToken.isBlank()) {
 			Comparator<QuestionList> comparator = CollectionManager.parseComparator(sortFieldToken);
 			if (sortDirection.matches("d|desc|descending")) {
 				comparator = comparator.reversed();
 			}			
 			list = list.sorted(comparator);
-		}
-
-		List<QuestionList> collection = new ArrayList<>(list.toList());
-		collection.add(QuestionList.getExampleQuestionList());
-
-		Iterator<QuestionList> iterLists = collection.iterator();
+		}		
+		
+		Iterator<QuestionList> iterLists = list.toList().iterator();
 		List<String> res = new ArrayList<>();
 		while(iterLists.hasNext()) {
 			tmp = tmp + getTextFromQuestionList(user, iterLists.next());
@@ -158,12 +166,12 @@ public class CollectionCommand extends BotCommand {
 	}
 	private String getTextFromQuestionList(User user, QuestionList l){
 		String minEmoji = Constants.EMOJIBLACKSQUARE; // TODO allow the user to choose the default
-		if (!l.getTagNames().isEmpty()) {
-			String tagName = (String)l.getTagNames().iterator().next();
+		if (!l.tagNames().isEmpty()) {
+			String tagName = (String)l.tagNames().iterator().next();
 			int min = user.getListsByTag(tagName).size();
 			minEmoji = l.getEmoji(tagName);
-			Iterator<String> tagNames = l.getTagNames().iterator();
-
+			Iterator<String> tagNames = l.tagNames().iterator();
+			
 			while(tagNames.hasNext()) {
 				String emoji = (String)tagNames.next();
 				int curr = user.getListsByTag(emoji).size();
@@ -173,6 +181,13 @@ public class CollectionCommand extends BotCommand {
 				}
 			}
 		}
-		return String.format("`%s` %s `%2d` %s\n", l.getId(), minEmoji, l.size(), l.getName());
+		String score="";
+		List<Attempt> tmp = user.getAttempts(l.getId()); 
+		Attempt lastAttempt;
+		if (tmp!=null && !tmp.isEmpty()) {
+			lastAttempt = tmp.getFirst();
+			score = lastAttempt.getTextPoints();
+		}
+		return String.format("`%s` %s `%2s` %s %s\n", l.getId(), minEmoji, l.size(), score, l.getName());
 	}
 }

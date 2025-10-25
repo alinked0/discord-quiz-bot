@@ -31,12 +31,12 @@ public class PingCommand extends BotCommand {
 	public String getDescription(){ return cmdDesrciption;}
 	public CommandOutput execute(String userId,  List<String> args){
 		long start = System.nanoTime();
-
+		
 		// Get the JDA instance from the channel to access gateway ping
 		JDA jda = BotCore.getJDA();
 		long gatewayPing = 0L;
 		if (jda!=null) gatewayPing = jda.getGatewayPing(); // Get the WebSocket latency to Discord
-
+		
 		// Calculate the internal processing time.
 		double internalProcessingTimeMs = (System.nanoTime() - start) / 1000000.00;
 		// Combine both internal processing time and gateway ping into the response

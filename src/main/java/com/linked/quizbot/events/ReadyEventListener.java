@@ -26,30 +26,30 @@ public class ReadyEventListener extends ListenerAdapter {
 	@Override
 	public void onReady(net.dv8tion.jda.api.events.session.ReadyEvent event){
 		List<SlashCommandData> commandData = BotCommand.getSlashCommandDataList();
-
+		
 		// Clear all global commands
 		event.getJDA().retrieveCommands().queue(commands -> {
 			for (Command cmd : commands){
 				event.getJDA().deleteCommandById(cmd.getId()).queue();
 			}
 		});
-
+		
 		// Re-register updated global commands
 		event.getJDA().updateCommands().addCommands(commandData).queue();
 	}
-
+	
 	
 	@Override
 	public void onGuildReady(GuildReadyEvent event){
 		List<SlashCommandData> commandData = BotCommand.getSlashCommandDataList();
-
+		
 		// Clear guild-specific commands
 		event.getGuild().retrieveCommands().queue(commands -> {
 			for (Command cmd : commands){
 				event.getGuild().deleteCommandById(cmd.getId()).queue();
 			}
 		});
-
+		
 		for (SlashCommandData cmd : commandData){
 			event.getJDA().upsertCommand(cmd).queue();
 		}
@@ -76,27 +76,27 @@ public class ReadyEventListener extends ListenerAdapter {
 					);
 					List<Emoji> l = new ArrayList<>();
 					for (String e : emojis){l.add(Emoji.fromFormatted(e));}
-
+					
 					QuestionList q = QuestionList.getExampleQuestionList();
 					MessageSender.addButtons(msg, l, mess -> MessageSender.addReactions(mess, l.iterator()));
-
+					
 					Viewer v = new Viewer(q);
 					output.add("## Viewer:\n");
 					output.addAll(v.start().getTextMessages());
 					output.addAll(v.next().getTextMessages());
-
+					
 					v = new QuizBot(q);
 					output.add("## QuizBot:\n");
 					output.addAll(v.start().getTextMessages());
 					output.addAll(v.next().getTextMessages());
-
+					
 					v = new Explain((QuizBot) v, q.getAuthorId());
 					output.add("## Explain:\n");
 					output.addAll(v.start().getTextMessages());
 					output.addAll(v.next().getTextMessages());
-
+					
 					MessageSender.sendCommandOutput(
-						output.addFile(q.getPathToList()).build(),
+						output.addFile(q.pathToList()).build(),
 						msg.getChannel(),
 						msg
 					);

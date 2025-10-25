@@ -74,7 +74,7 @@ public class MessageSender {
 			treatDelay(output, channel, originalMessage);
 		}
 	}
-
+	
 	private static void treatDelay(CommandOutput output, MessageChannel channel, Message originalMessage){
 		 if (output.getDelayMillis() > 0) {
 			scheduler.schedule(() -> sendConditions(output, channel, originalMessage),
@@ -83,7 +83,7 @@ public class MessageSender {
 			sendConditions(output, channel, originalMessage);
 		}
 	}
-
+	
 	private static void sendConditions(CommandOutput output, MessageChannel channel, Message originalMessage) {
 		// output will be limite by the dicord char limit
 		if (output.sendInOriginalMessage()){
@@ -193,14 +193,14 @@ public class MessageSender {
 			);
 		}
 	}
-
+	
 	public static void sendCommandOutput(CommandOutput output, ButtonInteractionEvent event) {
 		if (output == null) {
 			// No output to send, or command returned null
 			System.out.println(Constants.INFO + "Warning: Command output was null, nothing to send.");
 			return;
 		}
-
+		
 		MessageChannel channel = event.getChannel();
 		Message message = event.getMessage();
 		String content = "";
@@ -226,14 +226,14 @@ public class MessageSender {
 			failure -> System.err.println(Constants.ERROR + "Failed to edit Message : " + failure.getMessage()) // Log failure
 		);
 	}
-
+	
 	public static void addReactions(Message message, Iterator<Emoji> iter, @Nullable Consumer<? super Message> success) {
 		if(!iter.hasNext()){
 			if (success!=null) success.accept(message);return;
 		}
 		message.addReaction(iter.next()).queue( v -> addReactions(message, iter, success));
 	}
-
+	
 	public static void addReactions(Message message, Iterator<Emoji> iter) {
 		message.addReaction(iter.next()).queue( v -> addReactions(message, iter, null));
 	}
@@ -283,7 +283,7 @@ public class MessageSender {
 		while (iter.hasNext()){
 			String part = iter.next();
 			MessageCreateAction sendAction = channel.sendMessage(part);
-
+			
 			if (shouldReply && originalMessage != null) {
 				sendAction.setMessageReference(originalMessage);
 			}
@@ -302,7 +302,7 @@ public class MessageSender {
 			// The message is too long, split it.
 			String currentPart = s.substring(0, Math.min(s.length(), Constants.CHARSENDLIM));
 			String remainingPart = s.substring(Math.min(s.length(), Constants.CHARSENDLIM));
-
+			
 			// Try to find a natural break point (newline) within the current part.
 			// Prioritize splitting at newline if it's not too close to the beginning of the limit.
 			int lastNewlineIndex = currentPart.lastIndexOf("\n");

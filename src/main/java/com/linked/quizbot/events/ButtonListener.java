@@ -3,6 +3,7 @@ package com.linked.quizbot.events;
 import java.util.List;
 
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.core.CommandLineInterface;
 import com.linked.quizbot.core.MessageSender;
 import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
@@ -51,13 +52,11 @@ public class ButtonListener extends ListenerAdapter {
 		Message message = event.getMessage();
 		BotCommand cmd = BotCommand.getCommandByName(componentId);
 		if(cmd!=null){
-			CommandOutput.Builder output = new CommandOutput.Builder()
-			.add(cmd.execute(userId, List.of(messageId)));
+			CommandOutput output= CommandLineInterface.execute(Constants.CMDPREFIXE+cmd.getName()+" "+messageId, userId, null);
 			MessageSender.sendCommandOutput(
-				output.build(),
+				output,
 				event
-			);
-			if (!BotCore.isBugFree()) System.out.printf(Constants.INFO + "%s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
+			);			
 			return;
 		}
 		Emoji reaction = Emoji.fromFormatted(event.getButton().getLabel());

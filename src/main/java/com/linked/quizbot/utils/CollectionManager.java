@@ -47,10 +47,10 @@ public class CollectionManager {
 				op = "=";
 				parts = token.split("=", 2);
 			}
-
+			
 			String field = parts[0].toLowerCase();
 			String value = parts[1];
-
+			
 			return list -> {
 				String listValue = switch (field) {
 					case "name" -> list.getName();
@@ -58,9 +58,9 @@ public class CollectionManager {
 					case "author" -> list.getAuthorId();
 					default -> null;
 				};
-
+				
 				if (listValue == null) return false;
-
+				
 				return switch (op) {
 					case "=" -> listValue.equalsIgnoreCase(value);
 					case "!=" -> !listValue.equalsIgnoreCase(value);
@@ -78,21 +78,21 @@ public class CollectionManager {
 		String fieldPart = token.split("[!<=>]+")[0].trim().toLowerCase();
 		String valuePart = token.split("[!<=>]+")[1].trim();
 		long value;
-
+		
 		try {
 			value = Long.parseLong(valuePart);
 		} catch (NumberFormatException e) {
 			System.err.println(Constants.ERROR + "Invalid numeric value in filter: " + valuePart);
 			return list -> true;
 		}
-
+		
 		return list -> {
 			long listValue = switch (fieldPart) {
 				case "size" -> list.size();
 				case "date" -> list.getTimeCreatedMillis();
 				default -> -1;
 			};
-
+			
 			return switch (operator) {
 				case ">" -> listValue > value;
 				case "<" -> listValue < value;
@@ -108,13 +108,13 @@ public class CollectionManager {
 	private static Predicate<QuestionList> parseTagFilter(String token) {
 		boolean exclude = token.startsWith("tag!");
 		String tagName = token.replaceAll("^(tag!?[=:])", "").trim();
-
+		
 		if (tagName.isEmpty()) {
 			return list -> true;
 		}
-
+		
 		return list -> {
-			boolean hasTag = list.getTagNames().contains(tagName);
+			boolean hasTag = list.tagNames().contains(tagName);
 			return exclude ? !hasTag : hasTag;
 		};
 	}
@@ -125,7 +125,7 @@ public class CollectionManager {
 			list -> true,
 			Predicate::and 
 		);
-
+		
 		return collection.stream()
 						 .filter(combinedFilter)
 						 .collect(Collectors.toList());

@@ -52,7 +52,7 @@ public class CreateListCommand extends BotCommand {
 	public List<String> parseArguments(String cmndLineArgs){
 		List<String> res = new ArrayList<>();
 		res.addAll(splitJson(cmndLineArgs));
-
+		
 		System.out.print("Original("+cmndLineArgs+"):Parsed(");
 		for (int i=0; i<res.size(); ++i){
 			System.out.print(res.get(i));
@@ -74,10 +74,10 @@ public class CreateListCommand extends BotCommand {
 						res.add("Failed, list of name : "+Constants.MAPPER.writeValueAsString(""+l.getName()+"")+" already exists in your collection.\n");
 					} else {
 						Users.addListToUser(l.getAuthorId(), l);
-						res.add("Success, list of name : "+Constants.MAPPER.writeValueAsString(""+l.getName()+"")+", has been created, \nuse `"+Constants.CMDPREFIXE+ViewCommand.CMDNAME+" "+l.getId()+"` command to verife.\n");
+						res.add("Success, list :"+l.header()+", has been created.\n");
 					}
 				}else {
-					res.add("Failed to import ```"+args.get(i)+"```, no "+Constants.MAPPER.writeValueAsString("name")+" found\n");
+					res.add("Failed to import ```"+args.get(i)+"```, no \"name\" found\n");
 				}
 			}catch (IOException e){
 				res.add(String.format("**Failed to import** ```js\n%s```\n",args.get(i) ));
