@@ -282,6 +282,11 @@ public class CommandOutput {
 				e.printStackTrace();
 			}
 		}
+		s = "";
+		for (Emoji f : getReactions()){
+			s+= f.getFormatted();
+		}
+		res.add(s);
 		return res;
 	}
 	public List<MessageEmbed> getEmbeds(){

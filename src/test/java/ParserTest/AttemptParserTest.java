@@ -44,7 +44,7 @@ public class AttemptParserTest {
 		}
 		return jp;
 	}
-
+	
 	
 	@Test
 	void testParseAwnsersByQuestion_Success() throws IOException{
@@ -74,7 +74,7 @@ public class AttemptParserTest {
 			Parser.parseAwnsersByQuestion(jp, ORIGINAL_JSON);
 		});
 	}
-
+	
 	
 	@Test
 	void testParse_Success_FullIntegration() throws IOException{
@@ -146,7 +146,7 @@ public class AttemptParserTest {
 		
 		assertNull(result, "Attempt should be null if any required field is missing.");
 	}
-
+	
 	
 	@Test
 	void testParseList_Success() throws IOException{

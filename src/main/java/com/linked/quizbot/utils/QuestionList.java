@@ -924,7 +924,7 @@ public class QuestionList implements Iterable<Question>{
 			spc3 = spc2+spc1,
 			seperatorParamOpt = "\n";
 
-
+			
 			
 			res += "{\n";
 			tab = "\t";
@@ -1070,24 +1070,26 @@ public class QuestionList implements Iterable<Question>{
 	 * @return a header string for this QuestionList
 	 */
 	public String header(){
-		String res = String.format("`%s` `%d` **%s**\n",getId(), size(), getName());
+		String res = String.format("`%s` `%d` **%s**",getId(), size(), getName());
 		return res;
 	}
 	
 	/** 
 	 * Formats the question at the specified index for display.
 	 * @param index the index of the question to format
-	 * @param correct if true, includes the correct answers and explanations in the output
+	 * @param correction if true, includes the correct answers and explanations in the output
 	 * @param respondents a map of user IDs to their selected options
 	 * @param players a set of user IDs to display
 	 * @return a formatted string representing the question and its options
 	 */
-	public String getFormated(int index, @Nullable Boolean correct, @Nullable Map<String, Set<Option>> respondents, @Nullable Set<String> players) {
+	public String getFormated(int index, @Nullable Boolean correction, @Nullable Map<String, Awnser> respondents) {
 		Question q = get(index);
 		double points = 0.00;
 		String options = "",box="", users="", emoji, pointStr = "", corrStr = "", optCorrStr, expl;
-		Iterator<Set<Option>> iter;
-		Set<Option>awnsers;
+		Iterator<Awnser> iter;
+		Awnser awnser;
+		Set<String> players=null;
+		if (respondents!=null) players=respondents.keySet();
 		Option opt;
 		for (int i = 0; i < q.size(); i++) {
 			opt = q.get(i);
@@ -1098,20 +1100,20 @@ public class QuestionList implements Iterable<Question>{
 				if (!players.isEmpty()){
 					box="";
 					for (String u : players){
-						awnsers = respondents.get(u);
-						box += (awnsers==null||awnsers.isEmpty())?Constants.EMOJIBOX:(awnsers.contains(opt)?Constants.EMOJICHECKEDBOX:Constants.EMOJIBOX);
+						awnser = respondents.get(u);
+						box += (awnser==null||awnser.getResponse()==null)?Constants.EMOJIBOX:(awnser.getResponse().contains(opt)?Constants.EMOJICHECKEDBOX:Constants.EMOJIBOX);
 					}
 				}
 				box += " ";
 			}
-			if (correct != null && correct){
+			if (correction != null && correction){
 				if (respondents!=null){
 					iter = respondents.values().iterator();
-					awnsers = iter.hasNext()?iter.next():null;
+					awnser = iter.hasNext()?iter.next():null;
 				} else {
-					awnsers = null;
+					awnser = null;
 				}
-				if (awnsers != null && awnsers.contains(opt)) {
+				if (awnser != null && awnser.getResponse()!=null&& awnser.getResponse().contains(opt)) {
 					points += opt.isCorrect() ? pointsForCorrect / q.trueOptions().size() : pointsForIncorrect;
 					emoji = (opt.isCorrect() ? Constants.EMOJITRUE : Constants.EMOJIFALSE);
 				} else {
@@ -1125,8 +1127,8 @@ public class QuestionList implements Iterable<Question>{
 			}
 			options += String.format("%s%d. %s\n%s", box, i + 1, q.get(i).getText(), optCorrStr);
 		}
-		if (correct != null && correct){
-			corrStr = String.format("> \n> %s\n",(q.getExplication()==null)?Constants.NOEXPLICATION:q.getExplication());
+		if (correction != null && correction){
+			corrStr = String.format("> \n %s\n",(q.getExplication()==null)?Constants.NOEXPLICATION:q.getExplication());
 			pointStr = String.format("`%s/%s`", points, pointsForCorrect);
 		}
 		if (players!=null){
@@ -1137,21 +1139,7 @@ public class QuestionList implements Iterable<Question>{
 			}
 		}
 		String questionText = String.format("### %d. %s %s\n", index+1, q.getQuestion(), pointStr);
-		return String.format("%s%s%s%s%s", header(), questionText, users, options, corrStr).replace("\\$([^\\$]*)\\$", "`$1`");
-	}	
-	
-	/** 
-	 * @param index the index of the question to format
-	 * @param opts a collection of options to mark as selected
-	 * @return the correction of the question at index
-	 */
-	public String getFormatedCorrection (int index, Collection<Option> opts) {
-		Map<String, Set<Option>> m = null;
-		if (opts!=null && !opts.isEmpty()){
-			m=new HashMap<>();
-			m.put("unkown", new HashSet<>(opts));
-		}
-		return getFormated (index,true, m, null);
+		return String.format("%s\n%s%s%s%s", header(), questionText, users, options, corrStr).replace("\\$([^\\$]*)\\$", "`$1`");
 	}
 	
 	/** 
@@ -1159,7 +1147,7 @@ public class QuestionList implements Iterable<Question>{
 	 * @return the awsers of question at index
 	 */
 	public String getFormatedCorrection (int index) {
-		return getFormated(index, true, null, null);
+		return getFormated(index, true, null);
 	}
 	
 	/** 

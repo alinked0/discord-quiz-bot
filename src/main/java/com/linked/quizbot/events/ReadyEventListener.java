@@ -21,7 +21,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
-
 public class ReadyEventListener extends ListenerAdapter {
 	@Override
 	public void onReady(net.dv8tion.jda.api.events.session.ReadyEvent event){
@@ -80,7 +79,7 @@ public class ReadyEventListener extends ListenerAdapter {
 					QuestionList q = QuestionList.getExampleQuestionList();
 					MessageSender.addButtons(msg, l, mess -> MessageSender.addReactions(mess, l.iterator()));
 					
-					Viewer v = new Viewer(q);
+					/*Viewer v = new Viewer(q);
 					output.add("## Viewer:\n");
 					output.addAll(v.start().getTextMessages());
 					output.addAll(v.next().getTextMessages());
@@ -94,12 +93,13 @@ public class ReadyEventListener extends ListenerAdapter {
 					output.add("## Explain:\n");
 					output.addAll(v.start().getTextMessages());
 					output.addAll(v.next().getTextMessages());
-					
 					MessageSender.sendCommandOutput(
 						output.addFile(q.pathToList()).build(),
 						msg.getChannel(),
 						msg
 					);
+					*/
+					
 				});
 			}
 		}

@@ -1,12 +1,16 @@
 package com.linked.quizbot.core.viewers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.utils.Awnser;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.QuestionList;
 
@@ -30,7 +34,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
  * @see QuizBot
  */
 public class Explain extends Viewer{
-	private List<Set<Option>> userAwnsersByQuestionIndex;
+	private Map<Integer,Map<String,Awnser>> awnsersByUserIdByQuestionIndex;
 	private double points;
 	private String userId;
 	private boolean fromActiveQuiz = false;
@@ -38,14 +42,14 @@ public class Explain extends Viewer{
 	/**
 	 * Constructs an Explain viewer for a given quiz with the user's recorded answers and score.
 	 * @param l The {@link QuestionList} for the quiz.
-	 * @param userAwnsersByQuestionIndex A list containing the user's answers for each question.
+	 * @param awnsersByUserIdByQuestionIndex A list containing the user's answers for each question.
 	 * @param userId The ID of the user whose answers are being viewed.
 	 * @param points The user's score.
 	 * @param useButtons If true, uses buttons for navigation; otherwise, uses reactions.
 	 */
-	public Explain(QuestionList l, List<Set<Option>> userAwnsersByQuestionIndex, String userId, double points, boolean useButtons){
+	public Explain(QuestionList l, Map<Integer,Map<String,Awnser>> awnsersByUserIdByQuestionIndex, String userId, double points, boolean useButtons){
 		super(l, useButtons);
-		this.userAwnsersByQuestionIndex = userAwnsersByQuestionIndex;
+		this.awnsersByUserIdByQuestionIndex = awnsersByUserIdByQuestionIndex;
 		this.points = points;
 		this.userId = userId;
 	}
@@ -56,7 +60,7 @@ public class Explain extends Viewer{
 	 * @param userId The ID of the user to explain the quiz to.
 	 */
 	public Explain(QuizBot view, String userId){
-		this(view.getQuestionList(), view.getAwsersByQuestion(userId), userId, view.getUserScore(userId), view.useButtons());
+		this(view.getQuestionList(), view.getResponses(), userId, view.getUserScore(userId), view.useButtons());
 	}
 	
 	/**
@@ -66,7 +70,7 @@ public class Explain extends Viewer{
 	 * @param currIndex The question index to start the explanation from.
 	 */
 	public Explain(QuizBot view, String userId, int currIndex){
-		this(view.getQuestionList(), view.getAwsersByQuestion(userId), userId, view.getUserScore(userId), view.useButtons());
+		this(view.getQuestionList(), view.getResponses(), userId, view.getUserScore(userId), view.useButtons());
 		this.fromActiveQuiz = true;
 		this.start();
 		int index = view.useAutoNext()?currIndex-1:currIndex;
@@ -77,7 +81,7 @@ public class Explain extends Viewer{
 	@Override
 	public String getHeader(){
 		String header = "";
-		if (userAwnsersByQuestionIndex!=null){
+		if (awnsersByUserIdByQuestionIndex!=null){
 			String uName = BotCore.getEffectiveNameFromId(userId);
 			if (uName == userId){
 				uName = String.format("<@%s>", uName);
@@ -89,7 +93,8 @@ public class Explain extends Viewer{
 	}
 	@Override
 	public String getFormatedQuestion(){
-		return getQuestionList().getFormatedCorrection(getCurrentIndex(), getCurrentIndex()<userAwnsersByQuestionIndex.size()?userAwnsersByQuestionIndex.get(getCurrentIndex()):null);
+		Map<String, Awnser> m = awnsersByUserIdByQuestionIndex.getOrDefault(getCurrentIndex(), new HashMap<>());
+		return getQuestionList().getFormated(getCurrentIndex(), true, m);
 	}
 	@Override
 	public List<Emoji> getReactions(){

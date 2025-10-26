@@ -246,7 +246,7 @@ public class Viewer {
 	 * @return The header string.
 	 */
 	public String getHeader(){
-		return String.format("%s**Author:** <@%s>\n**Date created:** %s\n", questions.header(),
+		return String.format("%s\n**Author:** <@%s>\n**Date created:** %s\n", questions.header(),
 			questions.getAuthorId(), TimeFormat.DATE_TIME_LONG.atTimestamp(questions.getTimeCreatedMillis()));
 	}
 	
@@ -284,12 +284,13 @@ public class Viewer {
 		}
 		CommandOutput.Builder output = new CommandOutput.Builder();
 		if (!isActive()) { return output.build();}
+		String content;
 		if (currIndex == -1){
-			output.add(getHeader());
+			content = getHeader();
 		} else {
-			output.add(getFormatedQuestion());
-			if (!BotCore.isBugFree())output.add(String.format("```txt\n%s\n```\n",getFormatedQuestion()));
+			content = getFormatedQuestion();
 		}
+		output.add(content);
 		inBetweenProccessorCurrent();
 		return output.sendInOriginalMessage(sendInOriginalMessage)
 			.clearReactions(true)

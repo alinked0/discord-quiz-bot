@@ -78,7 +78,7 @@ public class MessageSender {
 	private static void treatDelay(CommandOutput output, MessageChannel channel, Message originalMessage){
 		 if (output.getDelayMillis() > 0) {
 			scheduler.schedule(() -> sendConditions(output, channel, originalMessage),
-							   output.getDelayMillis(), TimeUnit.MILLISECONDS);
+							output.getDelayMillis(), TimeUnit.MILLISECONDS);
 		} else {
 			sendConditions(output, channel, originalMessage);
 		}

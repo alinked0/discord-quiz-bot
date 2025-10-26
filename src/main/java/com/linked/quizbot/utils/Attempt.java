@@ -3,18 +3,14 @@ package com.linked.quizbot.utils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.linked.quizbot.Constants;
-import com.linked.quizbot.core.BotCore;
 
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.Timestamp;
@@ -74,7 +70,7 @@ public class Attempt {
 						case "timeEndedMillis", "end" -> {
 							timeEndedMillis =jp.getLongValue();
 						}
-						case "awnsersByQuestion", "awnsers" -> {
+						case "awnsersByQuestion", "response", "awnsers" -> {
 							awnsersByQuestion = parseAwnsersByQuestion(jp, original);
 						}
 						default -> {
@@ -165,19 +161,18 @@ public class Attempt {
 	 * @return the final score of this user
 	 */
 	public Double getScore(){
-		double point;
-		double score=0;
+		Double score=0.0;
 		int numberOfTrueOptions;
-		Set<Option> awnsers;
-		for (int i =0; i<awnsersByQuestion.size(); ++i){
-			Awnser entry_AwnsersByUserByQuestion = awnsersByQuestion.get(i);
-			if (entry_AwnsersByUserByQuestion!=null){
-				awnsers = entry_AwnsersByUserByQuestion.getResponse();
-				if (awnsers!=null){
+		Awnser  awnser;
+		Set<Option> response;
+		for (int i =0; i<questionList.size(); ++i){
+			awnser = awnsersByQuestion.get(i);
+			if (awnser!=null){
+				response = awnser.getResponse();
+				if (response!=null){
 					numberOfTrueOptions = getQuestionList().get(i).trueOptions().size();
-					for (Option opt : awnsers) {
-						point = (opt.isCorrect()?QuestionList.pointsForCorrect/numberOfTrueOptions:QuestionList.pointsForIncorrect);
-						score += point;
+					for (Option opt : response) {
+						score += (opt.isCorrect()?QuestionList.pointsForCorrect/numberOfTrueOptions:QuestionList.pointsForIncorrect);
 					}
 				}
 				

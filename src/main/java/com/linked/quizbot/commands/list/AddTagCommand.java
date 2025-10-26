@@ -3,7 +3,6 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 import java.util.ArrayList;
 
-
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
@@ -85,4 +84,3 @@ public class AddTagCommand extends BotCommand{
 	}
 
 }
-

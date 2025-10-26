@@ -73,7 +73,7 @@ public class HistoryCommand extends BotCommand {
 		
 		if (user == null) {user = Users.addUser(userId);}
 		
-		String tmp = String.format("%sHistory\n", list.header());
+		String tmp = String.format("%s\nHistory\n", list.header());
 		
 		List<Attempt> lastscores = user.getAttempts(list.getId());
 		

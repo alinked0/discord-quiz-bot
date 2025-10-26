@@ -79,4 +79,3 @@ public class ButtonListener extends ListenerAdapter {
 		event.editButton(event.getButton()).queue();
 	}
 }
-

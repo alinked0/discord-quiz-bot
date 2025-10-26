@@ -47,7 +47,6 @@ import net.dv8tion.jda.internal.utils.tuple.ImmutablePair;
 public class QuizBot extends Viewer {
 	private final Map<String, Set<Option>> userAnswersForCurrQuestion = new HashMap<>();
 	private final Map<String, Attempt> attemptByPlayer = new HashMap<>();
-	private Map<String, Double> userScoreExact = null;
 	private boolean isExplaining = false;
 	private final boolean autoNext;
 	public final int delaySec = 5;
@@ -114,7 +113,9 @@ public class QuizBot extends Viewer {
 	 * @param player The user ID of the new player.
 	 */
 	public void addPlayer(String player){
-		attemptByPlayer.put(player, new Attempt(player, getQuestionList()));
+		if(attemptByPlayer.get(player)==null){
+			attemptByPlayer.put(player, new Attempt(player, getQuestionList()));
+		}
 	}
 	
 	/**
@@ -124,7 +125,7 @@ public class QuizBot extends Viewer {
 	public List<Emoji> getReactionsForOptions(){
 		List<Emoji> emojis = new ArrayList<>();
 		for (int i = 0; i < getCurrQuestion().size(); i++) {
-			emojis.add(getReactionForAnswer(i + 1));
+			emojis.add(getReactionForAnswer(i));
 		}
 		return emojis;
 	}
@@ -136,24 +137,26 @@ public class QuizBot extends Viewer {
 			this.addPlayer(userId);
 			this.userAnswersForCurrQuestion.put(userId, new HashSet<>());
 		}
-		Option userAwnser = null;
 		// Record user's answer (reaction)
-		for (int i = 1; i<=currQuestion.size(); i++) {
+		for (int i = 0; i<=currQuestion.size(); i++) {
 			if (emoji.equals(getReactionForAnswer(i))) {
-				userAwnser = currQuestion.get(i-1);
-				if (userAwnser != null) {
-					this.userAnswersForCurrQuestion.get(userId).add(userAwnser);
-				}
+				addAwnser(userId, currQuestion.get(i));
 				return;
 			}
 		}
-		if (!BotCore.isBugFree()){
-			try {
-				System.out.println(Constants.MAPPER.writeValueAsString(userAnswersForCurrQuestion));
-			}catch(JsonProcessingException e){e.printStackTrace();}
-		}
 	}
 	
+	public void addAwnser(String userId, Option opt){
+		Question currQuestion = this.getCurrQuestion();
+		if (!this.getPlayers().contains(userId)){
+			this.addPlayer(userId);
+			this.userAnswersForCurrQuestion.put(userId, new HashSet<>());
+		}
+		if (opt != null && currQuestion.contains(opt)) {
+			this.userAnswersForCurrQuestion.get(userId).add(opt);
+			attemptByPlayer.get(userId).addAwnser(getCurrentIndex(), userAnswersForCurrQuestion.get(userId), System.currentTimeMillis()-lastServedMillis);
+		}
+	}
 	@Override
 	public void removeReaction(String userId, Emoji emoji){/*TODO impl a response removal */};
 	
@@ -180,6 +183,7 @@ public class QuizBot extends Viewer {
 		}
 		isExplaining(false);
 		this.timeLimit = TimeFormat.RELATIVE.now();
+		lastServedMillis = System.currentTimeMillis();
 	}
 	@Override
 	public Consumer<Message> postSendActionCurrent(){
@@ -211,28 +215,15 @@ public class QuizBot extends Viewer {
 		/*if (useAutoNext() && awnsersByUserIdByQuestionIndex.get(getCurrentIndex()).size()>1){
 			this.timeLimit = TimeFormat.RELATIVE.after(delaySec*1000);
 		}*/
-		return String.format("%s\n%s\n", getQuestionList().getFormated(getCurrentIndex(), false, userAnswersForCurrQuestion,  getPlayers()), getLastTimestamp());
+		return String.format("%s\n%s\n", getQuestionList().getFormated(getCurrentIndex(), false, getResponseByQuestion(getCurrentIndex())), getLastTimestamp());
 	}
 	
 	@Override
 	public void end() {
 		super.end();
-		getExactUserScore();
 		for (String u : getPlayers()){
-			Users.getUser(u).addAttempt(getQuestionList().getId(), attemptByPlayer.get(u).end());
+			Users.addUser(u).addAttempt(getQuestionList().getId(), attemptByPlayer.get(u).end());
 		}
-	}
-	
-	/**
-	 * Calculates and returns the exact final score for all players.
-	 * @return A map of user IDs to their final scores.
-	 */
-	private Map<String, Double> getExactUserScore(){
-		userScoreExact = new HashMap<>();
-		for (String u : getPlayers()){
-				userScoreExact.put(u, attemptByPlayer.get(u).getScore());
-		}
-		return userScoreExact;
 	}
 	
 	/**
@@ -242,10 +233,14 @@ public class QuizBot extends Viewer {
 	public List<String> leaderBoard() {
 		List<String> res = new ArrayList<>();
 		double totalPoints = getQuestionList().size() * QuestionList.pointsForCorrect;
-		String leaderboard = "Leaderboard:\n";
+		String leaderboard = getQuestionList().header() + "\nLeaderboard:\n";
 		String uName;
 		
-		Iterator<Map.Entry<String, Double>> SortedScoreByUser = this.userScoreExact.entrySet().stream()
+		Map<String, Double> userScoreExact = new HashMap<>();
+		for (String u : getPlayers()){
+				userScoreExact.put(u, attemptByPlayer.get(u).getScore());
+		}
+		Iterator<Map.Entry<String, Double>> SortedScoreByUser = userScoreExact.entrySet().stream()
 			.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).iterator();
 		int i = 1;
 		while (SortedScoreByUser.hasNext()) {
@@ -268,11 +263,11 @@ public class QuizBot extends Viewer {
 	
 	/**
 	 * Returns the emoji corresponding to a given answer index.
-	 * @param index The 1-based index of the answer option.
+	 * @param index The 0-based index of the answer option.
 	 * @return The Unicode emoji.
 	 */
-	public static Emoji getReactionForAnswer(int index) {
-		return Emoji.fromUnicode("U+3"+index+"U+fe0fU+20e3");
+	public static Emoji getReactionForAnswer(int optionIndex) {
+		return Emoji.fromUnicode(String.format("U+3%dU+FE0FU+20E3", optionIndex+1));
 	}
 	
 	/**
@@ -280,19 +275,32 @@ public class QuizBot extends Viewer {
 	 * @param userId The ID of the user.
 	 * @return A list of sets, where each set contains the options selected for a question.
 	 */
-	public List<Set<Option>> getAwsersByQuestion(String userId){
-		if (!getPlayers().contains(userId)) return List.of();
+	public Map<Integer, Awnser> getAwsersByQuestion(String userId){
+		Map<Integer, Awnser> res = new HashMap<>();
+		if (!getPlayers().contains(userId)) return res;
 		Map<Integer, Awnser> awsers = attemptByPlayer.get(userId).getAwnsers();
-		Awnser tmp;
-		List<Set<Option>> res = new ArrayList<>();
-		for (int i=0; i<=getCurrentIndex() &&i<getQuestionList().size(); ++i){
-			tmp = awsers.get(i);
-			if (tmp!=null)res.add(tmp.getResponse());
-			else res.add(new HashSet<>());
+		for (Integer i=0; i<=getCurrentIndex(); ++i){
+			res.put(i, awsers.get(i));
 		}
-		if (getCurrentIndex()<getQuestionList().size() && 0<=getCurrentIndex()){
-			for (String u : userAnswersForCurrQuestion.keySet()){
-				res.set(getCurrentIndex(), userAnswersForCurrQuestion.getOrDefault(u, new HashSet<>()));
+		return res;
+	}
+	
+	public Map<Integer, Map<String, Awnser>> getResponses(){
+		Map<Integer, Map<String, Awnser>> res = new HashMap<>();
+		for (Integer i=0; i<getQuestionList().size(); ++i){
+			res.put(i, getResponseByQuestion(i));
+		}
+		return res;
+	}
+	public Map<String, Awnser> getResponseByQuestion(int qestionIndex){
+		Map<String,Awnser> res = new HashMap<>();
+		Attempt att;
+		Awnser awns;
+		for (String userId : getPlayers()){
+			att = attemptByPlayer.get(userId);
+			if (att!=null){
+				awns = att.getAwnsers().get(qestionIndex);
+				res.put(userId, awns);
 			}
 		}
 		return res;
@@ -304,7 +312,7 @@ public class QuizBot extends Viewer {
 	 * @return The user's score.
 	 */
 	public Double getUserScore(String userId) {
-		if (!getPlayers().contains(userId)) return 0.00;
+		if (attemptByPlayer.get(userId)==null) return 0.00;
 		return attemptByPlayer.get(userId).getScore();
 	}
 }

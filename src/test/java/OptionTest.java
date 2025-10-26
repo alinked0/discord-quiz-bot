@@ -113,7 +113,7 @@ public class OptionTest {
 	void testToString_NoExplanationNull()  throws JsonProcessingException{
 		Option option = new Option("Test Option No Expl", false);
 		String expectedJson = "{\n\t\"option\":"+Constants.MAPPER.writeValueAsString("Test Option No Expl")+",\n\t\"isCorrect\":false,\n\t\"explication\":null\n}";
-	   assertEquals(expectedJson.replaceAll("[\\n \\s \\t]*", ""), option.toString().replaceAll("[\\n \\s \\t]*", ""));
+		assertEquals(expectedJson.replaceAll("[\\n \\s \\t]*", ""), option.toString().replaceAll("[\\n \\s \\t]*", ""));
 	}
 	
 	@Test
@@ -121,7 +121,7 @@ public class OptionTest {
 	void testToString_EmptyStringExplanation()  throws JsonProcessingException{
 		Option option = new Option("Test Option Empty Expl", true, "");
 		String expectedJson = "{\n\t\"option\":"+Constants.MAPPER.writeValueAsString("Test Option Empty Expl")+",\n\t\"isCorrect\":true,\n\t\"explication\":\"\"\n}";
-	   assertEquals(expectedJson.replaceAll("[\\n \\s \\t]*", ""), option.toString().replaceAll("[\\n \\s \\t]*", ""));
+		assertEquals(expectedJson.replaceAll("[\\n \\s \\t]*", ""), option.toString().replaceAll("[\\n \\s \\t]*", ""));
 	}
 	
 	@Test
@@ -129,7 +129,7 @@ public class OptionTest {
 	void testToString_NullStringExplanation()  throws JsonProcessingException{
 		Option option = new Option("Test Option 'null' Expl", true, "null");
 		String expectedJson = "{\n\t\"option\":"+Constants.MAPPER.writeValueAsString("Test Option 'null' Expl")+",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}";
-	   assertEquals(expectedJson.replaceAll("[\\n \\s \\t]*", ""), option.toString().replaceAll("[\\n \\s \\t]*", ""));
+		assertEquals(expectedJson.replaceAll("[\\n \\s \\t]*", ""), option.toString().replaceAll("[\\n \\s \\t]*", ""));
 	}
 	
 	@Test
@@ -137,7 +137,7 @@ public class OptionTest {
 	void testToString_ConstantsNoExplanation()  throws JsonProcessingException{
 		Option option = new Option("Test Option Constants.NOEXPLICATION", true, Constants.NOEXPLICATION);
 		String expectedJson = "{\n\t\"option\":"+Constants.MAPPER.writeValueAsString("Test Option Constants.NOEXPLICATION")+",\n\t\"isCorrect\":true,\n\t\"explication\":null\n}";
-	   assertEquals(expectedJson.replaceAll("[\\n \\s \\t]*", ""), option.toString().replaceAll("[\\n \\s \\t]*", ""));
+		assertEquals(expectedJson.replaceAll("[\\n \\s \\t]*", ""), option.toString().replaceAll("[\\n \\s \\t]*", ""));
 	}
 	
 	@Test

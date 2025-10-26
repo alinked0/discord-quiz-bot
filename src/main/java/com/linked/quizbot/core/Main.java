@@ -43,6 +43,7 @@ public class Main {
 			Constants.DEBUGCHANNELID = null;
 			Constants.DEBUGGUILDID = null;
 		}
+		 
 		Scanner scanner = new Scanner(System.in);
 		BotCore.jda= null;
 		Users.loadAllUsers();

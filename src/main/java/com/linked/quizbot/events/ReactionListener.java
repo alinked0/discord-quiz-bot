@@ -34,21 +34,13 @@ public class ReactionListener extends ListenerAdapter {
 	
 	@Override
 	public void onMessageReactionAdd(MessageReactionAddEvent event){
-		long start = System.nanoTime();
 		GenericMessageReactionEvent f = (GenericMessageReactionEvent)event;
 		User sender = event.getUser();
 		if (sender == null || sender.isBot()) {
 			return;
 		}
-		
-		if (event.isFromGuild() || event.isFromThread()){
-				if (!BotCore.canIRunThisHere(event.getGuild().getId()) || !BotCore.canIRunThisHere(event.getChannel().getId())){
-					return;
-				}
-		} else if (event.isFromType(ChannelType.PRIVATE)){
-			if (!BotCore.canIRunThisHere(sender.getId())){
-				return;
-			}
+		if (!BotCore.isBugFree() && !(BotCore.canIRunThisHere(event.getChannel().getId()))){
+			return;
 		}
 		
 		BotCore.addUser(sender);
@@ -66,13 +58,12 @@ public class ReactionListener extends ListenerAdapter {
 					message 
 				);				
 				return;
-			}
-			
+			}			
 			Viewer viewer = BotCore.getViewer(messageId);
 			if (viewer!=null && viewer.isActive() && viewer.getReactions().contains(reaction)){
 				viewer.addReaction(userId, reaction);
 				if (viewer instanceof QuizBot && viewer.getCurrentIndex()>=0){
-					QuizBot quizBot = (QuizBot)BotCore.getViewer(messageId);
+					QuizBot quizBot = (QuizBot)viewer;
 					if (quizBot.useAutoNext() && quizBot.getPlayers().size()==1){
 						ReactionListener.autoNext(userId, message, quizBot);
 						return;

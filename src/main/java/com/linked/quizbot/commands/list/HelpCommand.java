@@ -131,4 +131,4 @@ public class HelpCommand extends BotCommand {
 		}
 		return embed;
 	}
-}	
+}

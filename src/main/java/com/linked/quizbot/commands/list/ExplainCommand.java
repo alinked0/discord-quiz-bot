@@ -54,10 +54,10 @@ public class ExplainCommand extends BotCommand {
 		}
 		String messageId = args.get(0);
 		QuizBot q =(QuizBot) BotCore.getViewer(messageId);
-		q.addPlayer(userId);
 		if (q == null) {
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
+		q.addPlayer(userId);
 		q.isExplaining(true);
 		CommandOutput.Builder output = new CommandOutput.Builder();
 		CommandOutput expl;
