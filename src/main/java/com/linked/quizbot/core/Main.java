@@ -20,7 +20,7 @@ import com.linked.quizbot.utils.Users;
  * @since 2025-02-01
  */
 public class Main {
-	public static void usageMain() {
+	public static void usage() {
 		String s = "";
 		s += "Usage: \n\tjava -jar QuizBot.jar BOTTOKEN USERID [TESTCHANNELID TESTGUILDID]\n";
 		s += "\t\t BOTTOKEN: the bot token, TESTGUILDID: the guild id to test in, TESTCHANNELID: the channel id to test in\n";
@@ -31,7 +31,7 @@ public class Main {
 	
 	public static void main (String[] args) {
 		if (args.length <2 || Arrays.asList("help", "-h", "--help").contains(args[0].toLowerCase())) {
-			usageMain();
+			Main.usage();
 			return;
 		}
 		Constants.TOKEN = args[0];

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.linked.quizbot.Constants;
@@ -12,7 +13,7 @@ import com.linked.quizbot.Constants;
 /**
  * A utility class designed to manage filtering and sorting operations on a collection
  * of QuestionList objects. It translates command tokens into executable Java predicates
- * and comparators, mirroring the conceptual system described in the Karuta example.
+ * and comparators, mirroring the collection command in the Karuta card collection game.
  */
 public class CollectionManager {
 	public static Predicate<QuestionList> parseFilter(String token) {
@@ -40,9 +41,6 @@ public class CollectionManager {
 			if (token.contains("!=")) {
 				op = "!=";
 				parts = token.split("!=", 2);
-			} else if (token.contains("~=")) {
-				op = "~=";
-				parts = token.split("~=", 2);
 			} else {
 				op = "=";
 				parts = token.split("=", 2);
@@ -50,7 +48,8 @@ public class CollectionManager {
 			
 			String field = parts[0].toLowerCase();
 			String value = parts[1];
-			
+			Pattern pattern = Pattern.compile(value, Pattern.CASE_INSENSITIVE);
+
 			return list -> {
 				String listValue = switch (field) {
 					case "name" -> list.getName();
@@ -62,9 +61,8 @@ public class CollectionManager {
 				if (listValue == null) return false;
 				
 				return switch (op) {
-					case "=" -> listValue.equalsIgnoreCase(value);
-					case "!=" -> !listValue.equalsIgnoreCase(value);
-					case "~=" -> listValue.toLowerCase().contains(value.toLowerCase());
+					case "=" -> pattern.matcher(listValue).matches();
+					case "!=" -> !pattern.matcher(listValue).matches();
 					default -> true;
 				};
 			};
