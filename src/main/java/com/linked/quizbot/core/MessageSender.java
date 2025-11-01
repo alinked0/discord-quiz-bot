@@ -110,7 +110,7 @@ public class MessageSender {
 				failure -> System.err.println(Constants.ERROR + "Failed to edit Message : " + failure.getMessage()) // Log failure
 			);
 			return;
-		} 
+		}
 		if (output.sendInThread()  && channel.getType().isGuild() && !channel.getType().isThread()){
 			String s = output.getTextMessages().get(0);
 			

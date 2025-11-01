@@ -114,7 +114,7 @@ public class AwnserParserTest {
 	@Test
 	void testParse_InvalidStartToken() throws IOException{
 		// A simple JSON array, which is not an object
-		String json = "[\"duration\": 5000]"; 
+		String json = "[\"duration\": 5000]";
 		
 		JsonParser jp = createParser(json);
 		

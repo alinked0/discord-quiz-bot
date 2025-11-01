@@ -484,7 +484,7 @@ public class QuestionList implements Iterable<Question>{
 						default -> {
 							jp.skipChildren();
 						}
-					} 
+					}
 				} else if(jp.currentToken() == JsonToken.END_OBJECT) {
 						jp.nextToken();
 						/* parsing System.out.print("QuestionList("+jp.currentToken()+", "+jp.currentName()+") "); */
@@ -923,7 +923,7 @@ public class QuestionList implements Iterable<Question>{
 			spc2 = spc1+spc1,
 			spc3 = spc2+spc1,
 			seperatorParamOpt = "\n";
-
+			
 			
 			
 			res += "{\n";

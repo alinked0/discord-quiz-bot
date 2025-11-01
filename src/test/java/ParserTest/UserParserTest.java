@@ -226,10 +226,10 @@ public class UserParserTest {
 		List<Attempt> listBAttempts = user.getAttemptsByListId().get("listB");
 		
 		assertNotNull(listAAttempts);
-		assertEquals(2, listAAttempts.size()); 
+		assertEquals(2, listAAttempts.size());
 		
 		assertNotNull(listBAttempts);
-		assertEquals(1, listBAttempts.size()); 
+		assertEquals(1, listBAttempts.size());
 		
 		jp.close();
 	}

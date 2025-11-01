@@ -79,7 +79,7 @@ public class User implements Iterable<QuestionList>{
 			}
 			this.userId = userId;
 			return this;
-		}  
+		}
 		
 		/**
 		 * Sets the command prefix for the user.
@@ -614,7 +614,7 @@ public class User implements Iterable<QuestionList>{
 			k = getByName(l.getName());
 			if (k==null){
 				k = l;
-			} 
+			}
 		}
 		
 		k.addAll(l);

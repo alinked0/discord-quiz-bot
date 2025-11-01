@@ -97,7 +97,7 @@ public class AddListCommand extends BotCommand{
 			if (k.getAuthorId() == senderId){
 				Users.addListToUser(l.getAuthorId(), l);
 				return "Success, list :"+l.header()+", has been added.\n";
-			} 
+			}
 			return String.format("Your are not the owner of `%s`, use `%s` `<your_list.json>`\nto create a new list.", index, Constants.CMDPREFIXE+CreateListCommand.CMDNAME);
 		}
 		return String.format("This list doesn't exist in your collection, use `%s` `<your_list.json>`\nto create a new list.", Constants.CMDPREFIXE+CreateListCommand.CMDNAME);

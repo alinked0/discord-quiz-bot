@@ -135,13 +135,13 @@ public class CollectionCommand extends BotCommand {
 		List<List<QuestionList>> listsPerPage;
 		Comparator<QuestionList> comparator;
 		int i, numberPerPage=10;
-
+		
 		targetUserId = args.get(0).isBlank()?userId:args.get(0); sortFieldToken = args.get(1); sortDirection = args.get(2);
-		if (args.size()>3) filterTokens = args.subList(3, args.size()-1);
+		if (args.size()>3) filterTokens = args.subList(3, args.size());
 		else filterTokens = new ArrayList<>();
 		user = Users.get(targetUserId);
 		comparator = CollectionManager.parseComparator(user, sortFieldToken);
-
+		
 		collection = new ArrayList<>(user.getLists().values()); collection.add(QuestionList.getExampleQuestionList());
 		collection =  collection.stream().filter( 
 			filterTokens.stream().map(
@@ -160,18 +160,18 @@ public class CollectionCommand extends BotCommand {
 			}
 			listsPerPage.add(tmp);
 		}
-
+		
 		listsByLastIndex = new HashMap<>();
 		listsByLastIndex.put(-1, listsPerPage);
 		listsByLastIndexByUserId.put(userId, listsByLastIndex);
-
+		
 		return next(userId);
 	}
-
+	
 	public static CommandOutput next(String userId){
 		return get(userId, 1);
 	}
-
+	
 	public static CommandOutput previous(String userId){
 		return get(userId, -1);
 	}
@@ -183,12 +183,12 @@ public class CollectionCommand extends BotCommand {
 		List<String> outList;
 		List<Emoji> emojis;
 		int lastIndex;
-
+		
 		user = Users.get(userId);
 		listsByLastIndex = listsByLastIndexByUserId.get(userId);
 		lastIndex = listsByLastIndex.keySet().iterator().next() + incr;
 		listsPerPage = listsByLastIndex.values().iterator().next();
-
+		
 		outList = new ArrayList<>();
 		outText = String.format("Collection of <@%s>\n", user.getId());
 		if (listsPerPage.size()>lastIndex){
@@ -202,9 +202,9 @@ public class CollectionCommand extends BotCommand {
 		}
 		outText += String.format("Page `%d` out of `%d`",lastIndex+1, listsPerPage.size()==0?1:listsPerPage.size());
 		outList.add(outText);
-
+		
 		listsByLastIndexByUserId.get(userId).clear();
-
+		
 		listsByLastIndex.put(lastIndex, listsPerPage);
 		listsByLastIndexByUserId.put(userId, listsByLastIndex);
 		
@@ -231,7 +231,7 @@ public class CollectionCommand extends BotCommand {
 			}
 		}
 		String score="";
-		List<Attempt> tmp = user.getAttempts(l.getId()); 
+		List<Attempt> tmp = user.getAttempts(l.getId());
 		Attempt lastAttempt;
 		if (tmp!=null && !tmp.isEmpty()) {
 			lastAttempt = tmp.getFirst();

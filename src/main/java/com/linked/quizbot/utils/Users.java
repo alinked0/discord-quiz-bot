@@ -105,7 +105,7 @@ public class Users {
 		for (User u : Users.allUsers) {
 			if (u.addTagToList(tmp, tagName)) {
 				return true;
-			}   
+			}
 		}
 		return false;
 	}

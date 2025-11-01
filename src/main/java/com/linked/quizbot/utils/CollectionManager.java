@@ -45,7 +45,7 @@ public class CollectionManager {
 			String field = parts[0].toLowerCase();
 			String value = parts[1];
 			Pattern pattern = Pattern.compile(value, Pattern.CASE_INSENSITIVE);
-
+			
 			return list -> {
 				String listValue = switch (field) {
 					case "name" -> list.getName();
@@ -115,7 +115,7 @@ public class CollectionManager {
 			boolean hasTag = false;
 			for (String tagName: list.tagNames()){
 				if (pat.matcher(tagName).matches()){
-					hasTag = true; 
+					hasTag = true;
 					break;
 				}
 			}
@@ -157,7 +157,7 @@ public class CollectionManager {
 							if (a.isEmpty()){
 								if (b.isEmpty()) return 0;
 								return -1;
-							} 
+							}
 							return 1;
 						}
 						u = a.getFirst().getStart();
@@ -174,7 +174,7 @@ public class CollectionManager {
 							if (a.isEmpty()){
 								if (b.isEmpty()) return 0;
 								return -1;
-							} 
+							}
 							return 1;
 						}
 						u = a.getFirst().getScore();
@@ -182,7 +182,7 @@ public class CollectionManager {
 						return Double.compare(u, v);
 					};
 			default:
-				return QuestionList.comparatorByDate().reversed();
+				return QuestionList.comparatorByDate();
 		}
 	}
 }

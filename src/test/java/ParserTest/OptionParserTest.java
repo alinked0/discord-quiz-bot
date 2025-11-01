@@ -23,7 +23,7 @@ public class OptionParserTest {
 		// (START_OBJECT or START_ARRAY) for the Option.Parser methods to start correctly.
 		// The Option.Parser.parse/parseList methods call jp.nextToken() at the start if currentToken is not the expected one.
 		JsonParser jp = mapper.getFactory().createParser(json);
-		jp.nextToken(); 
+		jp.nextToken();
 		return jp;
 	}
 	

@@ -58,19 +58,19 @@ public class AttemptTest {
 		smallQuestionList.add(q);
 		q = new Question("Choose wisely C", optTrue, optTrue, optFalse);
 		smallQuestionList.add(q);
-		fixedStartTime = 1635338400000L; 
-		fixedEndTime = 1635338460000L;   
+		fixedStartTime = 1635338400000L;
+		fixedEndTime = 1635338460000L;
 		
 		awnsers = new HashMap<>();
 		Set<Option> awnserQ0 = new HashSet<>();
-		awnserQ0.add(optTrue); 
-		awnserQ0.add(optFalse); 
+		awnserQ0.add(optTrue);
+		awnserQ0.add(optFalse);
 		awnsers.put(0, new Awnser(1000L, awnserQ0));
 		Set<Option> awnserQ1 = new HashSet<>();
-		awnserQ1.add(optTrue); 
+		awnserQ1.add(optTrue);
 		awnsers.put(1, new Awnser(2000L, awnserQ1));
 	}
-
+	
 	
 	@Test
 	void testConstructor_Full() {
@@ -98,7 +98,7 @@ public class AttemptTest {
 		assertNotNull(attempt.getAwnsers());
 		assertTrue(attempt.getAwnsers().isEmpty());
 	}
-
+	
 	
 	@Test
 	void testGetQuestionList() {
@@ -127,7 +127,7 @@ public class AttemptTest {
 	@Test
 	void testGetDuration() {
 		Attempt attempt = new Attempt(USER_ID, smallQuestionList, fixedStartTime, fixedEndTime, new HashMap<>());
-		Long expectedDuration = fixedEndTime - fixedStartTime; 
+		Long expectedDuration = fixedEndTime - fixedStartTime;
 		assertEquals(expectedDuration, attempt.getDuration());
 	}
 	
@@ -137,7 +137,7 @@ public class AttemptTest {
 		assertEquals(awnsers, attempt.getAwnsers());
 		assertSame(awnsers, attempt.getAwnsers());
 	}
-
+	
 	
 	@Test
 	void testAddAwnser_NewEntry() {
@@ -185,14 +185,14 @@ public class AttemptTest {
 		assertTrue(attempt.getEnd() >= before && attempt.getEnd() <= after);
 		assertTrue(attempt.getDuration() > 0);
 	}
-
+	
 	
 	@Test
 	void testGetScore_FullCalculation() {
 		Attempt attempt = new Attempt(USER_ID, smallQuestionList, fixedStartTime, fixedEndTime, awnsers);
 		
 		Double expectedScore = 1.25;
-		assertEquals(expectedScore, attempt.getScore(), 0.0001); 
+		assertEquals(expectedScore, attempt.getScore(), 0.0001);
 	}
 	
 	@Test
@@ -204,7 +204,7 @@ public class AttemptTest {
 	@Test
 	void testGetScore_AwnserIsNull() {
 		Map<Integer, Awnser> mapWithNull = new HashMap<>();
-		mapWithNull.put(0, null); 
+		mapWithNull.put(0, null);
 		
 		Attempt attempt = new Attempt(USER_ID, smallQuestionList, fixedStartTime, fixedEndTime, mapWithNull);
 		assertEquals(0.0, attempt.getScore(), 0.0001);
@@ -221,7 +221,7 @@ public class AttemptTest {
 	@Test
 	void testHashCode_Difference() {
 		Attempt attempt1 = new Attempt(USER_ID, smallQuestionList, fixedStartTime, fixedEndTime, awnsers);
-		Attempt attempt2 = new Attempt("otherUser", smallQuestionList, fixedStartTime, fixedEndTime, awnsers); 
+		Attempt attempt2 = new Attempt("otherUser", smallQuestionList, fixedStartTime, fixedEndTime, awnsers);
 		
 		assertNotEquals(attempt1.hashCode(), attempt2.hashCode());
 	}
@@ -242,7 +242,7 @@ public class AttemptTest {
 		assertFalse(attempt1.equals(attempt2));
 		Attempt attempt3 = new Attempt("DifferentUser", smallQuestionList, fixedStartTime, fixedEndTime, awnsers);
 		assertFalse(attempt1.equals(attempt3));
-		assertFalse(attempt1.equals(new Object())); 
+		assertFalse(attempt1.equals(new Object()));
 		assertFalse(attempt1.equals(null));
 	}
 	

@@ -67,7 +67,7 @@ public class AttemptParserTest {
 	
 	@Test
 	void testParseAwnsersByQuestion_ThrowsExceptionOnInvalidInput() {
-		String json = "\"not_an_object\""; 
+		String json = "\"not_an_object\"";
 		
 		assertThrows(IOException.class, () -> {
 			JsonParser jp = createParser(json);
@@ -180,7 +180,7 @@ public class AttemptParserTest {
 	
 	@Test
 	void testParseList_ThrowsExceptionOnInvalidInput() {
-		String json = "\"not_an_array\""; 
+		String json = "\"not_an_array\"";
 		
 		assertThrows(IOException.class, () -> {
 			JsonParser jp = createParser(json);
