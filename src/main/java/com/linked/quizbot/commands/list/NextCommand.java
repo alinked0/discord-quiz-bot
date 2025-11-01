@@ -43,12 +43,16 @@ public class NextCommand extends BotCommand {
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		Viewer q = BotCore.getViewer(args.get(0));
+		String messageId = args.get(0);
+		Viewer q = BotCore.getViewer(messageId);
 		if (q != null && q.isActive()){
 			if (q instanceof QuizBot){
 				((QuizBot)q).addPlayer(userId);
 			}
 			return q.next();
+		}
+		if (messageId.equals(CollectionCommand.messageIdByUserId.get(userId))){
+			return CollectionCommand.next(userId);
 		}
 		return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 	}

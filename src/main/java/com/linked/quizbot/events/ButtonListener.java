@@ -10,6 +10,7 @@ import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
+import com.linked.quizbot.commands.list.CollectionCommand;
 
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.entities.Message;

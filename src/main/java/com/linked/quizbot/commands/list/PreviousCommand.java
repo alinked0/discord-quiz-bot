@@ -51,7 +51,8 @@ public class PreviousCommand extends BotCommand {
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		Viewer q = BotCore.getViewer(args.get(0));
+		String messageId = args.get(0);
+		Viewer q = BotCore.getViewer(messageId);
 		if (q != null && q.isActive()){
 			if (q instanceof QuizBot){
 				((QuizBot)q).addPlayer(userId);
@@ -60,6 +61,9 @@ public class PreviousCommand extends BotCommand {
 				}
 			}
 			return q.previous();
+		}
+		if (messageId.equals(CollectionCommand.messageIdByUserId.get(userId))){
+			return CollectionCommand.previous(userId);
 		}
 		return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 	}

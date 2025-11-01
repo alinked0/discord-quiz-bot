@@ -139,7 +139,7 @@ public class CommandLineInterface {
 				return ouitput.add(Constants.UPDATEEXPLANATION).build();
 			}
 		}
-		arguments = (tmp.size()>=2)?cmd.parseArguments(tmp.getLast()):new ArrayList<>();
+		arguments = (tmp.size()>=2)?cmd.parseArguments(tmp.getLast()):cmd.parseArguments("");
 		if(attachements!=null)
 		for (List<String> l :attachements.stream().map(a-> cmd.parseArguments(a)).toList()) {
 			if (!l.isEmpty() && !l.getFirst().isBlank()){

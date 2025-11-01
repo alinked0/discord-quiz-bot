@@ -2,8 +2,6 @@ package com.linked.quizbot.utils;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -16,20 +14,18 @@ import com.linked.quizbot.Constants;
  * and comparators, mirroring the collection command in the Karuta card collection game.
  */
 public class CollectionManager {
-	public static Predicate<QuestionList> parseFilter(String token) {
+	public static Predicate<QuestionList> parseFilter(User user, String token) {
 		String lowerToken = token.toLowerCase();
-		
-		if (lowerToken.startsWith("size") || lowerToken.startsWith("date")) {
-			return parseNumericFilter(token);
+		if (lowerToken.matches("(size|date|start|end).*")) {
+			return parseNumericFilter(user, token);
 		}
-		if (lowerToken.startsWith("tag")) {
+		if (lowerToken.matches("tag.*")) {
 			return parseTagFilter(token);
-		}
-		
-		if (lowerToken.startsWith("name") || lowerToken.startsWith("id") || lowerToken.startsWith("author")) {
+		}		
+		if (lowerToken.matches("(name|id|author).*")) {
 			return parseStringFilter(token);
-		}
-		return list -> true;
+		}		
+		return list -> false;
 	}
 	
 	private static Predicate<QuestionList> parseStringFilter(String token) {
@@ -67,10 +63,10 @@ public class CollectionManager {
 				};
 			};
 		}
-		return list -> true;
+		return list -> false;
 	}
 	
-	private static Predicate<QuestionList> parseNumericFilter(String token) {
+	private static Predicate<QuestionList> parseNumericFilter(User user, String token) {
 		
 		String operator = token.replaceAll("[^!<=>]+", "");
 		String fieldPart = token.split("[!<=>]+")[0].trim().toLowerCase();
@@ -81,13 +77,17 @@ public class CollectionManager {
 			value = Long.parseLong(valuePart);
 		} catch (NumberFormatException e) {
 			System.err.println(Constants.ERROR + "Invalid numeric value in filter: " + valuePart);
-			return list -> true;
+			return list -> false;
 		}
 		
 		return list -> {
+			List<Attempt> attempts = user.getAttempts(list.getId());
+			Attempt lastAtt = attempts.isEmpty()?null:attempts.getFirst();
 			long listValue = switch (fieldPart) {
 				case "size" -> list.size();
 				case "date" -> list.getTimeCreatedMillis();
+				case "start" -> lastAtt==null?0L:lastAtt.getStart();
+				case "end" -> lastAtt==null?0L:lastAtt.getEnd();
 				default -> -1;
 			};
 			
@@ -98,23 +98,30 @@ public class CollectionManager {
 				case "<=" -> listValue <= value;
 				case "=" -> listValue == value;
 				case "!=" -> listValue != value;
-				default -> true;
+				default -> false;
 			};
 		};
 	}
 	
 	private static Predicate<QuestionList> parseTagFilter(String token) {
 		boolean exclude = token.startsWith("tag!");
-		String tagName = token.replaceAll("^(tag!?[=:])", "").trim();
-		
-		if (tagName.isEmpty()) {
+		String tagRegex = token.replaceAll("^(tag!?=?)", "").trim();
+		Pattern pat;
+		if (tagRegex.isEmpty()) {
 			return list -> true;
 		}
-		
-		return list -> {
-			boolean hasTag = list.tagNames().contains(tagName);
-			return exclude ? !hasTag : hasTag;
+		pat = Pattern.compile(tagRegex);
+		Predicate<QuestionList> res =  list -> {
+			boolean hasTag = false;
+			for (String tagName: list.tagNames()){
+				if (pat.matcher(tagName).matches()){
+					hasTag = true; 
+					break;
+				}
+			}
+			return hasTag;
 		};
+		return exclude ? res.negate():res;
 	}
 	
 	public static List<QuestionList> applyFilters(List<QuestionList> collection, List<Predicate<QuestionList>> filters) {
@@ -129,8 +136,8 @@ public class CollectionManager {
 						 .collect(Collectors.toList());
 	}
 	
-	public static Comparator<QuestionList> parseComparator(String sortToken) {
-		String field = sortToken.toLowerCase().replaceAll("o[=:]+", "");
+	public static Comparator<QuestionList> parseComparator(User user, String sortToken) {
+		String field = sortToken.toLowerCase().replaceAll("o=+", "");
 		switch (field) {
 			case "name":
 				return QuestionList.comparatorByName();
@@ -140,6 +147,40 @@ public class CollectionManager {
 				return QuestionList.comparatorById();
 			case "size":
 				return QuestionList.comparatorBySize();
+			case "start":
+				return (e, f) -> {
+						List<Attempt> a, b;
+						Long u, v;
+						a = user.getAttempts(e.getId());
+						b = user.getAttempts(f.getId());
+						if (a.isEmpty() || b.isEmpty()){
+							if (a.isEmpty()){
+								if (b.isEmpty()) return 0;
+								return -1;
+							} 
+							return 1;
+						}
+						u = a.getFirst().getStart();
+						v = b.getFirst().getStart();
+						return Long.compare(u, v);
+					};
+			case "score":
+				return (e, f) -> {
+						List<Attempt> a, b;
+						Double u, v;
+						a = user.getAttempts(e.getId());
+						b = user.getAttempts(f.getId());
+						if (a.isEmpty() || b.isEmpty()){
+							if (a.isEmpty()){
+								if (b.isEmpty()) return 0;
+								return -1;
+							} 
+							return 1;
+						}
+						u = a.getFirst().getScore();
+						v = b.getFirst().getScore();
+						return Double.compare(u, v);
+					};
 			default:
 				return QuestionList.comparatorByDate().reversed();
 		}

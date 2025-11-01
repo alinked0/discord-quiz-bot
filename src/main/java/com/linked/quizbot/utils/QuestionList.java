@@ -1070,7 +1070,7 @@ public class QuestionList implements Iterable<Question>{
 	 * @return a header string for this QuestionList
 	 */
 	public String header(){
-		String res = String.format("`%s` `%d` **%s**",getId(), size(), getName());
+		String res = String.format("`%s` `%d` %s",getId(), size(), getName());
 		return res;
 	}
 	
