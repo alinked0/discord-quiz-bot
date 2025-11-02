@@ -16,6 +16,7 @@ import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.Attempt;
 import com.linked.quizbot.utils.CollectionManager;
+import com.linked.quizbot.utils.Displayable;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
@@ -42,7 +43,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  */
 public class CollectionCommand extends BotCommand {
 	public static final String CMDNAME = "collection";
-	public static final Map<String, Map<Integer, List<List<QuestionList>>>> listsByLastIndexByUserId = new HashMap<>();
+	protected static final Map<String, Map<Integer, List<List<QuestionList>>>> listsByLastIndexByUserId = new HashMap<>();
 	public static final Map<String,String> messageIdByUserId = new HashMap<>();
 	private String cmdDesrciption = "listing all questions";
 	private List<String> abbrevs = List.of("c", "ls");
@@ -123,18 +124,14 @@ public class CollectionCommand extends BotCommand {
 		args.clear(); args.add(targetUserId); args.add(sortFieldToken); args.add(sortDirection); args.addAll(filterTokens);
 		return args;
 	}
+	
 	@Override
-	public CommandOutput execute(String userId,  List<String> args){
+	public CommandOutput execute(String userId,  List<String> args){	
 		User user;
-		Map<Integer, List<List<QuestionList>>> listsByLastIndex;
 		List<String> filterTokens;
-		String targetUserId, sortFieldToken, sortDirection;
-		Iterator<QuestionList> iterList;
-		List<QuestionList> collection;
-		List<QuestionList> tmp;
-		List<List<QuestionList>> listsPerPage;
+		String targetUserId, sortFieldToken, sortDirection;		
+		List<QuestionList> lists;
 		Comparator<QuestionList> comparator;
-		int i, numberPerPage=10;
 		
 		targetUserId = args.get(0).isBlank()?userId:args.get(0); sortFieldToken = args.get(1); sortDirection = args.get(2);
 		if (args.size()>3) filterTokens = args.subList(3, args.size());
@@ -142,17 +139,39 @@ public class CollectionCommand extends BotCommand {
 		user = Users.get(targetUserId);
 		comparator = CollectionManager.parseComparator(user, sortFieldToken);
 		
-		collection = new ArrayList<>(user.getLists().values()); collection.add(QuestionList.getExampleQuestionList());
-		collection =  collection.stream().filter( 
-			filterTokens.stream().map(
-				token -> CollectionManager.parseFilter(user, token)
-			).reduce(list->true, Predicate::and)
-		).sorted(
-			sortDirection.equals("desc")?comparator.reversed():comparator
-		).toList();
+		lists = new ArrayList<>(user.getLists().values()); lists.add(QuestionList.getExampleQuestionList());
+		lists =  lists.stream()
+			.filter(filterTokens.stream().map(token -> CollectionManager.parseFilter(user, token))
+			.reduce(list->true, Predicate::and))
+			.sorted(sortDirection.equals("desc")?comparator.reversed():comparator)
+			.toList();	
+			
+		return execute(userId, args, lists, listsByLastIndexByUserId, messageIdByUserId, displayableQuestionList(),  getName());
+	}
+	
+	public static <T> CommandOutput execute(String userId,  List<String> args, List<T> lists, Map<String, Map<Integer, List<List<T>>>> listsByLastIndexByUserId, Map<String, String> messageIdByUserId, Displayable<T> displ, String commandName){
+		Map<Integer, List<List<T>>> listsByLastIndex;
+		List<List<T>> listsPerPage;
+		int numberPerPage=10;
+		
+		listsPerPage = CollectionCommand.divideLists(lists, numberPerPage);
+		
+		listsByLastIndex = new HashMap<>();
+		listsByLastIndex.put(-1, listsPerPage);
+		listsByLastIndexByUserId.put(userId, listsByLastIndex);
+		
+		return new CommandOutput.Builder()
+			.add(CollectionCommand.get(userId, 1,listsByLastIndexByUserId, displ, commandName))
+			.addPostSendAction(m -> messageIdByUserId.put(userId, m.getId())).build();
+	}
+	public static <T> List<List<T>> divideLists(List<T> lists, int numberPerPage){
+		Iterator<T> iterList;
+		List<T> tmp;
+		List<List<T>> listsPerPage;
+		int i;
 		
 		listsPerPage = new ArrayList<>();
-		iterList = collection.iterator();
+		iterList = lists.iterator();
 		while(iterList.hasNext()) {
 			i=0; tmp = new ArrayList<>();
 			while(iterList.hasNext() && ++i<=numberPerPage) {
@@ -160,48 +179,32 @@ public class CollectionCommand extends BotCommand {
 			}
 			listsPerPage.add(tmp);
 		}
-		
-		listsByLastIndex = new HashMap<>();
-		listsByLastIndex.put(-1, listsPerPage);
-		listsByLastIndexByUserId.put(userId, listsByLastIndex);
-		
-		return next(userId);
+		return listsPerPage;
+	}
+	public static CommandOutput next(String userId, String commandName){
+		return CollectionCommand.get(userId, 1, listsByLastIndexByUserId, displayableQuestionList(), commandName);
 	}
 	
-	public static CommandOutput next(String userId){
-		return get(userId, 1);
+	public static CommandOutput previous(String userId, String commandName){
+		return CollectionCommand.get(userId, -1, listsByLastIndexByUserId, displayableQuestionList(), commandName);
 	}
 	
-	public static CommandOutput previous(String userId){
-		return get(userId, -1);
+	public static CommandOutput current(String userId, String commandName){
+		return CollectionCommand.get(userId, 0, listsByLastIndexByUserId, displayableQuestionList(), commandName);
 	}
-	private static CommandOutput get(String userId, int incr){
-		User user;
-		String outText;
-		List<List<QuestionList>> listsPerPage;
-		Map<Integer, List<List<QuestionList>>> listsByLastIndex;
+	
+	public static <T> CommandOutput get(String userId, int incr, Map<String, Map<Integer, List<List<T>>>> listsByLastIndexByUserId, Displayable<T> displ, String commandName){
+		List<List<T>> listsPerPage;
+		Map<Integer, List<List<T>>> listsByLastIndex;
 		List<String> outList;
 		List<Emoji> emojis;
 		int lastIndex;
 		
-		user = Users.get(userId);
 		listsByLastIndex = listsByLastIndexByUserId.get(userId);
 		lastIndex = listsByLastIndex.keySet().iterator().next() + incr;
 		listsPerPage = listsByLastIndex.values().iterator().next();
 		
-		outList = new ArrayList<>();
-		outText = String.format("Collection of <@%s>\n", user.getId());
-		if (listsPerPage.size()>lastIndex){
-			for (QuestionList list : listsPerPage.get(lastIndex)) {
-				outText = outText + getTextFromQuestionList(user, list);
-				if (outText.length() > Constants.CHARSENDLIM-400) {
-					outList.add(outText);
-					outText = "";
-				}
-			}
-		}
-		outText += String.format("Page `%d` out of `%d`",lastIndex+1, listsPerPage.size()==0?1:listsPerPage.size());
-		outList.add(outText);
+		outList = CollectionCommand.getListsForPageAsText(lastIndex, listsPerPage, displ, String.format("%s of <@%s>\n",commandName, userId));
 		
 		listsByLastIndexByUserId.get(userId).clear();
 		
@@ -210,33 +213,75 @@ public class CollectionCommand extends BotCommand {
 		
 		emojis = new ArrayList<>();
 		if (lastIndex-1>=0) emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
+		// TODO Current command is not completly implemented.
 		if (listsPerPage.size()>lastIndex+1) emojis.add(Emoji.fromFormatted(Constants.EMOJINEXTQUESTION));
-		return new CommandOutput.Builder().addAll(outList).addReactions(emojis).addPostSendAction(m -> CollectionCommand.messageIdByUserId.put(userId, m.getId())).build();
+		return new CommandOutput.Builder().addAll(outList).addReactions(emojis).build();
 	}
-	private static String getTextFromQuestionList(User user, QuestionList l){
-		String minEmoji = Constants.EMOJIBLACKSQUARE; // TODO allow the user to choose the default
-		if (!l.tagNames().isEmpty()) {
-			String tagName = (String)l.tagNames().iterator().next();
-			int min = user.getListsByTag(tagName).size();
-			minEmoji = l.getEmoji(tagName);
-			Iterator<String> tagNames = l.tagNames().iterator();
-			
-			while(tagNames.hasNext()) {
-				String emoji = (String)tagNames.next();
-				int curr = user.getListsByTag(emoji).size();
-				if (curr < min) {
-					min = curr;
-					minEmoji = l.getEmoji(emoji);
+	public static <T> List<String> getListsForPageAsText(int index, List<List<T>> listsPerPage, Displayable<T> displ, String header){
+		String outText = header;
+		List<String> outList = new ArrayList<>();
+		List<T> list = listsPerPage.get(index);
+		int maxElemPerList;
+		int maxElem;
+		int numElemCurr;
+		int totalRead;
+		
+		if (listsPerPage.size()>index){
+			for (T o : list) {
+				outText += displ.toDisplayString(o);
+				if (outText.length() > Constants.CHARSENDLIM-400) {
+					outList.add(outText);
+					outText = "";
 				}
 			}
 		}
-		String score="";
-		List<Attempt> tmp = user.getAttempts(l.getId());
-		Attempt lastAttempt;
-		if (tmp!=null && !tmp.isEmpty()) {
-			lastAttempt = tmp.getFirst();
-			score = lastAttempt.getTextPoints();
+		if (listsPerPage.size()>0){
+			numElemCurr = list.size();
+			maxElemPerList = listsPerPage.getFirst().size();
+			totalRead = maxElemPerList*index+numElemCurr;
+			maxElem = maxElemPerList*(listsPerPage.size()-1) +listsPerPage.getLast().size();
+		} else {
+			maxElem =maxElemPerList=numElemCurr=totalRead=0;
 		}
-		return String.format("`%s` %s `%2s` %s %s\n", l.getId(), minEmoji, l.size(), score, l.getName());
+		outText += String.format("Showing lists `%d`-`%d` of `%d`", totalRead-numElemCurr+(totalRead>0?1:0),totalRead, maxElem);
+		outList.add(outText);
+		return outList;
+	}
+	
+	public static Displayable<QuestionList> displayableQuestionList(){
+		Displayable<QuestionList> res = (l) -> {
+			User user;
+			String minEmoji, score, tagName, emoji;
+			Iterator<String> tagNames;
+			List<Attempt> tmp;
+			Attempt lastAttempt;
+			user= Users.get(l.getOwnerId());
+			minEmoji = Constants.EMOJIBLACKSQUARE; // TODO allow the user to choose the default
+			score="";
+			if (user!= null ){
+				if (!l.tagNames().isEmpty()) {
+					tagName = (String)l.tagNames().iterator().next();
+					int min = user.getListsByTag(tagName).size();
+					minEmoji = l.getEmoji(tagName);
+					tagNames = l.tagNames().iterator();
+					
+					while(tagNames.hasNext()) {
+						emoji = (String)tagNames.next();
+						int curr = user.getListsByTag(emoji).size();
+						if (curr < min) {
+							min = curr;
+							minEmoji = l.getEmoji(emoji);
+						}
+					}
+				}
+				tmp = user.getAttempts(l.getId());
+				if (tmp!=null && !tmp.isEmpty()) {
+					lastAttempt = tmp.getFirst();
+					score = lastAttempt.getTextPoints();
+				}
+			}
+			return String.format("`%s` %s `%2s` %s %s\n", l.getId(), minEmoji, l.size(), score, l.getName());
+		};
+		return res;
 	}
 }

@@ -63,7 +63,10 @@ public class PreviousCommand extends BotCommand {
 			return q.previous();
 		}
 		if (messageId.equals(CollectionCommand.messageIdByUserId.get(userId))){
-			return CollectionCommand.previous(userId);
+			return CollectionCommand.previous(userId, CollectionCommand.CMDNAME);
+		}
+		if (messageId.equals(HistoryCommand.messageIdByUserId.get(userId))){
+			return HistoryCommand.previous(userId, HistoryCommand.CMDNAME);
 		}
 		return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 	}

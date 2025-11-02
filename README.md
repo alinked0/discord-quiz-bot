@@ -80,7 +80,7 @@ Question lists are stored as JSON files. Example:
 
 ```json
 {
-  "authorId": "123456789012345678",
+  "ownerId": "123456789012345678",
   "name": "Sample Quiz",
   "id": "abcdefg",
   "timeCreatedMillis": 1700000000000,

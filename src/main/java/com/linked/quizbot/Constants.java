@@ -43,6 +43,7 @@ public class Constants {
 		EMOJINEXTQUESTION = Emoji.fromUnicode("▶️").getFormatted(),
 		EMOJIPREVQUESTION = Emoji.fromUnicode("◀️").getFormatted(),
 		EMOJISTOP = Emoji.fromUnicode("⏹️").getFormatted(),
+		EMOJIRELOAD = Emoji.fromUnicode("🔁").getFormatted(),
 		EMOJIWHITESQUARE = Emoji.fromUnicode("⬜").getFormatted(),
 		EMOJIBLACKSQUARE = Emoji.fromUnicode("⬛").getFormatted(),
 		EMOJIEXPLICATION = Emoji.fromUnicode("❓").getFormatted(),
@@ -55,7 +56,7 @@ public class Constants {
 		MAGENTA="\u001b[35m ",
 		RESET="\u001b[0m";
 	public static String 
-		ERROR="[\u001b[33mERROR\u001b[0m] ",
-		INFO="[\u001b[34mINFO\u001b[0m] ",
-		IO="[\u001b[35mIO\u001b[0m] ";
+		ERROR=String.format("[%s%s%s] ",  Constants.ORANGE, "ERROR", Constants.RESET),
+		INFO=String.format("[%s%s%s] ", Constants.BLUE,"INFO", Constants.RESET),
+		IO=String.format("[%s%s%s] ",  Constants.MAGENTA,"IO",Constants.RESET);
 }

@@ -23,7 +23,7 @@ public class CommandLineInterface {
 		s+= String.format("isBugFree:%s\n", BotCore.isBugFree());
 		s+= String.format("Prefix:%s\n", Constants.CMDPREFIXE);
 		s+= String.format("IsOnline:%s\n", BotCore.isOnline());
-		s+= String.format("NumberOfUsers:%s\n", Users.allUsers.size());
+		s+= String.format("NumberOfUsers:%d\n", Users.allUsers.size());
 		return s;
 	}
 	

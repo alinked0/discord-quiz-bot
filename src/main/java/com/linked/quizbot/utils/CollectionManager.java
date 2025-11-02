@@ -50,7 +50,7 @@ public class CollectionManager {
 				String listValue = switch (field) {
 					case "name" -> list.getName();
 					case "id" -> list.getId();
-					case "author" -> list.getAuthorId();
+					case "author" -> list.getOwnerId();
 					default -> null;
 				};
 				

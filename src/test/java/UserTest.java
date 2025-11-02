@@ -137,7 +137,7 @@ public class UserTest {
 		// Pre-create some question lists for the user
 		String id1 = QuestionList.Hasher.generate("My Math Quiz"+userId, 1000L);
 		QuestionList list1 = new QuestionList.Builder()
-			.authorId(userId)
+			.ownerId(userId)
 			.name("My Math Quiz")
 			.id(id1)
 			.timeCreatedMillis(1000L)
@@ -146,7 +146,7 @@ public class UserTest {
 		list1.exportListQuestionAsJson(); // Writes to tempListsPath
 		String id2 = QuestionList.Hasher.generate("World History"+userId, 2000L);
 		QuestionList list2 = new QuestionList.Builder()
-			.authorId(userId)
+			.ownerId(userId)
 			.name("World History")
 			.id(id2)
 			.timeCreatedMillis(2000L)
@@ -232,8 +232,8 @@ public class UserTest {
 	@DisplayName("Test getLists and iterator")
 	void testGetListsAndIterator() {
 		String userId = "listUser";
-		QuestionList list1 = new QuestionList.Builder().authorId(userId).name("L1").id("id10000").timeCreatedMillis(1L).build();
-		QuestionList list2 = new QuestionList.Builder().authorId(userId).name("L2").id("id20000").timeCreatedMillis(2L).build();
+		QuestionList list1 = new QuestionList.Builder().ownerId(userId).name("L1").id("id10000").timeCreatedMillis(1L).build();
+		QuestionList list2 = new QuestionList.Builder().ownerId(userId).name("L2").id("id20000").timeCreatedMillis(2L).build();
 		User user = new User.Builder()
 				.id(userId)
 				.lists(new ArrayList<>(Arrays.asList(list1, list2)))
@@ -329,7 +329,7 @@ public class UserTest {
 		Users.addUser(user);
 		
 		QuestionList newList = new QuestionList.Builder()
-			.authorId(userId).name("New List")
+			.ownerId(userId).name("New List")
 			.id("newId123")
 			.timeCreatedMillis(System.currentTimeMillis())
 			.add(new Question("Q1", new Option("A", true)))
@@ -353,7 +353,7 @@ public class UserTest {
 	void testAddList_UpdateExistingList() throws IOException{
 		String userId = "updateListUser";
 		QuestionList existingList = new QuestionList.Builder()
-		.authorId(userId).name("Existing List")
+		.ownerId(userId).name("Existing List")
 		.id("existId456")
 		.timeCreatedMillis(System.currentTimeMillis())
 		.add(new Question("Old Q", new Option("X", true)))
@@ -370,7 +370,7 @@ public class UserTest {
 		
 		// A "new" list with the same name, but new content
 		QuestionList updatedList = new QuestionList.Builder()
-		.authorId(userId).name("Existing List")
+		.ownerId(userId).name("Existing List")
 		.id("existId456")
 		.timeCreatedMillis(System.currentTimeMillis()+1000)
 		.add(new Question("New Q", new Option("Y", true)))
@@ -402,7 +402,7 @@ public class UserTest {
 		String userId = "110110110110110110";
 		String id = QuestionList.Hasher.generate(userId+"Test Quiz", 1L);
 		QuestionList list1 = new QuestionList.Builder()
-			.authorId(userId)
+			.ownerId(userId)
 			.name("Test Quiz")
 			.id(id)
 			.timeCreatedMillis(1L)
@@ -431,7 +431,7 @@ public class UserTest {
 	void testGetUserQuestionListByName_Found() throws IOException{
 		String userId = "searchUser3";
 		QuestionList list1 = new QuestionList.Builder()
-			.authorId(userId)
+			.ownerId(userId)
 			.name("Unique Name Quiz")
 			.id("uq10000")
 			.timeCreatedMillis(1L)
@@ -477,11 +477,11 @@ public class UserTest {
 	@Test
 	@DisplayName("Test myBinarySearchIndexOf for lists")
 	void testMyBinarySearchIndexOf_QuestionList() {
-		QuestionList listb = new QuestionList.Builder().authorId("b").name("B").id("idB0000").timeCreatedMillis(2L).build();
+		QuestionList listb = new QuestionList.Builder().ownerId("b").name("B").id("idB0000").timeCreatedMillis(2L).build();
 		List<QuestionList> lists = new ArrayList<>();
-		lists.add(new QuestionList.Builder().authorId("a").name("A").id("idA0000").timeCreatedMillis(1L).build());
+		lists.add(new QuestionList.Builder().ownerId("a").name("A").id("idA0000").timeCreatedMillis(1L).build());
 		lists.add(listb);
-		lists.add(new QuestionList.Builder().authorId("c").name("C").id("idC0000").timeCreatedMillis(3L).build());
+		lists.add(new QuestionList.Builder().ownerId("c").name("C").id("idC0000").timeCreatedMillis(3L).build());
 		
 		// Test found
 		QuestionList searchB = new QuestionList.Builder().add(listb).build();

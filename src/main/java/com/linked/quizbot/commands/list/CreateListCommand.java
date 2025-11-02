@@ -53,7 +53,6 @@ public class CreateListCommand extends BotCommand {
 		List<String> res = new ArrayList<>();
 		res.addAll(splitJson(cmndLineArgs));
 		
-		System.out.print("Original("+cmndLineArgs+"):Parsed(");
 		for (int i=0; i<res.size(); ++i){
 			System.out.print(res.get(i));
 			if (i+1<res.size())System.out.print("::");
@@ -68,12 +67,12 @@ public class CreateListCommand extends BotCommand {
 		List<String> res = new ArrayList<>();
 		for (int i = 0; i<n; i++) {
 			try {
-				QuestionList l = QuestionList.Parser.fromString(args.get(i)).authorId(userId).build();
+				QuestionList l = QuestionList.Parser.fromString(args.get(i)).ownerId(userId).build();
 				if (l.getName()!=null) {
 					if(Users.get(userId).getByName(l.getName())!=null) {
 						res.add("Failed, list of name : "+Constants.MAPPER.writeValueAsString(""+l.getName()+"")+" already exists in your collection.\n");
 					} else {
-						Users.addListToUser(l.getAuthorId(), l);
+						Users.addListToUser(l.getOwnerId(), l);
 						res.add("Success, list :"+l.header()+", has been created.\n");
 					}
 				}else {

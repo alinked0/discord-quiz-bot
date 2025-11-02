@@ -50,10 +50,10 @@ public class AwnserParserTest {
 		
 		assertNotNull(result, "Awnser object should not be null for valid input.");
 		assertEquals(5000L, result.getDuration(), "Duration should be parsed correctly.");
-		assertFalse(result.getResponse().isEmpty(), "Response set should not be empty.");
+		assertFalse(result.getResponses().isEmpty(), "Response set should not be empty.");
 		
 		// The stub Option.Parser.parseList adds 2 options
-		assertEquals(2, result.getResponse().size(), "Response set should contain 2 Option stubs.");
+		assertEquals(2, result.getResponses().size(), "Response set should contain 2 Option stubs.");
 	}
 	
 	/**
@@ -145,6 +145,6 @@ public class AwnserParserTest {
 		
 		assertNotNull(result, "Awnser object should not be null despite extra fields.");
 		assertEquals(2500L, result.getDuration(), "Duration should be parsed correctly.");
-		assertEquals(1, result.getResponse().size(), "Response set should contain 1 Option stub.");
+		assertEquals(1, result.getResponses().size(), "Response set should contain 1 Option stub.");
 	}
 }

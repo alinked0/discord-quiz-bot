@@ -75,7 +75,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
  * @since 2025-02-01
  */
 public class QuestionList implements Iterable<Question>{
-	private String authorId;
+	private String ownerId;
 	private Map<String,String> emojiPerTagName;
 	private List<Question> questions;
 	private String name;
@@ -97,20 +97,20 @@ public class QuestionList implements Iterable<Question>{
 	public static class Builder {
 		public final List<Question> list= new ArrayList<>();
 		public final Map<String,String> emojiPerTagName= new HashMap<>();
-		public String authorId= null;
+		public String ownerId= null;
 		public String name= null;
 		public String id= null;
 		public long timeCreatedMillis= 0L;
 		
 		/**
 		 * Sets the ID of the author for the quiz list.
-		 * @param authorId The ID of the author (e.g., a user ID).
+		 * @param ownerId The ID of the author (e.g., a user ID).
 		 * @return The current Builder instance for chaining.
-		 * @requires authorId != null
-		 * @ensures this.authorId == authorId
+		 * @requires ownerId != null
+		 * @ensures this.ownerId == ownerId
 		 */
-		public  Builder authorId(String authorId){
-			this.authorId = authorId;
+		public  Builder ownerId(String ownerId){
+			this.ownerId = ownerId;
 			return this;
 		}
 		
@@ -207,7 +207,7 @@ public class QuestionList implements Iterable<Question>{
 			this.addTags(questions.getEmojiPerTagName());
 			if (id == null)this.id(questions.getId());
 			if (name==null)this.name(questions.getName());
-			if (authorId==null)this.authorId(questions.getAuthorId());
+			if (ownerId==null)this.ownerId(questions.getOwnerId());
 			if (timeCreatedMillis==0L || questions.getTimeCreatedMillis()<timeCreatedMillis) this.timeCreatedMillis(questions.getTimeCreatedMillis());
 			return this;
 		}
@@ -310,7 +310,7 @@ public class QuestionList implements Iterable<Question>{
 		 * @ensures generatedCodes.contains(\result)
 		 */
 		public static String generate(QuestionList l) {
-			String code, input = l.getAuthorId() + l.getName();
+			String code, input = l.getOwnerId() + l.getName();
 			long timestamp = l.getTimeCreatedMillis();
 			int attempts = 0;
 			
@@ -463,8 +463,8 @@ public class QuestionList implements Iterable<Question>{
 					jp.nextToken();
 					/* parsing System.out.print("QuestionList("+jp.currentToken()+", "+jp.currentName()+") "); */
 					switch (fieldName){
-						case "authorid","userid","user" -> {
-							outputBuilder.authorId(jp.getText());
+						case "authorid", "ownerid","userid","user" -> {
+							outputBuilder.ownerId(jp.getText());
 						}
 						case "emojipertagname" -> {
 							outputBuilder.addTags(parseEmojiPerTagName(jp, original));
@@ -546,17 +546,17 @@ public class QuestionList implements Iterable<Question>{
 	
 	/**
 	 * Default constructor for QuestionList.
-	 * Initializes the list with default values for authorId, name, and emojiPerTagName.
+	 * Initializes the list with default values for ownerId, name, and emojiPerTagName.
 	 */
 	public QuestionList(Builder builder) {
 		if (builder.timeCreatedMillis==0L){
 			builder.timeCreatedMillis = System.currentTimeMillis();
 		}
 		if (builder.id==null || builder.id.isBlank() || builder.id.length()<QuestionList.Hasher.DEFAULT_LENGTH){
-			builder.id = QuestionList.Hasher.generate(builder.authorId+builder.name, builder.timeCreatedMillis);
+			builder.id = QuestionList.Hasher.generate(builder.ownerId+builder.name, builder.timeCreatedMillis);
 		}
 		this.questions= builder.list;
-		this.authorId = builder.authorId;
+		this.ownerId = builder.ownerId;
 		this.name = builder.name;
 		this.emojiPerTagName = builder.emojiPerTagName;
 		this.id = builder.id;
@@ -564,24 +564,24 @@ public class QuestionList implements Iterable<Question>{
 	}
 	
 	/**
-	 * Constructs a QuestionList with the specified authorId, name, and a collection of questions.
+	 * Constructs a QuestionList with the specified ownerId, name, and a collection of questions.
 	 *
-	 * @param authorId the ID of the author of this question list
+	 * @param ownerId the ID of the author of this question list
 	 * @param name the name of this question list
 	 * @param c the initial List of questions to populate the list
 	 */
-	public QuestionList(String authorId, String name, List<? extends Question> c) {
-		this(new QuestionList.Builder().authorId(authorId).name(name).addAll(c));
+	public QuestionList(String ownerId, String name, List<? extends Question> c) {
+		this(new QuestionList.Builder().ownerId(ownerId).name(name).addAll(c));
 	}
 	
 	/**
-	 * Constructs a QuestionList with the specified authorId, and name.
+	 * Constructs a QuestionList with the specified ownerId, and name.
 	 *
-	 * @param authorId the ID of the author of this question list
+	 * @param ownerId the ID of the author of this question list
 	 * @param name the name of this question list
 	 */
-	public QuestionList(String authorId, String name){
-		this(new QuestionList.Builder().authorId(authorId).name(name));
+	public QuestionList(String ownerId, String name){
+		this(new QuestionList.Builder().ownerId(ownerId).name(name));
 	}
 	
 	/**
@@ -711,10 +711,10 @@ public class QuestionList implements Iterable<Question>{
 	 * Sets the author ID for this QuestionList.
 	 * Renames the associated directory if necessary.
 	 *
-	 * @param authorId the new author ID to set
+	 * @param ownerId the new author ID to set
 	 */
-	public void setAuthorId(String authorId) {
-		this.authorId= authorId;
+	public void setOwnerId(String ownerId) {
+		this.ownerId= ownerId;
 	}
 	
 	/**
@@ -758,8 +758,8 @@ public class QuestionList implements Iterable<Question>{
 	 *
 	 * @return the author ID
 	 */
-	public String getAuthorId() {
-		return authorId;
+	public String getOwnerId() {
+		return ownerId;
 	}
 	
 	/**
@@ -823,7 +823,7 @@ public class QuestionList implements Iterable<Question>{
 	 * @return the default file path as a string
 	 */
 	public String pathToList(){
-		String p = Constants.LISTSPATH+Constants.SEPARATOR+getAuthorId()+Constants.SEPARATOR;
+		String p = Constants.LISTSPATH+Constants.SEPARATOR+getOwnerId()+Constants.SEPARATOR;
 		p+=getId()+".json";
 		return p;
 	}
@@ -928,7 +928,7 @@ public class QuestionList implements Iterable<Question>{
 			
 			res += "{\n";
 			tab = "\t";
-			res += tab+"\"authorId\":"+Constants.MAPPER.writeValueAsString(getAuthorId())+",\n";
+			res += tab+"\"ownerId\":"+Constants.MAPPER.writeValueAsString(getOwnerId())+",\n";
 			res += tab + "\"name\":"+Constants.MAPPER.writeValueAsString(getName())+",\n";
 			res += tab + "\"id\":"+Constants.MAPPER.writeValueAsString(getId())+",\n";
 			res += tab + "\"timeCreatedMillis\":"+getTimeCreatedMillis()+",\n";
@@ -1004,7 +1004,7 @@ public class QuestionList implements Iterable<Question>{
 	 */
 	@Override
 	public int hashCode() {
-		return getAuthorId().hashCode()*7 + getName().hashCode()
+		return getOwnerId().hashCode()*7 + getName().hashCode()
 				+ super.hashCode() + (int) (getTimeCreatedMillis() % Integer.MAX_VALUE)
 				+ getId().hashCode();
 	}
@@ -1020,7 +1020,7 @@ public class QuestionList implements Iterable<Question>{
 		if (!(o instanceof QuestionList)) return false;
 		QuestionList l = (QuestionList) o;
 		return this.getId().equals(l.getId()) && this.getTimeCreatedMillis() == l.getTimeCreatedMillis()
-			&& areStringsEqual(getAuthorId(), l.getAuthorId()) && areStringsEqual(getName(),l.getName()) 
+			&& areStringsEqual(getOwnerId(), l.getOwnerId()) && areStringsEqual(getName(),l.getName()) 
 			&& Set.copyOf(this.getQuestions()).equals(Set.copyOf(l.getQuestions()));
 	}
 	
@@ -1101,7 +1101,7 @@ public class QuestionList implements Iterable<Question>{
 					box="";
 					for (String u : players){
 						awnser = respondents.get(u);
-						box += (awnser==null||awnser.getResponse()==null)?Constants.EMOJIBOX:(awnser.getResponse().contains(opt)?Constants.EMOJICHECKEDBOX:Constants.EMOJIBOX);
+						box += (awnser==null||awnser.getResponses()==null)?Constants.EMOJIBOX:(awnser.getResponses().contains(opt)?Constants.EMOJICHECKEDBOX:Constants.EMOJIBOX);
 					}
 				}
 				box += " ";
@@ -1113,7 +1113,7 @@ public class QuestionList implements Iterable<Question>{
 				} else {
 					awnser = null;
 				}
-				if (awnser != null && awnser.getResponse()!=null&& awnser.getResponse().contains(opt)) {
+				if (awnser != null && awnser.getResponses()!=null&& awnser.getResponses().contains(opt)) {
 					points += opt.isCorrect() ? pointsForCorrect / q.trueOptions().size() : pointsForIncorrect;
 					emoji = (opt.isCorrect() ? Constants.EMOJITRUE : Constants.EMOJIFALSE);
 				} else {
@@ -1155,7 +1155,7 @@ public class QuestionList implements Iterable<Question>{
 	 */
 	public static QuestionList getExampleQuestionList(){
 		return new QuestionList.Builder()
-		.authorId("Examplary Author")
+		.ownerId("Examplary Author")
 		.name("Example of a QuestionList")
 		.id("abcdefg")
 		.add(Question.getExampleQuestion())

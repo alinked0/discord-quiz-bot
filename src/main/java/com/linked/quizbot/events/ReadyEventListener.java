@@ -59,7 +59,6 @@ public class ReadyEventListener extends ListenerAdapter {
 				c.sendMessage("Bot is ready for testing.")
 				.queue(msg -> 
 				{
-					CommandOutput.Builder output = new CommandOutput.Builder();
 					List<String> emojis = List.of(
 						Constants.EMOJIDEL,
 						Constants.EMOJITRUE,
@@ -71,35 +70,14 @@ public class ReadyEventListener extends ListenerAdapter {
 						Constants.EMOJIPREVQUESTION,
 						Constants.EMOJISTOP,
 						Constants.EMOJIEXPLICATION,
-						Constants.EMOJIWHITESQUARE
+						Constants.EMOJIWHITESQUARE,
+						Constants.EMOJIRELOAD
 					);
 					List<Emoji> l = new ArrayList<>();
 					for (String e : emojis){l.add(Emoji.fromFormatted(e));}
 					
 					QuestionList q = QuestionList.getExampleQuestionList();
-					MessageSender.addButtons(msg, l, mess -> MessageSender.addReactions(mess, l.iterator()));
-					
-					/*Viewer v = new Viewer(q);
-					output.add("## Viewer:\n");
-					output.addAll(v.start().getTextMessages());
-					output.addAll(v.next().getTextMessages());
-					
-					v = new QuizBot(q);
-					output.add("## QuizBot:\n");
-					output.addAll(v.start().getTextMessages());
-					output.addAll(v.next().getTextMessages());
-					
-					v = new Explain((QuizBot) v, q.getAuthorId());
-					output.add("## Explain:\n");
-					output.addAll(v.start().getTextMessages());
-					output.addAll(v.next().getTextMessages());
-					MessageSender.sendCommandOutput(
-						output.addFile(q.pathToList()).build(),
-						msg.getChannel(),
-						msg
-					);
-					*/
-					
+					MessageSender.addButtons(msg, l, mess -> MessageSender.addReactions(mess, l.iterator()));					
 				});
 			}
 		}

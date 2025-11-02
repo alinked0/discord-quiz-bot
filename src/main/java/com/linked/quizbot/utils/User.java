@@ -546,7 +546,8 @@ public class User implements Iterable<QuestionList>{
 	 * @ensures \result.size() <= listsSortedById.size()
 	 */
 	public List<QuestionList> getListsByTag(String tagName) {
-		return questionListPerTags.getOrDefault(tagName, new ArrayList<>()).stream().map(id -> getById(id)).toList();
+		if (!questionListPerTags.containsKey(tagName)) return new ArrayList<>();
+		return questionListPerTags.get(tagName).stream().map(id -> getById(id)).toList();
 	}
 	
 	/**
@@ -619,6 +620,7 @@ public class User implements Iterable<QuestionList>{
 		
 		k.addAll(l);
 		k.rearrageOptions((e, f) -> e.isCorrect()?-1:1);
+		k.setOwnerId(userId);
 		lists.put(k.getId(), k);
 		k.exportListQuestionAsJson();
 		Users.update(this);

@@ -1,33 +1,18 @@
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.linked.quizbot.utils.Attempt;
 import com.linked.quizbot.utils.Awnser;
 import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.utils.QuestionList;
-import com.linked.quizbot.utils.Attempt.Parser;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class AttemptTest {
 	
@@ -53,7 +38,7 @@ public class AttemptTest {
 		Option optTrue = new Option("True option", true);
 		Option optFalse = new Option("False option", false);
 		Question q = new Question("Choose wisely A", optTrue, optTrue, optFalse);
-		smallQuestionList = new QuestionList.Builder().authorId("Test00000").name("mock questions").add(q).build();
+		smallQuestionList = new QuestionList.Builder().ownerId("Test00000").name("mock questions").add(q).build();
 		q = new Question("Choose wisely B", optTrue, optFalse);
 		smallQuestionList.add(q);
 		q = new Question("Choose wisely C", optTrue, optTrue, optFalse);
@@ -146,13 +131,13 @@ public class AttemptTest {
 		Set<Option> response = createOptionSet(true, false);
 		Long duration = 1500L;
 		
-		Attempt result = attempt.addAwnser(questionIndex, response, duration);
+		Attempt result = attempt.addAwnser(questionIndex, response.iterator().next(), duration);
 		
 		assertSame(attempt, result);
 		assertEquals(1, attempt.getAwnsers().size());
 		Awnser addedAwnser = attempt.getAwnsers().get(questionIndex);
 		assertNotNull(addedAwnser);
-		assertEquals(response, addedAwnser.getResponse());
+		assertEquals(response, addedAwnser.getResponses());
 	}
 	
 	@Test
@@ -165,12 +150,12 @@ public class AttemptTest {
 		Set<Option> newResponse = createOptionSet(true, true);
 		Long newDuration = 5000L;
 		
-		attempt.addAwnser(questionIndex, newResponse, newDuration);
+		newResponse.stream().forEach(r -> attempt.addAwnser(questionIndex, r, newDuration));
 		
 		assertEquals(1, attempt.getAwnsers().size());
 		Awnser updatedAwnser = attempt.getAwnsers().get(questionIndex);
 		assertNotNull(updatedAwnser);
-		assertEquals(newResponse, updatedAwnser.getResponse());
+		assertEquals(newResponse, updatedAwnser.getResponses());
 	}
 	
 	@Test
@@ -251,7 +236,7 @@ public class AttemptTest {
 		assertEquals(smallQuestionList.size(), 3);
 		Attempt attempt = new Attempt(USER_ID, smallQuestionList, fixedStartTime, fixedEndTime, awnsers);
 		String result = attempt.getTextPoints();
-		assertTrue(smallQuestionList.get(0).getOptions().containsAll(attempt.getAwnsers().get(0).getResponse()) );
+		assertTrue(smallQuestionList.get(0).getOptions().containsAll(attempt.getAwnsers().get(0).getResponses()) );
 		assertTrue(result.startsWith("` 42%` ` 60 s`"), "Should show score and seconds time"+result);
 	}
 	

@@ -34,7 +34,7 @@ public class QuestionListParserTest {
 		long fixedTime = 1672531200000L; // Jan 1, 2023
 		String json = String.format("""
 			{
-				"authorId": "user123",
+				"ownerId": "user123",
 				"name": "My Science Quiz",
 				"id": "fixedid",
 				"timeCreatedMillis": %d,
@@ -52,7 +52,7 @@ public class QuestionListParserTest {
 		QuestionList list = QuestionList.Parser.fromString(json).build();
 		
 		assertNotNull(list);
-		assertEquals("user123", list.getAuthorId());
+		assertEquals("user123", list.getOwnerId());
 		assertEquals("My Science Quiz", list.getName());
 		assertEquals("fixedid", list.getId());
 		assertEquals(fixedTime, list.getTimeCreatedMillis());
@@ -82,7 +82,7 @@ public class QuestionListParserTest {
 		QuestionList list = QuestionList.Parser.fromString(json).build();
 		
 		assertNotNull(list);
-		assertEquals("alt_user", list.getAuthorId(), "Should map 'USERID' to authorId.");
+		assertEquals("alt_user", list.getOwnerId(), "Should map 'USERID' to ownerId.");
 		assertEquals("Alternate Test", list.getName(), "Should be case-insensitive for 'Name'.");
 		assertEquals("alt_id00", list.getId(), "Should map 'listid' to id.");
 	}
@@ -96,7 +96,7 @@ public class QuestionListParserTest {
 	void testParseMissingOptionalFields() throws IOException {
 		String json = """
 			{
-				"authorId": "generator_test",
+				"ownerId": "generator_test",
 				"name": "Missing Fields Quiz",
 				"emojiPerTagName": { "Tag": "Emoji" },
 				"questions": []
@@ -124,7 +124,7 @@ public class QuestionListParserTest {
 	void testParseEmptyList() throws IOException {
 		String json = """
 			{
-				"authorId": "empty",
+				"ownerId": "empty",
 				"name": "Empty Quiz",
 				"emojiPerTagName": {},
 				"questions": []

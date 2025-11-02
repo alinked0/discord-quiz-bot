@@ -11,20 +11,15 @@ import com.linked.quizbot.core.viewers.Viewer;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 /**
- * The {@code NextCommand} class provides functionality to trigger the next question in an ongoing quiz.
- * It extends {@link BotCommand} and is part of a Discord bot that manages quiz games.
- * <p>
- * This command allows users to advance to the next question in a quiz, which is useful for keeping the game
- * moving smoothly without waiting for all players to respond.
- * </p>
+ * TODO
  * @author alinked0
  * @version 1.0
  * @since 2025-02-01
  * @see BotCommand
  */
-public class NextCommand extends BotCommand {
-	public static final String CMDNAME = "next";
-	private String cmdDesrciption = "triggering the next question to get sent if a quiz is ongoing";
+public class CurrentCommand extends BotCommand {
+	public static final String CMDNAME = "current";
+	private String cmdDesrciption = "triggering a reload of an ongoing view";
 	
 	@Override
 	public BotCommand.CommandCategory getCategory(){
@@ -49,13 +44,13 @@ public class NextCommand extends BotCommand {
 			if (q instanceof QuizBot){
 				((QuizBot)q).addPlayer(userId);
 			}
-			return q.next();
+			return q.current();
 		}
 		if (messageId.equals(CollectionCommand.messageIdByUserId.get(userId))){
-			return CollectionCommand.next(userId, CollectionCommand.CMDNAME);
+			return CollectionCommand.current(userId, CollectionCommand.CMDNAME);
 		}
 		if (messageId.equals(HistoryCommand.messageIdByUserId.get(userId))){
-			return HistoryCommand.next(userId, HistoryCommand.CMDNAME);
+			return HistoryCommand.current(userId, HistoryCommand.CMDNAME);
 		}
 		return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 	}

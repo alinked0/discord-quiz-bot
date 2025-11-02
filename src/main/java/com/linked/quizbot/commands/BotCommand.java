@@ -22,6 +22,7 @@ import com.linked.quizbot.commands.list.AddListCommand;
 import com.linked.quizbot.commands.list.CollectionCommand;
 import com.linked.quizbot.commands.list.CreateListCommand;
 import com.linked.quizbot.commands.list.CreateTagCommand;
+import com.linked.quizbot.commands.list.CurrentCommand;
 import com.linked.quizbot.commands.list.DeleteListCommand;
 import com.linked.quizbot.commands.list.EmbedCommand;
 import com.linked.quizbot.commands.list.EndCommand;
@@ -85,6 +86,7 @@ public abstract class BotCommand {
 			new CreateListCommand(),
 			new CreateTagCommand(),
 			new CollectionCommand(),
+			new CurrentCommand(),
 			new DeleteListCommand(),
 			new EmbedCommand(),
 			new EndCommand(),
@@ -489,6 +491,9 @@ public abstract class BotCommand {
 		}
 		if(formattedEmoji.equals(Constants.EMOJIPREVQUESTION)){
 			return BotCommand.getCommandByName(PreviousCommand.CMDNAME);
+		}
+		if(formattedEmoji.equals(Constants.EMOJIRELOAD)){
+			return BotCommand.getCommandByName(CurrentCommand.CMDNAME);
 		}
 		if(formattedEmoji.equals(Constants.EMOJIEXPLICATION)){
 			return BotCommand.getCommandByName(ExplainCommand.CMDNAME);

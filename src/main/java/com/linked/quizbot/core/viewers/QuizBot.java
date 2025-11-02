@@ -24,7 +24,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import net.dv8tion.jda.api.utils.Timestamp;
-import net.dv8tion.jda.internal.utils.tuple.ImmutablePair;
+
 /**
  * An extension of {@link Viewer} that manages a live, interactive quiz session.
  * <p>
@@ -45,7 +45,6 @@ import net.dv8tion.jda.internal.utils.tuple.ImmutablePair;
  * @see Users
  */
 public class QuizBot extends Viewer {
-	private final Map<String, Set<Option>> userAnswersForCurrQuestion = new HashMap<>();
 	private final Map<String, Attempt> attemptByPlayer = new HashMap<>();
 	private boolean isExplaining = false;
 	private final boolean autoNext;
@@ -135,7 +134,6 @@ public class QuizBot extends Viewer {
 		Question currQuestion = this.getCurrQuestion();
 		if (!this.getPlayers().contains(userId)){
 			this.addPlayer(userId);
-			this.userAnswersForCurrQuestion.put(userId, new HashSet<>());
 		}
 		// Record user's answer (reaction)
 		for (int i = 0; i<=currQuestion.size(); i++) {
@@ -146,23 +144,34 @@ public class QuizBot extends Viewer {
 		}
 	}
 	
-	public void addAwnser(String userId, Option opt){
-		Question currQuestion = this.getCurrQuestion();
-		if (!this.getPlayers().contains(userId)){
-			this.addPlayer(userId);
-			this.userAnswersForCurrQuestion.put(userId, new HashSet<>());
+	private void addAwnser(String userId, Option opt){
+		if (opt != null) {
+			attemptByPlayer.get(userId).addAwnser(getCurrentIndex(), opt, System.currentTimeMillis()-lastServedMillis);
 		}
-		if (opt != null && currQuestion.contains(opt)) {
-			this.userAnswersForCurrQuestion.get(userId).add(opt);
-			attemptByPlayer.get(userId).addAwnser(getCurrentIndex(), userAnswersForCurrQuestion.get(userId), System.currentTimeMillis()-lastServedMillis);
+	}
+	private void removeAwnser(String userId, Option opt){
+		if (opt != null) {
+			attemptByPlayer.get(userId).removeAwnser(getCurrentIndex(), opt, System.currentTimeMillis()-lastServedMillis);
 		}
 	}
 	@Override
-	public void removeReaction(String userId, Emoji emoji){/*TODO impl a response removal */};
+	public void removeReaction(String userId, Emoji emoji){
+		Question currQuestion = this.getCurrQuestion();
+		if (!this.getPlayers().contains(userId)){
+			this.addPlayer(userId);
+		} else {
+			// Find the awnser he regrets
+			for (int i = 0; i<=currQuestion.size(); i++) {
+				if (emoji.equals(getReactionForAnswer(i))) {
+					removeAwnser(userId, currQuestion.get(i));
+					return;
+				}
+			}
+		}
+	};
 	
 	@Override
 	public void inBetweenProccessorStart(){
-		this.userAnswersForCurrQuestion.clear();
 		this.timeLimit = TimeFormat.RELATIVE.now();
 		isExplaining(false);
 	}
@@ -171,15 +180,6 @@ public class QuizBot extends Viewer {
 	public void inBetweenProccessorCurrent(){
 		if (getMessage() != null) {
 			BotCore.explicationRequest.remove(getMessageId());
-		}
-		if (getCurrentIndex()>=0){
-			for (String u : getPlayers()){
-				attemptByPlayer.get(u).addAwnser(getCurrentIndex(), userAnswersForCurrQuestion.getOrDefault(u, new HashSet<>()), System.currentTimeMillis()-lastServedMillis);
-			}
-		}
-		this.userAnswersForCurrQuestion.clear();
-		for (String userId : getPlayers()){
-			this.userAnswersForCurrQuestion.put(userId, new HashSet<>());
 		}
 		isExplaining(false);
 		this.timeLimit = TimeFormat.RELATIVE.now();

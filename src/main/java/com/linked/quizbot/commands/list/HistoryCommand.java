@@ -1,14 +1,16 @@
 package com.linked.quizbot.commands.list;
 
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.commands.CommandOutput;
-import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.Attempt;
+import com.linked.quizbot.utils.Displayable;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
@@ -35,6 +37,8 @@ public class HistoryCommand extends BotCommand {
 	public static final String CMDNAME = "history";
 	private String cmdDesrciption = "listing all list";
 	private List<String> abbrevs = List.of("hi");
+	public static final Map<String,String> messageIdByUserId = new HashMap<>();
+	public static final Map<String, Map<Integer, List<List<Attempt>>>> listsByLastIndexByUserId = new HashMap<>();
 	
 	@Override
 	public String getName(){ return CMDNAME;}
@@ -58,34 +62,71 @@ public class HistoryCommand extends BotCommand {
 	@Override
 	public List<OptionData> getOptionData(){
 		List<OptionData> res = new ArrayList<>();
-		res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME, true)
+		res.add(new OptionData(OptionType.STRING, "listid", "listid given by "+CollectionCommand.CMDNAME, false)
 		.setRequiredLength(QuestionList.Hasher.DEFAULT_LENGTH, QuestionList.Hasher.DEFAULT_LENGTH));
 		return res;
 	}
 	
 	@Override
-	public CommandOutput execute(String userId,  List<String> args){
+	public CommandOutput execute(String userId,  List<String> args){	
 		User user = Users.get(userId);
-		QuestionList list = args.size()>0?user.getById(args.get(0)): null;
-		if (list==null){
-			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-		}
+		List<Attempt> lists;
+		QuestionList list;
 		
-		if (user == null) {user = Users.addUser(userId);}
-		
-		String tmp = String.format("%s\nHistory\n", list.header());
-		
-		List<Attempt> lastscores = user.getAttempts(list.getId());
-		
-		List<String> res = new ArrayList<>();
-		for(Attempt att : lastscores) {
-			tmp = tmp + att.getTextPoints() + "\n";
-			if (tmp.length() > 1600) {
-				res.add(tmp);
-				tmp = "";
+		if (args.size()>0){
+			list = args.size()>0?user.getById(args.get(0)): null;
+			if (list==null){
+				return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 			}
+			lists =  user.getAttempts(list.getId());
+		} else {
+			lists = user.getAttemptsByListId().values().stream()
+				.flatMap(l->l.stream()).sorted(Attempt.comparatorStart().reversed())
+				.toList();
 		}
-		if (!tmp.isBlank()) {res.add(tmp);}
-		return new CommandOutput.Builder().addAll(res).build();
+		
+		return CollectionCommand.execute(userId, args, lists, listsByLastIndexByUserId, messageIdByUserId,  displayableAttempt(), getName());
+	}
+	
+	public static CommandOutput next(String userId, String commandName){
+		return CollectionCommand.get(userId, 1, listsByLastIndexByUserId, displayableAttempt(), commandName);
+	}
+	
+	public static CommandOutput previous(String userId, String commandName){
+		return CollectionCommand.get(userId, -1, listsByLastIndexByUserId, displayableAttempt(), commandName);
+	}
+	
+	public static CommandOutput current(String userId, String commandName){
+		return CollectionCommand.get(userId, 0, listsByLastIndexByUserId, displayableAttempt(), commandName);
+	}
+	
+	public static Displayable<Attempt> displayableAttempt(){
+		Displayable<Attempt> res = (att) -> {
+			User user;
+			String minEmoji, tagName, emoji;
+			Iterator<String> tagNames;
+			QuestionList l;
+			
+			l = att.getQuestionList();
+			user= Users.get(att.getUserId());
+			minEmoji = Constants.EMOJIBLACKSQUARE; // TODO allow the user to choose the default
+			if (!l.tagNames().isEmpty()) {
+				tagName = (String)l.tagNames().iterator().next();
+				int min = user.getListsByTag(tagName).size();
+				minEmoji = l.getEmoji(tagName);
+				tagNames = l.tagNames().iterator();
+				
+				while(tagNames.hasNext()) {
+					emoji = (String)tagNames.next();
+					int curr = user.getListsByTag(emoji).size();
+					if (curr < min) {
+						min = curr;
+						minEmoji = l.getEmoji(emoji);
+					}
+				}
+			}
+			return String.format("`%s` %s `%2s` %s %s\n", l.getId(), minEmoji, l.size(), att.getTextPoints(), l.getName());
+		};
+		return res;
 	}
 }

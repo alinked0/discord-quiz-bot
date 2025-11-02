@@ -4,14 +4,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.Awnser;
-import com.linked.quizbot.utils.Option;
 import com.linked.quizbot.utils.QuestionList;
 
 import net.dv8tion.jda.api.entities.Message;

@@ -247,7 +247,7 @@ public class Viewer {
 	 */
 	public String getHeader(){
 		return String.format("%s\n**Author:** <@%s>\n**Date created:** %s\n", questions.header(),
-			questions.getAuthorId(), TimeFormat.DATE_TIME_LONG.atTimestamp(questions.getTimeCreatedMillis()));
+			questions.getOwnerId(), TimeFormat.DATE_TIME_LONG.atTimestamp(questions.getTimeCreatedMillis()));
 	}
 	
 	/**

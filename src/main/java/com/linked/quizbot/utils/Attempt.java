@@ -2,7 +2,9 @@ package com.linked.quizbot.utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,7 @@ public class Attempt {
 	private Long timeStartedMillis;
 	private Long timeEndedMillis;
 	private Map<Integer, Awnser> awnsersByQuestion;
+	private Double score = null;
 	
 	public static class Parser {
 		public static List<Attempt> parseList(JsonParser jp, String original) throws IOException{
@@ -146,13 +149,26 @@ public class Attempt {
 		return awnsersByQuestion;
 	}
 	
-	public Attempt addAwnser(int questionIndex, Set<Option> response, Long duration){
-		awnsersByQuestion.put(questionIndex, new Awnser(duration, response));
+	public Attempt setAwnser(int questionIndex, Set<Option> responses, Long duration){
+		awnsersByQuestion.put(questionIndex, new Awnser(duration, responses));
+		return this;
+	}
+	public Attempt addAwnser(int questionIndex, Option response, Long duration){
+		Set<Option> responses = awnsersByQuestion.getOrDefault(questionIndex, new Awnser(0L, new HashSet<>())).getResponses();
+		responses.add(response);
+		awnsersByQuestion.put(questionIndex, new Awnser(duration, responses));
+		return this;
+	}
+	public Attempt removeAwnser(int questionIndex, Option response, Long duration){
+		Set<Option> responses = awnsersByQuestion.getOrDefault(questionIndex, new Awnser(0L, new HashSet<>())).getResponses();
+		responses.remove(response);
+		awnsersByQuestion.put(questionIndex, new Awnser(duration, responses));
 		return this;
 	}
 	
 	public Attempt end(){
 		timeEndedMillis = System.currentTimeMillis();
+		score = getScore();
 		return this;
 	}
 	
@@ -161,6 +177,7 @@ public class Attempt {
 	 * @return the final score of this user
 	 */
 	public Double getScore(){
+		if (this.score!=null){return this.score;}
 		Double score=0.0;
 		int numberOfTrueOptions;
 		Awnser  awnser;
@@ -168,14 +185,13 @@ public class Attempt {
 		for (int i =0; i<questionList.size(); ++i){
 			awnser = awnsersByQuestion.get(i);
 			if (awnser!=null){
-				response = awnser.getResponse();
+				response = awnser.getResponses();
 				if (response!=null){
 					numberOfTrueOptions = getQuestionList().get(i).trueOptions().size();
 					for (Option opt : response) {
 						score += (opt.isCorrect()?QuestionList.pointsForCorrect/numberOfTrueOptions:QuestionList.pointsForIncorrect);
 					}
 				}
-				
 			}
 		}
 		return score;
@@ -226,5 +242,16 @@ public class Attempt {
 		res += "}";
 		return res;
 	}
-
+	
+	public static Comparator<Attempt> comparatorEnd(){
+		return (e, f)-> Long.compare(e.getEnd(), f.getEnd());
+	}
+	
+	public static Comparator<Attempt> comparatorStart(){
+		return (e, f)-> Long.compare(e.getStart(), f.getStart());
+	}
+	
+	public static Comparator<Attempt> comparatorScore(){
+		return (e, f)-> Double.compare(e.getScore(), f.getScore());
+	}
 }

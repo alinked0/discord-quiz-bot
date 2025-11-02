@@ -111,11 +111,11 @@ public class Users {
 	}
 	public static boolean removeTagFromList(String id, String tagName) {
 		QuestionList l = Users.getById(id);
-		User u = Users.get(l.getAuthorId());
+		User u = Users.get(l.getOwnerId());
 		return u.removeTagFromList(l, tagName);
 	}
 	public static boolean deleteList(QuestionList l){
-		User user = Users.get(l.getAuthorId());
+		User user = Users.get(l.getOwnerId());
 		boolean b = user.deleteList(l);
 		Users.update(user);
 		return b;

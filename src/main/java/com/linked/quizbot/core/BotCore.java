@@ -62,7 +62,10 @@ public class BotCore {
 	public static Random getRandom(){ return rand;}
 	public static String getPrefix() { return cmdPrefix;}
 	public static List<User> getAllUsers() { return new ArrayList<>(allUsers);}
-	public static void addUser(User u) { allUsers.add(u);}
+	public static void addUser(User u) { 
+		allUsers.add(u);
+		Users.addUser(u.getId());
+	}
 	public static List<Viewer> getListOfViewers() {
 		return listOfGames;
 	}

@@ -37,7 +37,6 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 public class ButtonListener extends ListenerAdapter {
 	@Override
 	public void onButtonInteraction(ButtonInteractionEvent event) {
-		long start = System.nanoTime();
 		User sender = event.getUser();
 		if (sender == null || sender.isBot()) {
 			return;

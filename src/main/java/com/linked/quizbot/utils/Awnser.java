@@ -68,7 +68,7 @@ public final class Awnser {
 		return duration;
 	}
 	
-	public Set<Option> getResponse() {
+	public Set<Option> getResponses() {
 		return response;
 	}
 	public boolean equals(Object o){
@@ -77,14 +77,14 @@ public final class Awnser {
 			return false;
 		}
 		Awnser p = (Awnser) o;
-		return getDuration().equals(p.getDuration()) && getResponse().equals(p.getResponse());
+		return getDuration().equals(p.getDuration()) && getResponses().equals(p.getResponses());
 	}
 	public String toString(){
 		return toJson();
 	}
 	public String toJson(){
 		String s = "[";
-		Iterator<Option> iter  =getResponse().iterator();
+		Iterator<Option> iter  =getResponses().iterator();
 		while (iter.hasNext()){
 			s+= iter.next().toJson();
 			if (iter.hasNext()) s+= ",";
