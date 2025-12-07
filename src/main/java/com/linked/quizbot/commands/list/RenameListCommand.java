@@ -53,9 +53,9 @@ public class RenameListCommand extends BotCommand{
 		if(tmp.length < 2){ return res;}
 		
 		k = cmndLineArgs.indexOf(" ");
-		if(k < 0){ return res;}
-		String a = cmndLineArgs.substring(0, k).trim();
-		String b = cmndLineArgs.substring(k).trim();
+		if(k <= 0){ return res;}
+		String a = cmndLineArgs.trim().substring(0, k).trim();
+		String b = cmndLineArgs.trim().substring(k).trim();
 		res.add(a);
 		res.add(b);
 		return res;

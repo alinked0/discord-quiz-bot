@@ -58,7 +58,6 @@ public class CommandLineInterface {
 		CommandOutput output;
 		List<String> out;
 		while (!exiting) {
-			System.out.print("$ ");
 			String input = scanner.nextLine().toLowerCase();
 			switch (input) {
 				case "exit" -> {
@@ -206,3 +205,4 @@ public class CommandLineInterface {
 		return List.of();
 	}
 }
+

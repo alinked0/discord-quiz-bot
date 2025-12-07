@@ -80,7 +80,7 @@ public class Explain extends Viewer{
 		String header = "";
 		if (awnsersByUserIdByQuestionIndex!=null){
 			String uName = BotCore.getEffectiveNameFromId(userId);
-			if (uName == userId){
+			if (uName.equals(userId)){
 				uName = String.format("<@%s>", uName);
 			}
 			header += String.format("For %s **`%s/%d`**\n",uName, points, getQuestionList().size());

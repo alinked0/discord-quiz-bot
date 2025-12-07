@@ -36,8 +36,8 @@ public class AwnserParserTest {
 			{
 				"duration": 5000,
 				"response": [
-					{"explication":"Expl A","text":"A","correct":false},
-					{"explication":null,"text":"B","correct":false}
+					{"explication":"Expl A","option":"A","correct":false},
+					{"explication":null,"option":"B","correct":false}
 				]
 			}
 			""";
@@ -65,7 +65,7 @@ public class AwnserParserTest {
 		String json = """
 			{
 				"response": [
-					{"explication":"Expl A","text":"A","correct":false}
+					{"explication":"Expl A","option":"A","correct":false}
 				]
 			}
 			""";
@@ -134,7 +134,7 @@ public class AwnserParserTest {
 				"duration": 2500,
 				"extraField1": "ignore me",
 				"response": [
-					{"explication":"Expl A","text":"A","correct":false}
+					{"explication":"Expl A","option":"A","correct":false}
 				],
 				"extraField2": 123
 			}

@@ -43,7 +43,7 @@ public class Option {
 					jp.nextToken();
 					/* parsing System.out.print("Option.Parser.parse("+jp.currentToken()+", "+jp.currentName()+") "); */
 					switch(fieldName){
-						case "text", "option" -> optTxt = jp.getValueAsString();
+						case "option", "text" -> optTxt = jp.getValueAsString();
 						case "explication" -> {
 							optExpl = jp.getText();
 							if (optExpl!=null && optExpl.equals("null")){

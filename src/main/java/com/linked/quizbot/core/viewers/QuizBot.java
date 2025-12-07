@@ -246,7 +246,7 @@ public class QuizBot extends Viewer {
 		while (SortedScoreByUser.hasNext()) {
 			Map.Entry<String, Double> entry = SortedScoreByUser.next();
 			uName = BotCore.getEffectiveNameFromId(entry.getKey());
-			if (uName == entry.getKey()){
+			if (uName.equals(entry.getKey())){
 				uName = String.format("<@%s>", uName);
 			}
 			leaderboard += String.format("#%d. %s: `%s`\n", i, uName, entry.getValue());

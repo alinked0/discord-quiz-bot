@@ -274,17 +274,17 @@ public abstract class BotCommand {
 			URL website = new URL(attachment.getUrl());
 			String path = Constants.LISTSPATH+Constants.SEPARATOR+userId+Constants.SEPARATOR+"tmp"+Constants.SEPARATOR+System.currentTimeMillis();
 			File f = new File(path);
-			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-			FileOutputStream fos = new FileOutputStream(f);
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			if(!f.getParentFile().exists()) {
 				f.getParentFile().mkdirs();
 			}
+			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			FileOutputStream fos = new FileOutputStream(f);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			BufferedReader fd = Files.newBufferedReader(f.toPath());
 			String k = "";
 			do {
-				tmpStr+= k;
 				k=fd.readLine();
+				tmpStr+= k;
 			}while(k!=null);
 			fd.close();
 			f.delete();
@@ -293,7 +293,7 @@ public abstract class BotCommand {
 				res.addAll(BotCommand.splitJson(tmpStr));
 			}
 		} catch (IOException e) {
-			System.err.println(Constants.ERROR + "An error occurred while taking an attachment.");
+			System.err.println(Constants.ERROR + "(BotCommand.getArgFromAttachment) An error occurred while taking an attachment.");
 			e.printStackTrace();
 		}
 		return res;

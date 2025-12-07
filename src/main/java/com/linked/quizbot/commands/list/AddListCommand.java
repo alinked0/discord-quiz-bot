@@ -94,7 +94,7 @@ public class AddListCommand extends BotCommand{
 			if (QuestionList.getExampleQuestionList().getId().equals(index)) {
 				return "The example list cannot be modified.\n";
 			}
-			if (k.getOwnerId() == senderId){
+			if (k.getOwnerId().equals(senderId)){
 				Users.addListToUser(l.getOwnerId(), l);
 				return "Success, list :"+l.header()+", has been added.\n";
 			}

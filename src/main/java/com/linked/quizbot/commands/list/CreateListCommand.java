@@ -68,24 +68,14 @@ public class CreateListCommand extends BotCommand {
 		for (int i = 0; i<n; i++) {
 			try {
 				QuestionList l = QuestionList.Parser.fromString(args.get(i)).ownerId(userId).build();
-				if (l.getName()!=null) {
-					if(Users.get(userId).getByName(l.getName())!=null) {
-						res.add("Failed, list of name : "+Constants.MAPPER.writeValueAsString(""+l.getName()+"")+" already exists in your collection.\n");
-					} else {
-						Users.addListToUser(l.getOwnerId(), l);
-						res.add("Success, list :"+l.header()+", has been created.\n");
-					}
-				}else {
-					res.add("Failed to import ```"+args.get(i)+"```, no \"name\" found\n");
-				}
+				if (l.getName() ==null){res.add("Failed to import, no \"name\" found in\n```"+args.get(i)+"```\n"); continue;}
+				Users.addListToUser(l.getOwnerId(), l);
+				res.add(l.header()+", has been created.\n");
 			}catch (IOException e){
-				res.add(String.format("**Failed to import** ```js\n%s```\n",args.get(i) ));
-				res.add(String.format("**Reasons:** %s\n", e.getMessage()));
-				e.printStackTrace();
+				res.add(String.format("**Failed to import:**\n```js\n%s```\n**Reasons:** %s\n",args.get(i), e.getMessage()));
+				System.err.println(String.format(Constants.ERROR + "[%s.execute failed]%s", getClass()));e.printStackTrace();
 			}
 		}
-		return new CommandOutput.Builder()
-				.addAll(res)
-				.build();
+		return new CommandOutput.Builder().addAll(res).build();
 	}
 }

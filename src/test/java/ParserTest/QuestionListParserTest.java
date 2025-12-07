@@ -43,8 +43,8 @@ public class QuestionListParserTest {
 					"Math": "\uD83D\uDCDD"
 				},
 				"questions": [
-					{ "question": "q1", "options": [{"explication":"Incorrect. CO2 is carbon dioxide","text":"Carbon Dioxide","correct":true}] },
-					{ "question": "q2", "options": [{"explication":"Incorrect. CO2 is carbon dioxide","text":"Carbon Dioxide","correct":true}] }
+					{ "question": "q1", "options": [{"explication":"Incorrect. CO2 is carbon dioxide","option":"Carbon Dioxide","correct":true}] },
+					{ "question": "q2", "options": [{"explication":"Incorrect. CO2 is carbon dioxide","option":"Carbon Dioxide","correct":true}] }
 				]
 			}
 			""", fixedTime);

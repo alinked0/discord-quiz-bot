@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.utils.Attempt;
+import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 
 /**
@@ -48,5 +50,13 @@ public class Main {
 		BotCore.jda= null;
 		Users.loadAllUsers();
 		CommandLineInterface.execute(scanner);
+		/*
+		try{
+			User u = new User("468026374557270017");
+			System.out.println(u.getAttempts("abcdefg").getFirst().toJson());
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		*/
 	}
 }

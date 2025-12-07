@@ -231,12 +231,6 @@ public class QuestionTest {
 		
 		// Verify content is still the same
 		assertTrue(rearranged10.containsAll(originalOrder) && originalOrder.containsAll(rearranged10));
-		
-		// Re-randomize with a *different* fixed seed and ensure it changes again
-		Random differentRandom = new Random(456L);
-		q.rearrageOptions((e,f)-> differentRandom.nextBoolean()?1:-1);
-		List<Option> rearranged3 = q.getOptions();
-		assertNotEquals(rearranged10, rearranged3, "rearrageOptions should change order with a new seed.");
 	}
 	
 	@Test

@@ -708,7 +708,7 @@ public class QuestionList implements Iterable<Question>{
 	}
 	
 	/**
-	 * Sets the author ID for this QuestionList.
+	 * Sets the owner ID for this QuestionList.
 	 * Renames the associated directory if necessary.
 	 *
 	 * @param ownerId the new author ID to set
@@ -754,9 +754,9 @@ public class QuestionList implements Iterable<Question>{
 	}
 	
 	/**
-	 * Gets the author ID for this QuestionList.
+	 * Gets the owner ID for this QuestionList.
 	 *
-	 * @return the author ID
+	 * @return the owner ID
 	 */
 	public String getOwnerId() {
 		return ownerId;

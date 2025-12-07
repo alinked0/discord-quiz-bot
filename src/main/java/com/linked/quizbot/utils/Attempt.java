@@ -177,7 +177,7 @@ public class Attempt {
 	 * @return the final score of this user
 	 */
 	public Double getScore(){
-		if (this.score!=null){return this.score;}
+		//if (this.score!=null && this.getEnd()!=null){return this.score;}
 		Double score=0.0;
 		int numberOfTrueOptions;
 		Awnser  awnser;
@@ -211,15 +211,18 @@ public class Attempt {
 			&& getUserId().equals(a.getUserId()) && getQuestionList().equals(a.getQuestionList()) 
 			&& getAwnsers().equals(a.getAwnsers());
 	}
-	
+
 	public String getTextPoints(){
 		String time = String.format("`%3d s`",Long.divideUnsigned(getDuration(), 1000));
 		if (getDuration()> 99*1000){
 			time = String.format("`%3dm`",Long.divideUnsigned(getDuration(), 60000));
 		}
+
 		Timestamp startTime = TimeFormat.RELATIVE.atTimestamp(getStart());
-		return String.format("`%3.0f%%` %s %s",getScore()*100/getQuestionList().size(),time, startTime);
+		double score= getQuestionList().size()!=0?getScore()*100/getQuestionList().size():0.00;
+		return String.format("`%3.0f%%` %s %s", score, time, startTime);
 	}
+
 	public String toJson(){
 		/*try {
 			return Constants.MAPPER.writer(new DefaultPrettyPrinter()).writeValueAsString(this);
