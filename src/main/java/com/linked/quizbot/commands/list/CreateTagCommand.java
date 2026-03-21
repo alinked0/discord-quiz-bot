@@ -40,7 +40,7 @@ public class CreateTagCommand extends BotCommand{
 	public List<OptionData> getOptionData(){
 		List<OptionData> res = new ArrayList<>();
 		res.add(new OptionData(OptionType.STRING, "tag-name", "the name associated with your tag", true));
-		res.add(new OptionData(OptionType.STRING, "emoji", "a visual aide", true));
+		res.add(new OptionData(OptionType.STRING, "shorthand", "a visual aide", true));
 		return res;
 	}
 	@Override

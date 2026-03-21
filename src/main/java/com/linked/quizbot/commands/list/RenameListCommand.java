@@ -28,7 +28,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class RenameListCommand extends BotCommand{
 	public static final String CMDNAME = "renamelist";
 	private String cmdDesrciption = "renaming a question list";
-	private List<String> abbrevs = List.of("mv", "rename");
+	private List<String> abbrevs = List.of("mvl");
 	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}
@@ -75,10 +75,17 @@ public class RenameListCommand extends BotCommand{
 		}else {
 			String oldName= l.getName();
 			if(u.renameList(l, newName)){
-				output.add(String.format("`%s` **%s** was renamed to `%s` **%s** .", id, oldName, id, newName));
+				output.add(String.format(
+					"renamed `%s` **%s** -> `%s` **%s**", 
+					id, oldName, 
+					id, newName
+				));
 			}else {
 				QuestionList k = u.getByName(newName);
-				output.add(String.format("There is already a list of this name, `%s` **%s** .", k.getId(), k.getName()));
+				output.add(String.format(
+					"`%s` **%s** already exists", 
+					k.getId(), k.getName()
+				));
 			}
 		}
 		return output.build();

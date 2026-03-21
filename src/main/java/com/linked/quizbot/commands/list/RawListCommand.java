@@ -26,7 +26,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class RawListCommand extends BotCommand{
 	public static final String CMDNAME = "rawlist";
 	private String cmdDesrciption = "sending the raw list of questions in a json format";
-	private List<String> abbrevs = List.of("raw", "rl");
+	private List<String> abbrevs = List.of("raw", "ral");
 	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}

@@ -744,6 +744,17 @@ public class User implements Iterable<QuestionList>{
 		exportUserData();
 		return true;
 	}
+
+	public Boolean renameTag(String oldTagName, String newTagName) {
+		for (QuestionList l : this.getListsByTag(oldTagName)){
+			removeTagFromList(l, oldTagName);
+			addTagToList(l, newTagName);
+		}
+		tagEmojiByTagName.remove(oldTagName);
+		questionListPerTags.remove(oldTagName);
+		exportUserData();
+		return true;
+	}
 	
 	/**
 	 * Deletes a {@link QuestionList} from the user's collection and attempts to delete its local file.

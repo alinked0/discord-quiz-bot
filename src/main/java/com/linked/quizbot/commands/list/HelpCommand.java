@@ -7,7 +7,6 @@ import java.util.Set;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
-import com.linked.quizbot.commands.BotCommand.CommandCategory;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 
@@ -77,12 +76,11 @@ public class HelpCommand extends BotCommand {
 		if (newbie) {
 			outBuilder.sendAsPrivateMessage(userId);
 			outBuilder.addEmbed(getEmbed());
-		} else {
-			for (String s : args) {
-				cmd = getCommandByName(s);
-				if (cmd != null) {
-					outBuilder.addEmbed(getEmbed( cmd));
-				}
+			return outBuilder.build();
+		}
+		for (String s : args) {
+			if ((cmd = getCommandByName(s)) != null) {
+				outBuilder.addEmbed(getEmbed(cmd));
 			}
 		}
 		return outBuilder.build();
@@ -110,18 +108,25 @@ public class HelpCommand extends BotCommand {
 	}
 	private static EmbedBuilder getEmbed(){
 		BotCommand cmd;
-		EmbedBuilder embed = new EmbedBuilder();
+		Set<BotCommand> cmds;
+		Iterator<BotCommand> iter;
+		EmbedBuilder embed;
+
+		embed = new EmbedBuilder();
 		embed.setTitle("All Commands");
-		embed.setDescription("Type `"+Constants.CMDPREFIXE+HelpCommand.CMDNAME+"` followed by a command name to see more details about that particular command.")
-		.setTimestamp(java.time.Instant.now());
+		embed.setDescription(
+			"Type `"+Constants.CMDPREFIXE+HelpCommand.CMDNAME
+			+"` followed by a command name to see more details about that particular command."
+		).setTimestamp(java.time.Instant.now());
+
 		for (BotCommand.CommandCategory c : BotCommand.CommandCategory.getCategories()){
 			String s = "";
-			Set<BotCommand> cmds = BotCommand.getCommandsByCategory(c);
+			cmds = BotCommand.getCommandsByCategory(c);
 			if(cmds!=null && !cmds.isEmpty()){
-				Iterator<BotCommand> iter = cmds.iterator();
+				iter = cmds.iterator();
 				while (iter.hasNext()){
 					cmd=iter.next();
-					s += "`"+cmd.getName()+"`";
+					s += String.format("`%s`",cmd.getName());
 					if (iter.hasNext()) {
 						s+= ", ";
 					}

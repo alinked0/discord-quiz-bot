@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.MessageEmbed.Footer;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 
@@ -40,6 +41,7 @@ public class CommandOutput {
 	private boolean useButtons = true;
 	private String userId;
 	private Message message;
+	private MessageChannel channel;
 	
 	public static class Builder {
 		private final List<String> textMessages = new ArrayList<>();
@@ -56,6 +58,7 @@ public class CommandOutput {
 		private boolean ephemeral = false;
 		private long delayMillis = 0;
 		private Message message=null;
+		private MessageChannel channel = null;
 		
 		public Builder add(String message){
 			if (message !=null && !message.isEmpty()){
@@ -67,7 +70,13 @@ public class CommandOutput {
 			this.useButtons= b;
 			return this;
 		}
-		public Builder setMessage(Message msg){ message = msg; return this;}
+		public Builder setMessage(Message msg){ 
+			message = msg; return this;
+		}
+		public Builder channel(MessageChannel channel){ 
+			this.channel = channel; 
+			return this;
+		}
 		public Builder addAll(List<String> c){
 			for (String s : c){
 				this.add(s);
@@ -203,6 +212,7 @@ public class CommandOutput {
 			this.clearReactions = t.clearReactions;
 			this.reactions.addAll(t.reactions);
 			this.useButtons = t.useButtons;
+			this.channel = t.channel;
 			return this;
 		}
 		public CommandOutput build(){
@@ -225,6 +235,7 @@ public class CommandOutput {
 		this.clearReactions = builder.clearReactions;
 		this.reactions = builder.reactions;
 		this.useButtons = builder.useButtons;
+		this.channel = builder.channel;
 	}
 	public List<File> getFiles(){
 		return attachedFiles;
@@ -238,6 +249,9 @@ public class CommandOutput {
 	}
 	public Message getMessage(){
 		return message;
+	}
+	public MessageChannel getChannel(){
+		return channel!=null?channel:getMessage().getChannel();
 	}
 	public boolean clearReactions(){
 		return clearReactions;

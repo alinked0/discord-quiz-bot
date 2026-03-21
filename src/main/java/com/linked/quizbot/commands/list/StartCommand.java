@@ -54,13 +54,17 @@ public class StartCommand extends BotCommand{
 	}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
-		QuestionList questions = args.size()>0?Users.getById(args.get(0)): null;
-		if (questions==null){
+		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		questions = new QuestionList.Builder().add(questions).build().rearrageOptions();
-		User user = Users.get(userId);
-		boolean autoNext = user.useAutoNext();
+		QuestionList questions;
+		User user;
+		boolean autoNext;
+		QuizBot quizBot;
+
+		questions = new QuestionList.Builder().add(Users.getById(args.get(0))).build().rearrageOptions();
+		user = Users.get(userId);
+		autoNext = user.useAutoNext();
 		if (autoNext){
 			for (Question q: questions){
 				if (q.getNumberTrue()>1){
@@ -69,7 +73,7 @@ public class StartCommand extends BotCommand{
 				}
 			}
 		}
-		QuizBot quizBot = new QuizBot(questions, user.useButtons(), autoNext);
+		quizBot = new QuizBot(questions, user.useButtons(), autoNext);
 		quizBot.addPlayer(userId);
 		return quizBot.start();
 	}

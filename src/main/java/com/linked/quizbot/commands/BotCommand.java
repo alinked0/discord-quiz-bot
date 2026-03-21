@@ -39,6 +39,7 @@ import com.linked.quizbot.commands.list.RawListCommand;
 import com.linked.quizbot.commands.list.RemoveListCommand;
 import com.linked.quizbot.commands.list.RemoveTagCommand;
 import com.linked.quizbot.commands.list.RenameListCommand;
+import com.linked.quizbot.commands.list.RenameTagCommand;
 import com.linked.quizbot.commands.list.SetPrefixCommand;
 import com.linked.quizbot.commands.list.StartCommand;
 import com.linked.quizbot.commands.list.TagsCommand;
@@ -99,8 +100,9 @@ public abstract class BotCommand {
 			new PingCommand(),
 			new PreviousCommand(),
 			new RawListCommand(),
-			new RenameListCommand(),
 			new RemoveTagCommand(),
+			new RenameListCommand(),
+			new RenameTagCommand(),
 			new SetPrefixCommand(),
 			new StartCommand(),
 			new TagsCommand(),

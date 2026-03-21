@@ -29,7 +29,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 public class RemoveTagCommand extends BotCommand{
 	public static final String CMDNAME = "removetag";
 	private String cmdDesrciption = "remove a tag from a list of questions";
-	private List<String> abbrevs = List.of("rt", "tr");
+	private List<String> abbrevs = List.of("rmt");
 	
 	@Override
 	public List<String> getAbbreviations(){ return abbrevs;}

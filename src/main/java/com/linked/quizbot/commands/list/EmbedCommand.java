@@ -103,6 +103,7 @@ public class EmbedCommand extends BotCommand {
 		return new CommandOutput.Builder()
 				.addEmbed(embed.build())
 				.addReactions(emojis)
+				.sendInThread(true)
 				.build();
 	}
 }
