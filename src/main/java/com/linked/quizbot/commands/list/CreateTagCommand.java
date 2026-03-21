@@ -59,7 +59,6 @@ public class CreateTagCommand extends BotCommand{
 		}
 		return new CommandOutput.Builder()
 				.add(res)
-				
 				.build();
 	}
 

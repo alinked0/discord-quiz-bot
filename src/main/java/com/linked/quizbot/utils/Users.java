@@ -130,6 +130,7 @@ public class Users {
 	public List<Attempt> getAttempts(String userId, String ListId){
 		return Users.get(userId).getAttempts(ListId);
 	}
+
 	public static <T> int myBinarySearchIndexOf(List<T> tab, int start, int end, T q, Comparator<? super T> compare){
 		if (start > end){
 			return -1*start-1;
@@ -180,7 +181,16 @@ public class Users {
 			user.exportUserLists();
 		}
 	}
-	public static void loadAllUsers(){
+
+	public static User importUser(String userId){
+		File folder = new File(Constants.USERDATAPATH+Constants.SEPARATOR+userId);
+		if (userId.length()<Constants.DISCORDIDLENMIN || !folder.exists()){
+			return null;
+		}
+		return addUser(new User(userId));
+	}
+
+	public static List<User> importUsers(){
 		Users.clear();
 		File folder = new File(Constants.USERDATAPATH);
 		String userId;
@@ -188,14 +198,17 @@ public class Users {
 			for (File f : folder.listFiles()){
 				if (f.isDirectory()){
 					userId = f.getName();
-					if (userId.length()>=Constants.DISCORDIDLENMIN){
-						addUser(new User(userId));
-					}
+					importUser(userId);
 				}
 			}
-		
 		}
+		return new ArrayList<User>(allUsers);
 	}
+
+	public static void loadAllUsers(){
+		importUsers();
+	}
+
 	public static void exportAllUserData(){
 		User user;
 		for (int i=0; i<Users.allUsers.size(); i++) {

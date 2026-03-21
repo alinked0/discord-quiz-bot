@@ -52,11 +52,6 @@ public class CreateListCommand extends BotCommand {
 	public List<String> parseArguments(String cmndLineArgs){
 		List<String> res = new ArrayList<>();
 		res.addAll(splitJson(cmndLineArgs));
-		
-		for (int i=0; i<res.size(); ++i){
-			System.out.print(res.get(i));
-			if (i+1<res.size())System.out.print("::");
-		}System.out.print(")\n");
 		return res;
 	}
 	public CommandOutput execute(String userId,  List<String> args){
@@ -73,7 +68,8 @@ public class CreateListCommand extends BotCommand {
 				res.add(l.header()+", has been created.\n");
 			}catch (IOException e){
 				res.add(String.format("**Failed to import:**\n```js\n%s```\n**Reasons:** %s\n",args.get(i), e.getMessage()));
-				System.err.println(String.format(Constants.ERROR + "[%s.execute failed]%s", getClass()));e.printStackTrace();
+				System.err.println(String.format(Constants.ERROR + "[%s.execute failed]%s", getClass()));
+				e.printStackTrace();
 			}
 		}
 		return new CommandOutput.Builder().addAll(res).build();

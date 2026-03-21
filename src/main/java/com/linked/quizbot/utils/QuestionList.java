@@ -124,6 +124,7 @@ public class QuestionList implements Iterable<Question>{
 		 */
 		public  Builder addTag(String tagName, String emoji){
 			this.emojiPerTagName.put(tagName, emoji);
+			
 			return this;
 		}
 		
@@ -636,12 +637,13 @@ public class QuestionList implements Iterable<Question>{
 	}
 	
 	/** 
-	 * Append all questions in q into this QuestionList
+	 * Append all questions and tags in q onto this QuestionList
 	 * @param q the QuestionList containing Questions to be added to this list
 	 * @return true
 	 * @ensures this.containsAll(q.getQuestions())
 	 */
 	public boolean addAll(QuestionList q) {
+		this.emojiPerTagName.putAll(q.emojiPerTagName);
 		return addAll(q.getQuestions());
 	}
 	

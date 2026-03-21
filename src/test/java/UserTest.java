@@ -168,10 +168,6 @@ public class UserTest {
 		
 		assertNotNull(user);
 		assertEquals(userId, user.getId());
-		System.out.println(predefinedUserStub.getPathToUserData());
-		System.out.println(predefinedUserStub.toJson());
-		System.out.println(user.getPathToUserData());
-		System.out.println(user.toJson());
 		assertEquals(expectedPrefix, user.getPrefix());
 		assertEquals(expectedTags.size(), user.getEmojiPerTagName().size());
 		assertEquals(expectedTags.get("science"), user.getEmojiPerTagName().get("science"));
@@ -186,7 +182,7 @@ public class UserTest {
 		assertTrue(user.getQuestionListPerTags().containsKey("science"));
 		assertTrue(user.getQuestionListPerTags().containsKey("history"));
 		assertEquals(1, user.getQuestionListPerTags().get("science").size());
-		assertEquals(id1, user.getQuestionListPerTags().get("science").get(0));
+		assertTrue(user.getQuestionListPerTags().get("science").contains(id1));
 	}
 	
 	@Test
@@ -382,10 +378,6 @@ public class UserTest {
 		assertEquals(existingList.getName(), retrieved.getName());
 		assertTrue(retrieved.getQuestions().stream().anyMatch(q -> q.getQuestion().equals("Old Q")));
 		assertTrue(retrieved.getQuestions().stream().anyMatch(q -> q.getQuestion().equals("New Q")));
-		/*System.out.println("LIST existingList "+existingList.toJson());
-		System.out.println("LIST updatedList "+updatedList.toJson());
-		System.out.println("LIST retrieved "+retrieved.toJson());
-		System.out.println("User"+user.toJson());*/
 		
 		assertEquals(2, retrieved.size()); // Should now have both old Q and new Q
 		

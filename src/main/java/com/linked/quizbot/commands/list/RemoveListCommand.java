@@ -31,6 +31,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  */
 public class RemoveListCommand extends BotCommand{
 	public static final String CMDNAME = "removelist";
+	private List<String> abbrevs = List.of("rm");
+	
+	@Override
+	public List<String> getAbbreviations(){ return abbrevs;}
 	@Override
 	public String getName(){ return CMDNAME;}
 	@Override

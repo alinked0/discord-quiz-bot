@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class User implements Iterable<QuestionList>{
 	private final String userId;
 	private final Map<String, QuestionList> lists= new HashMap<>();
 	private final Map<String, String> tagEmojiByTagName= new HashMap<>();
-	private final Map<String, List<String>> questionListPerTags= new HashMap<>();
+	private final Map<String, Set<String>> questionListPerTags= new HashMap<>();
 	private final Map<String, List<Attempt>> attemptsByListId= new HashMap<>();
 	private String prefix;
 	private Boolean useButtons;
@@ -62,7 +63,7 @@ public class User implements Iterable<QuestionList>{
 		private Boolean useButtons = true;
 		private Boolean useAutoNext = false;
 		private Map<String, String> tagEmojiByTagName= new HashMap<>();
-		private Map<String, List<String>> questionListPerTags= new HashMap<>();
+		private Map<String, Set<String>> questionListPerTags= new HashMap<>();
 		private Map<String, List<Attempt>> attemptsByListId= new HashMap<>();
 		
 		/**
@@ -73,7 +74,7 @@ public class User implements Iterable<QuestionList>{
 		 * @requires userId != null
 		 * @ensures this.userId == userId
 		 */
-		public Builder id(String userId){
+		public Builder id(@NotNull String userId){
 			if (userId == null){
 				throw new NullPointerException();
 			}
@@ -87,7 +88,7 @@ public class User implements Iterable<QuestionList>{
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.prefix == prefix
 		 */
-		public Builder prefix(String prefix){
+		public Builder prefix(@NotNull String prefix){
 			this.prefix= prefix;
 			return this;
 		}
@@ -98,7 +99,7 @@ public class User implements Iterable<QuestionList>{
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.useButtons == b
 		 */
-		public Builder useButtons(Boolean b){
+		public Builder useButtons(@NotNull Boolean b){
 			this.useButtons= b;
 			return this;
 		}
@@ -109,7 +110,7 @@ public class User implements Iterable<QuestionList>{
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.useAutoNext == b
 		 */
-		public Builder useAutoNext(Boolean b){
+		public Builder useAutoNext(@NotNull Boolean b){
 			this.useAutoNext= b;
 			return this;
 		}
@@ -120,11 +121,11 @@ public class User implements Iterable<QuestionList>{
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.tagEmojiByTagName.equals(tagEmojiByTagName)
 		 */
-		public Builder tagEmojiByTagName(Map<String, String> tagEmojiByTagName){
+		public Builder tagEmojiByTagName(@NotNull Map<String, String> tagEmojiByTagName){
 			this.tagEmojiByTagName = tagEmojiByTagName;
 			return this;
 		}
-		public Builder attemptsByListId(Map<String, List<Attempt>>attemptsByListId){
+		public Builder attemptsByListId(@NotNull Map<String, List<Attempt>>attemptsByListId){
 			this.attemptsByListId = attemptsByListId;
 			return this;
 		}
@@ -160,7 +161,7 @@ public class User implements Iterable<QuestionList>{
 		 * @return The current Builder instance for chaining.
 		 * @ensures this.questionListPerTags.equals(questionListPerTags)
 		 */
-		public Builder questionListPerTags(Map<String, List<String>> questionListPerTags){
+		public Builder questionListPerTags(@NotNull Map<String, Set<String>> questionListPerTags){
 			this.questionListPerTags = questionListPerTags;
 			return this;
 		}
@@ -384,7 +385,7 @@ public class User implements Iterable<QuestionList>{
 			tagEmojiByTagName.putAll(tags);
 			for (String tagName : tags.keySet()){
 				if (questionListPerTags.get(tagName)==null){
-					questionListPerTags.put(tagName, new ArrayList<>());
+					questionListPerTags.put(tagName, new HashSet<>());
 				}
 				questionListPerTags.get(tagName).add(l.getId());
 			}
@@ -435,7 +436,7 @@ public class User implements Iterable<QuestionList>{
 			tagEmojiByTagName.putAll(tags);
 			for (String tagName : tags.keySet()){
 				if (questionListPerTags.get(tagName)==null){
-					questionListPerTags.put(tagName, new ArrayList<>());
+					questionListPerTags.put(tagName, new HashSet<>());
 				}
 				questionListPerTags.get(tagName).add(l.getId());
 			}
@@ -530,11 +531,10 @@ public class User implements Iterable<QuestionList>{
 	}
 	
 	/**
-	 * Gets a copy of the map linking tag names to the quiz list ids that have that tag.
-	 * @return A new {@code Map<String, List<String>>} mapping tags to listIds.
-	 * @ensures \result.size() == questionListPerTags.size()
+	 * @return an instance of questionListPerTags
+	 * @ensures \result.equals(questionListPerTags)
 	 */
-	public Map<String, List<String>> getQuestionListPerTags() {
+	public Map<String, Set<String>> getQuestionListPerTags() {
 		return new HashMap<>(questionListPerTags);
 	}
 	
@@ -604,9 +604,9 @@ public class User implements Iterable<QuestionList>{
 	 * @param l The {@link QuestionList} to add or merge.
 	 * @return {@code true} upon successful addition/update.
 	 * @requires l != null
-	 * @ensures l is merged into or added to listsSortedById, maintaining sort order.
-	 * @ensures l.exportListQuestionAsJson() is called.
-	 * @ensures Users.update(this) is called.
+	 * @ensures lists.keys().contains(l.getId())
+	 * @ensures importLists(this.getId()).keys().contains(l.getId())
+	 * @ensures Users.get(this.getId())!=null
 	 */
 	public Boolean addList(@NotNull QuestionList l){
 		QuestionList k = getById(l.getId());
@@ -621,48 +621,14 @@ public class User implements Iterable<QuestionList>{
 		k.addAll(l);
 		k.rearrageOptions((e, f) -> e.isCorrect()?-1:1);
 		k.setOwnerId(userId);
-		lists.put(k.getId(), k);
+		lists.put(l.getId(), k);
 		k.exportListQuestionAsJson();
-		Users.update(this);
-		return true;
-	}
-	
-	/**
-	 * Creates a new tag with an associated emoji and exports the user data.
-	 * @param tagName The name of the new tag.
-	 * @param emoji The emoji to associate with the tag.
-	 * @return {@code true} if the tag was created, {@code false} if a tag with that name already exists.
-	 * @requires tagName != null && emoji != null
-	 * @ensures \result == !tagEmojiByTagName.containsKey(tagName)
-	 * @ensures (\result == true) ==> tagEmojiByTagName.containsKey(tagName) && questionListPerTags.containsKey(tagName) && exportUserData() is called.
-	 */
-	public Boolean createTag(@NotNull String tagName, @NotNull String emoji) {
-		if (tagEmojiByTagName.containsKey(tagName)) {
-			return false; // Tag already exists
+		for(String tagName : k.getEmojiPerTagName().keySet()){
+			if (getEmojiFomTagName(tagName)==null){
+				this.createTag(tagName, k.getEmoji(tagName));;
+			}
+			this.addTagToList(l, tagName);
 		}
-		tagEmojiByTagName.put(tagName, emoji);
-		questionListPerTags.put(tagName, new ArrayList<>());
-		exportUserData();
-		Users.update(this);
-		return true;
-	}
-	
-	/**
-	 * Adds an existing user-level tag (name and emoji) to a specific {@link QuestionList} by its ID.
-	 * @param tagName The name of the tag to add.
-	 * @param emoji The emoji associated with the tag (used to pass to QuestionList).
-	 * @param id The ID of the {@link QuestionList} to tag.
-	 * @return {@code true} if the tag was successfully added to the list, {@code false} if the tag has not been created at the user level.
-	 * @requires id != null && tagName != null && emoji != null
-	 * @ensures \result == tagEmojiByTagName.containsKey(tagName)
-	 * @ensures (\result == true) ==> getById(id).tagNames().contains(tagName) && exportUserData() is called.
-	 */
-	public Boolean addTagToQuestionList(String tagName, String emoji, String id) {
-		if (!tagEmojiByTagName.containsKey(tagName)) {
-			return false; // Tag hasnt been created
-		}
-		getById(id).addTag(tagName, emoji);
-		exportUserData();
 		Users.update(this);
 		return true;
 	}
@@ -674,7 +640,7 @@ public class User implements Iterable<QuestionList>{
 	 * @return {@code true} if the tag was deleted, {@code false} if the tag did not exist.
 	 * @requires tagName != null
 	 * @ensures \result == tagEmojiByTagName.containsKey(tagName)
-	 * @ensures (\result == true) ==> !tagEmojiByTagName.containsKey(tagName) && !questionListPerTags.containsKey(tagName) && exportUserData() is called.
+	 * @ensures (\result == true) ==> getEmojiFomTagName(tagName)==null && getListsByTag(tagName)==null && exportUserData() is called.
 	 */
 	public Boolean deleteTag(String tagName) {
 		if (!tagEmojiByTagName.containsKey(tagName)) {
@@ -705,6 +671,26 @@ public class User implements Iterable<QuestionList>{
 	}
 	
 	/**
+	 * Creates a new tag with an associated emoji and exports the user data.
+	 * @param tagName The name of the new tag.
+	 * @param emoji The emoji to associate with the tag.
+	 * @return {@code true} if the tag was created, {@code false} if a tag with that name already exists.
+	 * @requires tagName != null && emoji != null
+	 * @ensures \result == !tagEmojiByTagName.containsKey(tagName)
+	 * @ensures (\result == true) ==> tagEmojiByTagName.containsKey(tagName) && questionListPerTags.containsKey(tagName) && exportUserData() is called.
+	 */
+	public Boolean createTag(@NotNull String tagName, @NotNull String emoji) {
+	        if (tagEmojiByTagName.containsKey(tagName)) {
+	                return false; // Tag already exists
+	        }
+	        tagEmojiByTagName.put(tagName, emoji);
+	        questionListPerTags.put(tagName, new HashSet<>());
+	        exportUserData();
+	        Users.update(this);
+	        return true;
+	}
+
+	/**
 	 * Adds an existing user-level tag to a specific {@link QuestionList}.
 	 * <p>Updates the list, exports it, updates the internal {@code questionListPerTags} map, and exports the user data.</p>
 	 * @param l The {@link QuestionList} to tag.
@@ -712,27 +698,27 @@ public class User implements Iterable<QuestionList>{
 	 * @return {@code true} if the tag was successfully added to the list, {@code false} if the list is not in the user's collection or the tag is not defined at the user level.
 	 * @requires l != null && tagName != null
 	 * @ensures \result == (getById(l.getId()) != null && tagEmojiByTagName.containsKey(tagName))
-	 * @ensures (\result == true) ==> l.tagNames().contains(tagName) && exportUserData() is called.
+	 * @ensures (\result == true) ==> l.tagNames().contains(tagName)
 	 */
 	public Boolean addTagToList(QuestionList l, String tagName) {
 		String emoji;
-		List<String> listsTagged;
-		if (tagNames().contains(tagName)) {
-			emoji = tagEmojiByTagName.get(tagName);
-			l.addTag(tagName, emoji);
-			listsTagged = questionListPerTags.get(tagName);
-			if (listsTagged==null){
-				listsTagged = new ArrayList<>();
-			}
-			listsTagged.add(l.getId());
-			questionListPerTags.put(tagName, listsTagged);
-			lists.put(l.getId(), l);
-			l.exportListQuestionAsJson();
-			exportUserData();
-			Users.update(this);
-			return true;
+		Set<String> listsTagged;
+		if (!tagNames().contains(tagName)) {
+			return false;
 		}
-		return false;
+		emoji = tagEmojiByTagName.get(tagName);
+		l.addTag(tagName, emoji);
+		listsTagged = questionListPerTags.get(tagName);
+		if (listsTagged==null){
+			listsTagged = new HashSet<>();
+		}
+		listsTagged.add(l.getId());
+		questionListPerTags.put(tagName, listsTagged);
+		lists.put(l.getId(), l);
+		l.exportListQuestionAsJson();
+		exportUserData();
+		Users.update(this);
+		return true;
 	}
 	
 	/**
@@ -778,9 +764,7 @@ public class User implements Iterable<QuestionList>{
 			Map<String, String> tags = l1.getEmojiPerTagName();
 			tagEmojiByTagName.putAll(l1.getEmojiPerTagName());
 			for (String tagName : tags.keySet()){
-				if (questionListPerTags.get(tagName)==null){
-					questionListPerTags.put(tagName, new ArrayList<>());
-				}
+				questionListPerTags.putIfAbsent(tagName, new HashSet<>());
 				questionListPerTags.get(tagName).add(l1.getId());
 			}
 		}
