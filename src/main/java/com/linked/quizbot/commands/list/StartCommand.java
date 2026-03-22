@@ -8,6 +8,7 @@ import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.utils.Question;
@@ -61,6 +62,7 @@ public class StartCommand extends BotCommand{
 		User user;
 		boolean autoNext;
 		QuizBot quizBot;
+		CommandOutput res;
 
 		questions = new QuestionList.Builder().add(Users.getById(args.get(0))).build().rearrageOptions();
 		user = Users.get(userId);
@@ -73,8 +75,9 @@ public class StartCommand extends BotCommand{
 				}
 			}
 		}
-		quizBot = new QuizBot(questions, user.useButtons(), autoNext);
+		quizBot = new QuizBot(questions, user.useButtons(), autoNext, false);
 		quizBot.addPlayer(userId);
-		return quizBot.start();
+		res = new CommandOutput(List.of(quizBot.start()));
+		return res;
 	}
 }

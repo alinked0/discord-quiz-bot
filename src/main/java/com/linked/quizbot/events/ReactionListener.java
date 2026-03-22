@@ -10,6 +10,7 @@ import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.Question;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.EndCommand;
 import com.linked.quizbot.commands.list.NextCommand;
@@ -52,16 +53,15 @@ public class ReactionListener extends ListenerAdapter {
 			BotCommand cmd = BotCommand.getCommandFromEmoji(reaction.getFormatted());
 			if(cmd!=null){
 				CommandOutput output= CommandLineInterface.execute(Constants.CMDPREFIXE+cmd.getName()+" "+messageId, userId, null);
-				MessageSender.sendCommandOutput(
+				MessageSender.send(
 					output,
-					channel,
 					message 
 				);				
 				return;
 			}			
 			Viewer viewer = BotCore.getViewer(messageId);
 			if (viewer!=null && viewer.isActive() && viewer.getReactions().contains(reaction)){
-				viewer.addReaction(userId, reaction);
+				viewer.addReaction(userId, reaction, message);
 				if (viewer instanceof QuizBot && viewer.getCurrentIndex()>=0){
 					QuizBot quizBot = (QuizBot)viewer;
 					if (quizBot.useAutoNext() && quizBot.getPlayers().size()==1){
@@ -70,9 +70,8 @@ public class ReactionListener extends ListenerAdapter {
 					}
 				}
 			}
-			MessageSender.sendCommandOutput(
-				new CommandOutput.Builder().add(viewer.current()).sendInOriginalMessage(true).build(),
-				channel,
+			MessageSender.send(
+				new Output.Builder(viewer.current()).sendInOriginalMessage(true).build(),
 				message 
 			);
 		});
@@ -87,9 +86,8 @@ public class ReactionListener extends ListenerAdapter {
 		String messageId = message.getId();
 		if(oldQ.equals(quizBot.getCurrQuestion()) && !quizBot.isExplaining()){
 			BotCommand cmd = BotCommand.getCommandByName(quizBot.getCurrentIndex()<quizBot.getQuestionList().size()-1?NextCommand.CMDNAME:EndCommand.CMDNAME);
-			MessageSender.sendCommandOutput(
+			MessageSender.send(
 				cmd.execute(userId, List.of(messageId)),
-				channel,
 				message 
 			);
 		}

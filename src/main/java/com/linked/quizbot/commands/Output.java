@@ -1,0 +1,362 @@
+package com.linked.quizbot.commands;
+
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.MessageEmbed.Footer;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+import java.util.function.Consumer;
+
+import com.linked.quizbot.Constants;
+import com.linked.quizbot.core.MessageSender;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+
+public class Output {
+	private final List<String> textMessages;
+	private final List<MessageEmbed> embeds;
+	private final List<Consumer<Message>> postSendActions;
+	private final List<File> attachedFiles;
+	private final List<Emoji> reactions;
+	private final boolean sendInOriginalMessage;
+	private final boolean replyToSender;
+	private final boolean sendInThread;
+	private final boolean ephemeral;
+	private final boolean clearReactions;
+	private final long delayMillis;
+	private boolean useButtons ;
+	private String userId;
+	private Message message;
+	private MessageChannel channel;
+	
+	public static class Builder {
+		private List<String> textMessages ;
+		private List<MessageEmbed> embeds ;
+		private List<Consumer<Message>> postSendActions ;
+		private List<File> attachedFiles;
+		private List<Emoji> reactions;
+		private boolean useButtons ;
+		private boolean sendInOriginalMessage ;
+		private boolean replyToSender ;
+		private boolean sendInThread;
+		private boolean clearReactions;
+		private String userId ;
+		private boolean ephemeral ;
+		private long delayMillis ;
+		private Message message;
+		private MessageChannel channel ;
+		
+		public Builder() {
+			textMessages = new ArrayList<>();
+			embeds = new ArrayList<>();
+			postSendActions = new ArrayList<>();
+			attachedFiles = new ArrayList<>();
+			reactions = new ArrayList<>();
+			useButtons = true;
+			sendInOriginalMessage = false;
+			replyToSender = true;
+			sendInThread= false;
+			clearReactions= false;
+			userId = null;
+			ephemeral = false;
+			delayMillis = 0;
+			message=null;
+			channel = null;
+		}
+		public Builder(Output t) {
+			this.textMessages = t.textMessages;
+			this.embeds = t.embeds;
+			this.replyToSender = t.replyToSender;
+			this.ephemeral = t.ephemeral;
+			this.delayMillis = t.delayMillis;
+			this.postSendActions=t.postSendActions;
+			this.attachedFiles = t.attachedFiles;
+			this.sendInOriginalMessage = t.sendInOriginalMessage;
+			this.sendInThread = t.sendInThread;
+			this.userId = t.userId;
+			this.message = t.message;
+			this.clearReactions = t.clearReactions;
+			this.reactions = t.reactions;
+			this.useButtons = t.useButtons;
+			this.channel = t.channel;
+		}
+		public Builder(String message){
+			this();
+			if (message !=null && !message.isEmpty()){
+				textMessages.add(message);
+			}
+		}
+		public Builder add(String message){
+			if (message !=null && !message.isEmpty()){
+				textMessages.add(message);
+			}
+			return this;
+		}
+		public Builder useButtons(boolean b){
+			this.useButtons= b;
+			return this;
+		}
+		public Builder setMessage(Message msg){ 
+			message = msg; return this;
+		}
+		public Builder channel(MessageChannel channel){ 
+			this.channel = channel; 
+			return this;
+		}
+		public Builder addAll(List<String> c){
+			for (String s : c){
+				this.add(s);
+			}
+			return this;
+		}
+		public Builder addEmbed(EmbedBuilder embedBuilder){
+			if (embedBuilder != null){
+				embeds.add(embedBuilder.build());
+			}
+			return this;
+		}
+		public Builder addEmbed(MessageEmbed embed){
+			if (embed != null){
+				embeds.add(embed);
+			}
+			return this;
+		}
+		public Builder addAllEmbed(List<MessageEmbed> c){
+			for (MessageEmbed k : c){
+				this.addEmbed(k);
+			}
+			return this;
+		}
+		public Builder reply(boolean replyToSender){
+			this.replyToSender = replyToSender;
+			return this;
+		}
+		public Builder sendAsPrivateMessage(String userId){
+			if (userId != null && !userId.isEmpty() && userId.length()>= Constants.DISCORDIDLENMIN){
+				this.sendInOriginalMessage = false;
+				this.userId = userId;
+			}
+			return this;
+		}
+		public Builder addFile(File file) throws IOException{
+			File parent = file.getParentFile();
+			if (parent!=null){
+				File tmp = new File(parent.getPath()+Constants.SEPARATOR+"tmp"+Constants.SEPARATOR);
+				if(tmp.mkdir()){
+					String contents = "", s = "";
+					BufferedReader fr = new BufferedReader(new FileReader(file));
+					while(s!=null) {
+						contents += s+"\n";
+						s = fr.readLine();
+					}
+					fr.close();
+					File newF = new File(tmp.getPath()+Constants.SEPARATOR+file.getName());
+					File folder = newF.getParentFile();
+					if(folder != null && !newF.getParentFile().exists()) {
+						folder.mkdirs();
+					}
+					BufferedWriter buff = Files.newBufferedWriter(newF.toPath());
+					buff.write(contents);
+					buff.close();
+					this.attachedFiles.add(newF);
+					addPostSendAction(m -> newF.delete());
+				}
+			}
+			return this;
+		}
+		public Builder addFile(String filePath){
+			this.attachedFiles.add(new File(filePath));
+			return this;
+		}
+		public Builder addAllFile(List<File> files){
+			this.attachedFiles.addAll(files);
+			return this;
+		}
+		public Builder addFile(List<String> filePaths){
+			for (String s : filePaths){
+				addFile(s);
+			}
+			return this;
+		}
+		public Builder ephemeral(boolean ephemeral){
+			this.ephemeral = ephemeral;
+			return this;
+		}
+		public Builder clearReactions(boolean b){
+			this.clearReactions = b;
+			return this;
+		}
+		public Builder addReaction(Emoji e){
+			this.reactions.add(e);
+			return this;
+		}
+		public Builder addReactions(List<Emoji> e){
+			this.reactions.addAll(e);
+			return this;
+		}
+		public Builder sendInThread(boolean b){
+			this.sendInThread = b;
+			return this;
+		}
+		public Builder sendInOriginalMessage(boolean b){
+			this.sendInOriginalMessage = b;
+			return this;
+		}
+		public Builder addPostSendAction(Consumer<Message> action) {
+			if (action != null) {
+				this.postSendActions.add(action);
+			}
+			return this;
+		}
+		public Builder setPostSendAction(List<Consumer<Message>> action) {
+			this.postSendActions.clear();
+			addAllPostSendAction(action);
+			return this;
+		}
+		public Builder addAllPostSendAction(List<Consumer<Message>> action) {
+			if (action != null) {
+				this.postSendActions.addAll(action);
+			}
+			return this;
+		}
+		public Builder delayMillis(long t){
+			delayMillis = t;
+			return this;
+		}
+		public Output build(){
+			Output res = new Output(this);
+			return res;
+		}
+	}
+	private Output(Builder builder){
+		this.textMessages = Collections.unmodifiableList(builder.textMessages);
+		this.embeds = Collections.unmodifiableList(builder.embeds);
+		this.replyToSender = builder.replyToSender;
+		this.ephemeral = builder.ephemeral;
+		this.delayMillis = builder.delayMillis;
+		this.postSendActions = builder.postSendActions;
+		this.attachedFiles = builder.attachedFiles;
+		this.sendInOriginalMessage = builder.sendInOriginalMessage;
+		this.sendInThread = builder.sendInThread;
+		this.userId = builder.userId;
+		this.message = builder.message;
+		this.clearReactions = builder.clearReactions;
+		this.reactions = builder.reactions;
+		this.useButtons = builder.useButtons;
+		this.channel = builder.channel;
+	}
+	public List<File> getFiles(){
+		return attachedFiles;
+	}
+	public List<Emoji> getReactions(){
+		return reactions;
+	}
+	public boolean useButtons(){ return useButtons;}
+	public List<ActionRow> getActionRows(){
+		return MessageSender.actionRowsFromEmojis(getReactions());
+	}
+	public Message getMessage(){
+		return message;
+	}
+	public MessageChannel getChannel(){
+		return channel!=null?channel:getMessage().getChannel();
+	}
+	public boolean clearReactions(){
+		return clearReactions;
+	}
+	public boolean sendInThread(){
+		return sendInThread;
+	}
+	public boolean sendInOriginalMessage(){
+		return sendInOriginalMessage;
+	}
+	public List<String> getTextMessages(){
+		return textMessages;
+	}
+	public String getRequesterId(){
+		return userId;
+	}
+	public List<String> getAsText(){
+		List<String> res = new ArrayList<>();
+		res.addAll(getTextMessages());
+		String s = "";
+		Footer footer;
+		for (MessageEmbed embed : getEmbeds()) {
+			s =String.format("# %s\n## %s\n", embed.getTitle(), embed.getDescription());
+			for (Field f : embed.getFields()){
+				s+=String.format("- %s\n> %s\n", f.getName(),f.getValue());
+			}
+			footer = embed.getFooter();
+			if (footer!=null)s+= String.format("%s\n", footer.getText());
+			res.add(s);
+		}
+		s = "";
+		for (File f : getFiles()){
+			try{
+				Scanner sc = new Scanner(f);
+				while(sc.hasNext()){
+					s += sc.nextLine();
+				}
+				res.add(s);
+				s="";
+				sc.close();
+			} catch(FileNotFoundException e){
+				e.printStackTrace();
+			}
+		}
+		s = "";
+		for (Emoji f : getReactions()){
+			s+= f.getFormatted();
+		}
+		res.add(s);
+		return res;
+	}
+	public List<MessageEmbed> getEmbeds(){
+		return embeds;
+	}
+	public boolean sendAsPrivateMessage(){
+		return userId!=null;
+	}
+	public boolean shouldReplyToSender(){
+		return replyToSender;
+	}
+	public boolean isEphemeral(){
+		return ephemeral;
+	}
+	public long getDelayMillis(){
+		return delayMillis;
+	}
+	public List<Consumer<Message>> getPostSendActions() {
+		return postSendActions;
+	}
+	public String toString(){
+		return 
+		this.textMessages.toString() +
+		this.embeds.toString() +
+		this.replyToSender +
+		this.ephemeral+
+		this.delayMillis+
+		this.postSendActions.toString() +
+		this.attachedFiles.toString() +
+		this.sendInOriginalMessage +
+		this.sendInThread +
+		(this.userId!=null?this.userId.toString():null) +
+		(this.message!=null?this.message.toString():null) +
+		this.clearReactions+
+		this.reactions.toString();
+	}
+}

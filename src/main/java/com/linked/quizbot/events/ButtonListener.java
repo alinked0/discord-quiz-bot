@@ -9,6 +9,7 @@ import com.linked.quizbot.core.viewers.QuizBot;
 import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.CollectionCommand;
 
@@ -53,7 +54,7 @@ public class ButtonListener extends ListenerAdapter {
 		BotCommand cmd = BotCommand.getCommandByName(componentId);
 		if(cmd!=null){
 			CommandOutput output= CommandLineInterface.execute(Constants.CMDPREFIXE+cmd.getName()+" "+messageId, userId, null);
-			MessageSender.sendCommandOutput(
+			MessageSender.send(
 				output,
 				event
 			);			
@@ -63,11 +64,11 @@ public class ButtonListener extends ListenerAdapter {
 		Viewer viewer = BotCore.getViewer(messageId);
 		if (viewer!=null && viewer.isActive() && viewer.getReactions().contains(reaction)){
 			// If the reaction is a number, the viewer will handle it.
-			viewer.addReaction(userId, reaction);
-			if (viewer instanceof QuizBot && viewer.getCurrentIndex()>=0){
+			viewer.addReaction(userId, reaction, message);
+			if (viewer instanceof QuizBot && viewer.isActive()){
 				QuizBot quizBot = (QuizBot)viewer;
-				MessageSender.sendCommandOutput(
-					new CommandOutput.Builder().add(quizBot.current()).sendInOriginalMessage(true).build(),
+				MessageSender.send(
+					new Output.Builder(quizBot.current()).sendInOriginalMessage(true).build(),
 					event
 				);
 				if (quizBot.getPlayers().size()==1){

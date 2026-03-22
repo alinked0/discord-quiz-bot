@@ -3,6 +3,7 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 
 import com.linked.quizbot.core.BotCore;
@@ -48,13 +49,11 @@ public class EndCommand extends BotCommand {
 		if (q == null) {
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		CommandOutput output;
+		Output output;
 		if (q instanceof QuizBot){
 			q.end();
-			output = BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME).execute(userId, args);
-		} else {
-			output = q.start();
+			return BotCommand.getCommandByName(LeaderBoardCommand.CMDNAME).execute(userId, args);
 		}
-		return output;
+		return new CommandOutput(q.start());
 	}
 }

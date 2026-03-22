@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.viewers.QuizBot;
@@ -57,10 +58,10 @@ public class PreviousCommand extends BotCommand {
 			if (q instanceof QuizBot){
 				((QuizBot)q).addPlayer(userId);
 				if (((QuizBot)q).isExplaining()){
-					return q.current();
+					return new CommandOutput(q.current());
 				}
 			}
-			return q.previous();
+			return new CommandOutput(q.previous());
 		}
 		if (messageId.equals(CollectionCommand.messageIdByUserId.get(userId))){
 			return CollectionCommand.previous(userId, CollectionCommand.CMDNAME);

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.QuestionList;
@@ -51,7 +52,7 @@ public class RemoveListCommand extends BotCommand{
 		if (args.size()<getOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		CommandOutput.Builder output = new CommandOutput.Builder();
+		Output.Builder output = new Output.Builder();
 		String messageId = args.get(0);
 		QuestionList l;
 		if (BotCore.toBeDeleted.get(messageId)==null){
@@ -63,7 +64,7 @@ public class RemoveListCommand extends BotCommand{
 			l= BotCore.toBeDeleted.get(messageId);
 			String listId = l.getId();
 			CommandOutput outRaw = BotCommand.getCommandByName(RawListCommand.CMDNAME).execute(userId, List.of(listId));
-			output.addAllFile(outRaw.getFiles())
+			output.addAllFile(outRaw.getLast().getFiles())
 			.setMessage(BotCore.deletionMessages.get(messageId))
 			.sendInOriginalMessage(true);
 		}
@@ -76,6 +77,9 @@ public class RemoveListCommand extends BotCommand{
 			BotCore.toBeDeleted.remove(messageId);
 			BotCore.deletionMessages.remove(messageId);
 		}
-		return output.build();
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(output.build()));
+		return  res;
 	}
 }

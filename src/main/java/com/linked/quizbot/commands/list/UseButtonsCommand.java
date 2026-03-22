@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
@@ -62,9 +63,12 @@ public class UseButtonsCommand extends BotCommand{
 		}
 		user.useButtons(b);
 		Users.update(user);
-		return new CommandOutput.Builder()
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(new Output.Builder()
 				.add(String.format("Your now using %s", b?"Buttons":"Reactions"))
-				.build();
+				.build()));
+		return  res;
 	}
 
 }

@@ -3,6 +3,7 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.viewers.Viewer;
 import com.linked.quizbot.utils.QuestionList;
@@ -45,12 +46,15 @@ public class ViewCommand extends BotCommand{
 	}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
-		QuestionList l = args.size()>0?Users.getById(args.get(0)): null;
-		if (l==null){
+		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		Viewer viewer = new Viewer(l, Users.get(userId).useButtons());
-		return viewer.start();
+		QuestionList l;
+		Viewer viewer;
+		CommandOutput res;
+		l = Users.getById(args.get(0));
+		viewer = new Viewer(l, Users.get(userId).useButtons(), false);
+		res = new CommandOutput(List.of(viewer.start()));
+		return res;
 	}
-
 }

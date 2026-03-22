@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
@@ -41,10 +42,10 @@ public class RemoveTagCommand extends BotCommand{
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
 	public List<OptionData> getOptionData(){
-		List<OptionData> res = new ArrayList<>();
-		res.add(new OptionData(OptionType.STRING, "tag-name", "the name associated with your tag", true));
-		res.add(new OptionData(OptionType.STRING, "list-id", "listid of the question list you wish to tag", true));
-		return res;
+		List<OptionData> s = new ArrayList<>();
+		s.add(new OptionData(OptionType.STRING, "tag-name", "the name associated with your tag", true));
+		s.add(new OptionData(OptionType.STRING, "list-id", "listid of the question list you wish to tag", true));
+		return s;
 	}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
@@ -54,7 +55,7 @@ public class RemoveTagCommand extends BotCommand{
 		String tagNameInput=args.get(0);
 		User user = Users.get(userId);
 		String emoji = user.getEmojiFomTagName(tagNameInput);
-		String res = "";
+		String s = "";
 		String taggedStr = "untaged";
 		String notOwnedStr = "You are not the owner of";
 		int totalTagged = 0;
@@ -73,12 +74,15 @@ public class RemoveTagCommand extends BotCommand{
 				}
 			}
 		} else {
-			res = "Tag : `"+tagNameInput+"` doesn't exist. Firstly create it:`"+Constants.CMDPREFIXE+HelpCommand.CMDNAME +" "+CreateTagCommand.CMDNAME+"`\n";
+			s = "Tag : `"+tagNameInput+"` doesn't exist. Firstly create it:`"+Constants.CMDPREFIXE+HelpCommand.CMDNAME +" "+CreateTagCommand.CMDNAME+"`\n";
 		}
-		if (totalNotOwned>0){res += notOwnedStr + "\n";}
-		if (totalTagged>0){res += "`"+totalTagged+"` lists "+taggedStr;}
+		if (totalNotOwned>0){s += notOwnedStr + "\n";}
+		if (totalTagged>0){s += "`"+totalTagged+"` lists "+taggedStr;}
 		
-		return new CommandOutput.Builder().add(res).build();
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(new Output.Builder(s).build()));
+		return  res;
 	}
 
 }

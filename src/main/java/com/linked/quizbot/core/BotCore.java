@@ -25,6 +25,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 /**
@@ -54,7 +55,21 @@ public class BotCore {
 		return online;
 	}
 	public static boolean canIRunThisHere(String channelId){
-		if (channelId!=null && channelId.equals(Constants.ADMINID) || Constants.DEBUGCHANNELID != null && Constants.DEBUGCHANNELID.equals(channelId)){
+		if (channelId!=null 
+			&& channelId.equals(Constants.ADMINID)){
+			return true;
+		}
+		if (Constants.DEBUGCHANNELID != null 
+			&& Constants.DEBUGCHANNELID.equals(channelId)){
+			return true;
+		}
+		channelId = getJDA()
+			.getChannelById(ThreadChannel.class, channelId)
+			.getParentChannel()
+			.asTextChannel()
+			.getId();
+		if (Constants.DEBUGCHANNELID != null 
+			&& Constants.DEBUGCHANNELID.equals(channelId)){
 			return true;
 		}
 		return false;

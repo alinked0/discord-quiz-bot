@@ -1,11 +1,14 @@
 package com.linked.quizbot.core.viewers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.Question;
@@ -34,9 +37,11 @@ public class Viewer {
 	private final QuestionList questions;
 	private boolean active= false;
 	private boolean sendInOriginalMessage= true;
+	private boolean allAtOnce= false;
 	private final boolean useButtons;
 	private int currIndex;
 	private Message message = null;
+	private Map<String, Integer> questionIndexByMessageId;
 	
 	/**
 	 * Constructs a Viewer with a specified question list and button preference.
@@ -44,9 +49,12 @@ public class Viewer {
 	 * @param l The QuestionList to be viewed.
 	 * @param useButtons Whether to use Discord buttons for navigation.
 	 */
-	public Viewer(QuestionList l, boolean useButtons){
+	public Viewer(QuestionList l, boolean useButtons, boolean allAtOnce){
 		this.questions = l;
 		this.useButtons = useButtons;
+		this.allAtOnce = allAtOnce;
+		this.sendInOriginalMessage=!allAtOnce && sendInOriginalMessage;
+		this.questionIndexByMessageId = new HashMap<>();
 	}
 	
 	/**
@@ -54,7 +62,7 @@ public class Viewer {
 	 *
 	 * @param l The QuestionList to be viewed.
 	 */
-	public Viewer(QuestionList l){this(l, true);}
+	public Viewer(QuestionList l){this(l, true, false);}
 	
 	/**
 	 * Sets the JDA message associated with this viewer.
@@ -76,6 +84,9 @@ public class Viewer {
 	 * @return true if buttons are enabled, false otherwise.
 	 */
 	public boolean useButtons(){return useButtons;}
+
+	public void allAtOnce(boolean b){allAtOnce=b;}
+	public boolean allAtOnce(){return allAtOnce;}
 	
 	 /**
 	 * Gets the ID of the current message.
@@ -97,6 +108,14 @@ public class Viewer {
 	 * @return The channel ID, or null if no channel is set.
 	 */
 	public String getChannelId() { return getChannel()!=null?getChannel().getId(): null;}
+
+	public Integer getIndexFromMessage(Message message){
+		return questionIndexByMessageId.get(message.getId());
+	}
+
+	public Question get(int index) {
+		return getQuestionList().get(index);
+	}
 	
 	/**
 	 * Checks if the viewer session is active.
@@ -112,6 +131,7 @@ public class Viewer {
 	 * @param emoji The emoji added.
 	 */
 	public void addReaction(String userId, Emoji emoji){};
+	public void addReaction(String userId, Emoji emoji, Message origin){};
 	
 	/**
 	 * A placeholder method for removing a reaction (not fully implemented in this class).
@@ -120,6 +140,7 @@ public class Viewer {
 	 * @param emoji The emoji removed.
 	 */
 	public void removeReaction(String userId, Emoji emoji){};
+	public void removeReaction(String userId, Emoji emoji, Message origin){};
 	
 	/**
 	 * Returns a Consumer to be executed after the initial message is sent.
@@ -131,6 +152,7 @@ public class Viewer {
 		return msg ->{
 			String oldId = msg.getId();
 			this.setMessage(msg);
+			this.questionIndexByMessageId.put(msg.getId(), -1);
 			BotCore.viewerByMessageId.put(oldId, this);
 		};
 	}
@@ -143,9 +165,8 @@ public class Viewer {
 	 */
 	public Consumer<Message> postSendActionCurrent(){
 		return msg ->{
-			String oldId = msg.getId();
 			this.setMessage(msg);
-			BotCore.viewerByMessageId.remove(oldId);
+			this.questionIndexByMessageId.put(msg.getId(), this.getCurrentIndex());
 			BotCore.viewerByMessageId.put(msg.getId(), this);
 		};
 	}
@@ -156,15 +177,15 @@ public class Viewer {
 	/**
 	 * Starts the viewer session.
 	 * <p>
-	 * Initializes the viewer state and returns the first {@link CommandOutput} containing the list's header.
+	 * Initializes the viewer state and returns the first {@link Output} containing the list's header.
 	 *
-	 * @return A CommandOutput containing the initial message.
+	 * @return A Output containing the initial message.
 	 */
-	public CommandOutput start() {
+	public Output start() {
 		active = true;
 		currIndex = -1;
 		inBetweenProccessorStart();
-		CommandOutput.Builder output = new CommandOutput.Builder();
+		Output.Builder output = new Output.Builder();
 		return output.sendInOriginalMessage(false)
 			.add(getHeader())
 			.useButtons(useButtons())
@@ -204,18 +225,29 @@ public class Viewer {
 	 */
 	public List<Emoji> getReactions(){
 		List<Emoji> emojis = new ArrayList<>();
-		if (hasPrevious())emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
-		emojis.add(Emoji.fromFormatted(hasNext()?Constants.EMOJINEXTQUESTION:Constants.EMOJISTOP));
+		if (allAtOnce && !hasNext()){
+			emojis.add(Emoji.fromFormatted(Constants.EMOJISTOP));
+			return emojis;
+		}
+		if (hasPrevious()){
+			emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
+		} 
+		emojis.add(
+			Emoji.fromFormatted(hasNext()?Constants.EMOJINEXTQUESTION:Constants.EMOJISTOP)
+		);
+		if (!hasPrevious()) {
+			emojis.add(Emoji.fromFormatted(Constants.EMOJIFASTDOWN));
+		}
 		return emojis;
 	}
 	
 	/**
 	 * Navigates to the next question in the list.
 	 *
-	 * @return A CommandOutput for the next question.
+	 * @return A Output for the next question.
 	 * @throws NoSuchElementException if there is no next question.
 	 */
-	public CommandOutput next() {
+	public Output next() {
 		if (!hasNext()) {
 			throw new NoSuchElementException();
 		}
@@ -226,10 +258,10 @@ public class Viewer {
 	/**
 	 * Navigates to the previous question in the list.
 	 *
-	 * @return A CommandOutput for the previous question.
+	 * @return A Output for the previous question.
 	 * @throws NoSuchElementException if there is no previous question.
 	 */
-	public CommandOutput previous(){
+	public Output previous(){
 		if (!hasPrevious()) {
 			throw new NoSuchElementException();
 		}
@@ -270,19 +302,19 @@ public class Viewer {
 	public void setSendInOriginalMessage(boolean b){ sendInOriginalMessage=b;}
 	
 	/**
-	 * Generates a CommandOutput for the current state of the viewer.
+	 * Generates a Output for the current state of the viewer.
 	 * <p>
 	 * This method handles both the initial header display and subsequent question displays,
 	 * including reaction and button updates.
 	 *
-	 * @return A CommandOutput containing the formatted message for the current state.
+	 * @return A Output containing the formatted message for the current state.
 	 * @throws NoSuchElementException if the current index is out of bounds.
 	 */
-	public CommandOutput current(){
+	public Output current(){
 		if (getCurrentIndex() >= questions.size()) {
 			throw new NoSuchElementException();
 		}
-		CommandOutput.Builder output = new CommandOutput.Builder();
+		Output.Builder output = new Output.Builder();
 		if (!isActive()) { return output.build();}
 		String content;
 		if (currIndex == -1){
@@ -313,7 +345,7 @@ public class Viewer {
 	 *
 	 * @return true if a previous question exists, false otherwise.
 	 */
-	public boolean hasPrevious(){ return -1 <= getCurrentIndex()-1;}
+	public boolean hasPrevious(){ return -1 < getCurrentIndex()-1;}
 	
 	/** Ends the viewer session by setting the active flag to false. */
 	public void end() {active = false;}

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.CommandLineInterface;
@@ -60,9 +61,8 @@ public class MessageListener extends ListenerAdapter {
 			}
 		}
 		CommandOutput output= CommandLineInterface.execute(content, userId, attachements);
-		MessageSender.sendCommandOutput(
+		MessageSender.send(
 			output,
-			channel,
 			message
 		);
 	}

@@ -57,7 +57,7 @@ public class QuizBot extends Viewer {
 	 * @param c The question list for the quiz.
 	 */
 	public QuizBot(QuestionList c) {
-		this(c, true, false);
+		this(c, true, false, false);
 	}
 	
 	/**
@@ -66,8 +66,8 @@ public class QuizBot extends Viewer {
 	 * @param useButtons If true, uses buttons for navigation; otherwise, uses reactions.
 	 * @param autoNext If true, the quiz automatically advances after a delay.
 	 */
-	public QuizBot(QuestionList c, boolean useButtons, boolean autoNext) {
-		super(c, useButtons);
+	public QuizBot(QuestionList c, boolean useButtons, boolean autoNext, boolean allAtOnce) {
+		super(c, useButtons, allAtOnce);
 		this.autoNext = autoNext;
 	}
 	
@@ -130,18 +130,30 @@ public class QuizBot extends Viewer {
 	}
 	
 	@Override
-	public void addReaction(String userId, Emoji emoji){
-		Question currQuestion = this.getCurrQuestion();
+	public void addReaction(String userId, Emoji emoji, Message origin){
+		Question question;
+		int i;
+
+		if (origin!=null){
+			question = get(getIndexFromMessage(origin));
+		} else {
+			question = getCurrQuestion();
+		}
 		if (!this.getPlayers().contains(userId)){
 			this.addPlayer(userId);
 		}
 		// Record user's answer (reaction)
-		for (int i = 0; i<=currQuestion.size(); i++) {
+		for (i = 0; i<=question.size(); i++) {
 			if (emoji.equals(getReactionForAnswer(i))) {
-				addAwnser(userId, currQuestion.get(i));
+				addAwnser(userId, question.get(i));
 				return;
 			}
 		}
+	}
+	
+	@Override
+	public void addReaction(String userId, Emoji emoji){
+		addReaction(userId, emoji, null);
 	}
 	
 	private void addAwnser(String userId, Option opt){
@@ -154,21 +166,33 @@ public class QuizBot extends Viewer {
 			attemptByPlayer.get(userId).removeAwnser(getCurrentIndex(), opt, System.currentTimeMillis()-lastServedMillis);
 		}
 	}
+	
 	@Override
-	public void removeReaction(String userId, Emoji emoji){
-		Question currQuestion = this.getCurrQuestion();
+	public void removeReaction(String userId, Emoji emoji, Message origin){
+		Question question;
+		int i;
+
+		if (origin!=null){
+			question = get(getIndexFromMessage(origin));
+		} else {
+			question = getCurrQuestion();
+		}
 		if (!this.getPlayers().contains(userId)){
 			this.addPlayer(userId);
-		} else {
-			// Find the awnser he regrets
-			for (int i = 0; i<=currQuestion.size(); i++) {
-				if (emoji.equals(getReactionForAnswer(i))) {
-					removeAwnser(userId, currQuestion.get(i));
-					return;
-				}
+		}
+		// Record user's answer (reaction)
+		for (i = 0; i<=question.size(); i++) {
+			if (emoji.equals(getReactionForAnswer(i))) {
+				removeAwnser(userId, question.get(i));
+				return;
 			}
 		}
-	};
+	}
+
+	@Override
+	public void removeReaction(String userId, Emoji emoji){
+		removeReaction(userId, emoji, null);
+	}
 	
 	@Override
 	public void inBetweenProccessorStart(){
@@ -187,19 +211,18 @@ public class QuizBot extends Viewer {
 	}
 	@Override
 	public Consumer<Message> postSendActionCurrent(){
-		return msg ->{
-			String oldId = msg.getId();
-			BotCore.viewerByMessageId.put(msg.getId(), this);
-			BotCore.explicationRequest.remove(oldId);
-			BotCore.explicationRequest.add(getMessageId());
-		};
+		return super.postSendActionCurrent();
 	}
 	@Override
 	public List<Emoji> getReactions(){
 		List<Emoji> emojis = new ArrayList<>();
-		if (-1<getCurrentIndex()) emojis.addAll(getReactionsForOptions());
+		if (-1<getCurrentIndex()){
+			emojis.addAll(getReactionsForOptions());
+		}
 		emojis.addAll(super.getReactions());
-		if (-1<getCurrentIndex()) emojis.add(Emoji.fromFormatted(Constants.EMOJIEXPLICATION));
+		if (-1<getCurrentIndex()) {
+			emojis.add(Emoji.fromFormatted(Constants.EMOJIEXPLICATION));
+		}
 		return emojis;
 	}
 	@Override

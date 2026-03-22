@@ -3,6 +3,7 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.viewers.QuizBot;
@@ -49,7 +50,7 @@ public class NextCommand extends BotCommand {
 			if (q instanceof QuizBot){
 				((QuizBot)q).addPlayer(userId);
 			}
-			return q.next();
+			return new CommandOutput(q.next());
 		}
 		if (messageId.equals(CollectionCommand.messageIdByUserId.get(userId))){
 			return CollectionCommand.next(userId, CollectionCommand.CMDNAME);

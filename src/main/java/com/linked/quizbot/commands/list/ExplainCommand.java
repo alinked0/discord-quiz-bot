@@ -3,8 +3,10 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 import java.util.ArrayList;
 
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.viewers.Explain;
 import com.linked.quizbot.core.viewers.QuizBot;
@@ -52,6 +54,9 @@ public class ExplainCommand extends BotCommand {
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
+		CommandOutput res;
+		Output.Builder output ;
+		Output expl;
 		String messageId = args.get(0);
 		QuizBot q =(QuizBot) BotCore.getViewer(messageId);
 		if (q == null) {
@@ -59,21 +64,20 @@ public class ExplainCommand extends BotCommand {
 		}
 		q.addPlayer(userId);
 		q.isExplaining(true);
-		CommandOutput.Builder output = new CommandOutput.Builder();
-		CommandOutput expl;
 		int nbPlayers = q.getPlayers().size();
 		Explain ex;
 		if (q.isActive()) {
 			ex = new Explain(q, userId, q.getCurrentIndex());
 			expl = ex.current();
 		}else {
-			ex = new Explain(q, userId);
+			ex = new Explain(q, userId, false);
 			expl = ex.start();
 		}
-		output.add(expl).add(q.getLastTimestamp().toString());
+		output = new Output.Builder(expl).add(q.getLastTimestamp().toString());
 		if (nbPlayers>1){
 			output.sendAsPrivateMessage(userId).sendInOriginalMessage(false);
 		}
-		return  output.build();
+		res = new CommandOutput(List.of(output.build()));
+		return  res;
 	}
 }

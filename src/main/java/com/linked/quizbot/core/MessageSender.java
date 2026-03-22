@@ -8,17 +8,21 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -47,7 +51,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
  * @author alinked0
  * @version 1.0
  * @since 2025-02-01
- * @see CommandOutput
+ * @see Output
  * @see net.dv8tion.jda.api.entities.Message
  * @see net.dv8tion.jda.api.entities.MessageEmbed
  * @see net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
@@ -57,36 +61,191 @@ public class MessageSender {
 	// A ScheduledExecutorService for handling delayed messages without blocking the main thread.
 	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	
-	public static void sendCommandOutput(CommandOutput output, MessageChannel channel, Message originalMessage) {
+	public static void send(CommandOutput output) {
 		if (output == null) {
 			// No output to send, or command returned null
 			System.out.println(Constants.INFO + "Warning: Command output was null, nothing to send.");
 			return;
 		}
-		if (output.getMessage()!=null){
-			originalMessage = output.getMessage();
-		}
-		if (originalMessage!=null && output.clearReactions()){
-			final Message msg = originalMessage;
-			originalMessage.clearReactions().queue(none -> treatDelay(output, channel, msg));
+		if (output.getFirst().clearReactions()){
+			output.getFirst().getMessage().clearReactions().queue(none -> treatDelay(output));
 		} else {
 			// Schedule the message sending if a delay is specified.
-			treatDelay(output, channel, originalMessage);
+			treatDelay(output);
 		}
 	}
+
+	public static void send(Output output) {
+		send(new CommandOutput(output));
+	}
+
+	public static void send(CommandOutput output, Message message) {
+		CommandOutput res = new CommandOutput();
+		for (Output out : output){
+			res.add(new Output.Builder(out).setMessage(message).build());
+		}
+		send(res);
+	}
+
+	public static void send(CommandOutput output, MessageChannel channel) {
+		CommandOutput res = new CommandOutput();
+		for (Output out : output){
+			res.add(new Output.Builder(out).channel(channel).build());
+		}
+		send(res);
+	}
+
+	public static void send(CommandOutput output, ButtonInteractionEvent event) {
+		CommandOutput res = new CommandOutput();
+		MessageChannel channel = event.getChannel();
+		Message message = event.getMessage();
+		for (Output out : output){
+			res.add(
+				new Output.Builder(out).channel(channel).setMessage(message).build()
+			);
+		}
+		send(res);
+	}
+
+	public static void send(Output output, Message message) {
+		send(new Output.Builder(output).setMessage(message).build());
+	}
+
+	public static void send(Output output, MessageChannel channel) {
+		send(new Output.Builder(output).channel(channel).build());
+	}
 	
-	private static void treatDelay(CommandOutput output, MessageChannel channel, Message originalMessage){
-		 if (output.getDelayMillis() > 0) {
-			scheduler.schedule(() -> sendConditions(output, channel, originalMessage),
-							output.getDelayMillis(), TimeUnit.MILLISECONDS);
+	public static void send(@NotNull Output output, @NotNull ButtonInteractionEvent event) {
+		MessageChannel channel = event.getChannel();
+		Message message = event.getMessage();
+		send(
+			new Output.Builder(output).channel(channel).setMessage(message).build()
+		);
+	}
+	
+	private static void treatDelay(CommandOutput output){
+		 if (output.getFirst().getDelayMillis() > 0) {
+			scheduler.schedule(
+				() -> destination(output),
+				output.getFirst().getDelayMillis(), TimeUnit.MILLISECONDS
+			);
 		} else {
-			sendConditions(output, channel, originalMessage);
+			destination(output);
 		}
 	}
 	
-	private static void sendConditions(CommandOutput output, MessageChannel channel, Message originalMessage) {
+	private static void destination(CommandOutput output) {
+		MessageChannel channel;
+		User user;
+		Output.Builder build ;
+		final String title;
+
+		channel = output.getFirst().getChannel();
+		build = new Output.Builder(output.getFirst());
 		// output will be limite by the dicord char limit
-		if (output.sendInOriginalMessage()){
+		if (output.getFirst().sendInThread()  && channel.getType().isGuild() && !channel.getType().isThread()){
+			title = java.time.Instant.now().toString();
+			if (output.getFirst().getMessage()!=null){
+				output.getFirst().getMessage().createThreadChannel(title).queue(
+					chaine -> {
+						for (Output out : output){
+							prepPackages(
+								new Output.Builder(out).channel(chaine).build()
+							);
+						}
+					}
+				);
+			} else {
+				channel.sendMessage(title).queue(
+					msg -> msg.createThreadChannel(title).queue(
+						chaine -> prepPackages(
+							build.channel(chaine).setMessage(msg).build()
+						)
+					)
+				);
+			}
+			return;
+		}
+		if (output.getFirst().sendAsPrivateMessage() && channel.getType().isGuild()){
+			user = BotCore.getUser(output.getFirst().getRequesterId());
+			if (user!=null){
+				user.openPrivateChannel().queue(
+					chaine -> {
+						for (Output out : output){
+							prepPackages(new Output.Builder(out).channel(chaine).build());
+						}
+					}
+				);
+				return;
+			}
+			if (BotCore.getJDA()!=null && output.getFirst().getRequesterId()!=null){
+				BotCore.getJDA().retrieveUserById(output.getFirst().getRequesterId()).queue(
+					u -> u.openPrivateChannel().queue(
+						chaine -> {
+							for (Output out : output){
+								prepPackages(new Output.Builder(out).channel(chaine).build());
+							}
+						}
+					)
+				);
+				return;
+			}
+		}
+		for (Output out : output){
+			prepPackages(out);
+		}
+	}
+
+	private static void prepPackages(Output output) {
+		Message originalMessage;
+		List<MessageCreateAction> sendActions ;
+		MessageChannel channel;
+
+		originalMessage = output.getMessage();
+		sendActions = new ArrayList<>();
+		channel = output.getChannel();
+
+		// Send text messages first
+		if (!output.getTextMessages().isEmpty()) {
+			List<String> messagesToSend = new ArrayList<>();
+			// Iterate through all text messages provided by the command and trim/split them
+			for (String text : output.getTextMessages()) {
+				messagesToSend.addAll(trimMessage(text));
+			}
+			// Pass the postSendActions to the recursive helper
+			sendActions.addAll(recursive_send_text(messagesToSend.iterator(), originalMessage, channel, output.shouldReplyToSender(), List.of()));
+		}
+		// Then send embeds
+		if (!output.getEmbeds().isEmpty()) {
+			for (MessageEmbed embed : output.getEmbeds()) {
+				MessageCreateAction sendAction = channel.sendMessageEmbeds(embed);
+				sendActions.add(sendAction);
+			}
+		}
+		if (!output.getFiles().isEmpty()){
+			MessageCreateAction sendAction;
+			if (!sendActions.isEmpty()){
+				sendAction = sendActions.getLast().addFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
+				sendActions.set(sendActions.size()-1, sendAction);
+			}else{
+				 sendAction = channel.sendFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
+				sendActions.add(sendAction);
+			}
+		}
+		if (output.useButtons()  || !channel.getType().isGuild()){
+			if (!sendActions.isEmpty()){
+				sendActions.getLast().setComponents(output.getActionRows());
+			}
+		}
+		send(output, sendActions, channel);
+	}
+
+	private static void send(Output output, List<MessageCreateAction> sendActions, MessageChannel channel){
+		Message originalMessage;
+
+		originalMessage = output.getMessage();
+
+		if (output.sendInOriginalMessage() && sendActions.size()==1){
 			String content = "";
 			for (String s : output.getTextMessages()){
 				if (!s.isEmpty()){
@@ -111,76 +270,6 @@ public class MessageSender {
 			);
 			return;
 		}
-		if (output.sendInThread()  && channel.getType().isGuild() && !channel.getType().isThread()){
-			String s = output.getTextMessages().get(0);
-			
-			int i = s.indexOf("\n");
-			final String title;
-			if (i<0){
-				title = s;
-			} else {
-				i = s.indexOf("\n", i+1);
-				if (i<0){
-					i=s.length();
-					title = s;
-				} else {
-					s = s.substring(0, i);
-					title = s;
-				}
-			}
-			channel.sendMessage(s).queue(msg -> msg.createThreadChannel(title).queue(chaine -> sendActualOutput(output, chaine, null)));
-			return;
-		}
-		if (output.sendAsPrivateMessage() && channel.getType().isGuild()){
-			User u = BotCore.getUser(output.getRequesterId());
-			if (u!=null){
-				u.openPrivateChannel().queue(chaine -> sendActualOutput(output, chaine, null));
-				return;
-			}
-			if (BotCore.getJDA()!=null && output.getRequesterId()!=null){
-				BotCore.getJDA().retrieveUserById(output.getRequesterId()).queue(user -> user.openPrivateChannel().queue(chaine -> sendActualOutput(output, chaine, null)));
-				return;
-			}
-		}
-		sendActualOutput(output, channel, originalMessage);
-	}
-	private static void sendActualOutput(CommandOutput output, MessageChannel channel, Message originalMessage) {
-		// Send text messages first
-		List<MessageCreateAction> sendActions = new ArrayList<>();
-		if (!output.getTextMessages().isEmpty()) {
-			List<String> messagesToSend = new ArrayList<>();
-			// Iterate through all text messages provided by the command and trim/split them
-			for (String text : output.getTextMessages()) {
-				messagesToSend.addAll(trimMessage(text));
-			}
-			// Pass the postSendActions to the recursive helper
-			sendActions.addAll(recursive_send_text(messagesToSend.iterator(), originalMessage, channel, output.shouldReplyToSender(), List.of()));
-		}
-		// Then send embeds
-		if (!output.getEmbeds().isEmpty()) {
-			for (MessageEmbed embed : output.getEmbeds()) {
-				MessageCreateAction sendAction = channel.sendMessageEmbeds(embed);
-				// Handle ephemeral if this was a slash command interaction and output.isEphemeral() is true
-				// Note: For actual slash commands, you'd use event.deferReply().setEphemeral(true).queue()
-				// or event.getHook().sendMessage(...).setEphemeral(true).queue()
-				// This example focuses on MessageChannel.sendMessage for simplicity.
-				sendActions.add(sendAction);
-			}
-		}
-		if (!output.getFiles().isEmpty()){
-			if (!sendActions.isEmpty()){
-				MessageCreateAction sendAction = sendActions.getLast().addFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
-				sendActions.set(sendActions.size()-1, sendAction);
-			}else{
-				MessageCreateAction  sendAction = channel.sendFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
-				sendActions.add(sendAction);
-			}
-		}
-		if (output.useButtons()  || !channel.getType().isGuild()){
-			if (!sendActions.isEmpty()){
-				sendActions.getLast().setComponents(output.getActionRows());
-			}
-		}
 		for (MessageCreateAction sendAction : sendActions){
 			sendAction.queue(
 				sentMessage -> { // Execute post-send actions for embeds too
@@ -194,39 +283,6 @@ public class MessageSender {
 		}
 	}
 	
-	public static void sendCommandOutput(CommandOutput output, ButtonInteractionEvent event) {
-		if (output == null) {
-			// No output to send, or command returned null
-			System.out.println(Constants.INFO + "Warning: Command output was null, nothing to send.");
-			return;
-		}
-		
-		MessageChannel channel = event.getChannel();
-		Message message = event.getMessage();
-		String content = "";
-		for (String s : output.getTextMessages()){
-			if (!s.isEmpty()){
-				content += s+"\n";
-			}
-		}
-		MessageEditBuilder newMessage = new MessageEditBuilder()
-			.setContent(content)
-			.setAttachments(output.getFiles().stream().map(f->AttachedFile.fromData(f)).toList())
-		.setEmbeds(output.getEmbeds());
-		if (output.useButtons() || !channel.getType().isGuild() && !channel.getType().isThread()){
-			newMessage.setComponents(output.getActionRows());
-		}
-		event.editMessage(newMessage.build()).queue(
-			sentMessage -> { // Execute post-send actions for embeds too
-				for (Consumer<Message> action : output.getPostSendActions()) {
-					action.accept(message);
-				}
-				if (!output.useButtons()  && channel.getType().isGuild()) addReactions(message, output.getReactions().iterator());
-			},
-			failure -> System.err.println(Constants.ERROR + "Failed to edit Message : " + failure.getMessage()) // Log failure
-		);
-	}
-	
 	public static void addReactions(Message message, Iterator<Emoji> iter, @Nullable Consumer<? super Message> success) {
 		if(!iter.hasNext()){
 			if (success!=null) success.accept(message);return;
@@ -238,15 +294,24 @@ public class MessageSender {
 		message.addReaction(iter.next()).queue( v -> addReactions(message, iter, null));
 	}
 	public static List<ActionRow> actionRowsFromEmojis(List<Emoji> l) {
-		int nbOptions = 0;
-		List<Button> row= new ArrayList<>();
-		List<ActionRow> newActionRows = new ArrayList<>();
-		int i=0;
+		int nbOptions, i;
+		List<Button> row;
+		List<ActionRow> newActionRows;
 		Emoji e;
-		for (; nbOptions<l.size(); ++nbOptions){
+		BotCommand cmd ;
+		String cmdName;
+
+		row= new ArrayList<>();
+		newActionRows = new ArrayList<>();
+		for (nbOptions = 0; nbOptions<l.size(); ++nbOptions){
 			e = Emoji.fromUnicode("U+3"+(nbOptions+1)+"U+fe0fU+20e3");
 			if (l.get(nbOptions).equals(e)){
-				row.add(Button.of(ButtonStyle.PRIMARY, String.format("%s", (nbOptions+1)), e.getFormatted())); //ReactionListener.getCommandFromEmoji(e).getName()
+				row.add(
+					Button.of(
+						ButtonStyle.PRIMARY, 
+						String.format("%s", (nbOptions+1)), e.getFormatted()
+					)
+				);
 				if(row.size()==5){
 					newActionRows.add(ActionRow.of(row));
 					row = new ArrayList<>();
@@ -255,21 +320,33 @@ public class MessageSender {
 				break;
 			}
 		}
-		if (!row.isEmpty())newActionRows.add(ActionRow.of(row));
-		row = new ArrayList<>();
+		if (!row.isEmpty()){
+			newActionRows.add(ActionRow.of(row));
+			row = new ArrayList<>();
+		}
+
 		for (i=nbOptions; i<l.size(); ++i){
 			e = l.get(i);
-			BotCommand cmd = BotCommand.getCommandFromEmoji(e.getFormatted());
+			cmd = BotCommand.getCommandFromEmoji(e.getFormatted());
 			if (cmd!=null){
-				String id = cmd.getName();
-				row.add(Button.of(ButtonStyle.PRIMARY, id, e.getFormatted()));
-				if(row.size()==5){
-					newActionRows.add(ActionRow.of(row));
-					row = new ArrayList<>();
-				}
+				cmdName = cmd.getName();
+			} else {
+				cmdName = e.getFormatted();
+			}
+			row.add(
+				Button.of(ButtonStyle.PRIMARY, cmdName, e.getFormatted())
+			);
+			if(row.size()==5){
+				newActionRows.add(ActionRow.of(row));
+				row = new ArrayList<>();
 			}
 		}
-		if (!row.isEmpty())newActionRows.add(ActionRow.of(row));
+		if (!row.isEmpty()){
+			newActionRows.add(ActionRow.of(row));
+		}
+		if (newActionRows.size() > 5) {
+			return newActionRows.subList(0, 5);
+		}
 		return newActionRows;
 	}
 	public static void addButtons(Message message, List<Emoji> l, @Nullable Consumer<? super Message> success) {
@@ -291,6 +368,7 @@ public class MessageSender {
 		}
 		return sendActions;
 	}
+	// TODO this is technical dept
 	public static List<String> trimMessage(String s){
 		List<String> resultParts = new ArrayList<>();
 		if (s == null || s.isEmpty()) {

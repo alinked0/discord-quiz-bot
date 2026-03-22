@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
@@ -60,17 +61,20 @@ public class RenameTagCommand extends BotCommand{
 		if (args.size() < getRequiredOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		String oldTagName, newTagName, res;
+		String oldTagName, newTagName, s;
 		User user;
+		CommandOutput res;
 
 		user = Users.get(userId);
 
 		oldTagName=args.get(0);
         if (user.getEmojiFomTagName(oldTagName)==null) {
-            res = "Tag : `"+oldTagName+"` doesn't exist. Firstly create it:`"
+            s = "Tag : `"+oldTagName+"` doesn't exist. Firstly create it:`"
                 +Constants.CMDPREFIXE+HelpCommand.CMDNAME +" "
                 +CreateTagCommand.CMDNAME+"`\n";
-            return new CommandOutput.Builder().add(res).build();
+            
+			res = new CommandOutput(List.of(new Output.Builder().add(s).build()));
+			return  res;
         }
 
 		newTagName=args.get(1);
@@ -78,13 +82,14 @@ public class RenameTagCommand extends BotCommand{
             user.createTag(newTagName, (args.size()>2)?args.get(2):user.getEmojiFomTagName(oldTagName));
         }
 
-        res = String.format(
+        s = String.format(
             "renamed `%s` `%s` -> `%s` `%s`",
             oldTagName, user.getEmojiFomTagName(oldTagName),
             newTagName, user.getEmojiFomTagName(newTagName)
         );
 
         user.renameTag(oldTagName, newTagName);
-		return new CommandOutput.Builder().add(res).build();
+		res = new CommandOutput(List.of(new Output.Builder().add(s).build()));
+		return  res;
 	}
 }

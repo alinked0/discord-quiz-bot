@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.Users;
@@ -50,10 +51,13 @@ public class SetPrefixCommand extends BotCommand{
 		}
 		String prefix=args.get(0);
 		Users.get(userId).setPrefix(prefix);
-		String res = BotCore.getEffectiveNameFromId(userId)+"'s prefix has been set to '"+prefix+"'";
-		return new CommandOutput.Builder()
-				.add(res)
-				.build();
+		String s = BotCore.getEffectiveNameFromId(userId)+"'s prefix has been set to '"+prefix+"'";
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(new Output.Builder()
+				.add(s)
+				.build()));
+		return  res;
 	}
 
 }

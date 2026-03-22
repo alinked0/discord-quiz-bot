@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
@@ -54,9 +55,11 @@ public class RawListCommand extends BotCommand{
 		if (l==null){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		CommandOutput.Builder outputBuilder = new CommandOutput.Builder();
+		Output.Builder output = new Output.Builder();
 		l.exportListQuestionAsJson();
-		return outputBuilder.add(String.format("`%s`**%s** Raw JSON\n", l.getId(), l.getName())).addFile(l.pathToList()).build();
+		return new CommandOutput(List.of(
+			output.add(String.format("`%s`**%s** Raw JSON\n", l.getId(), l.getName())).addFile(l.pathToList()).build()
+		));
 	}
 
 }

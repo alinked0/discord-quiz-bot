@@ -8,6 +8,7 @@ import java.util.Iterator;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.Attempt;
 import com.linked.quizbot.utils.Displayable;
@@ -33,7 +34,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
  * @see Users
  * @see QuestionList
  */
-public class HistoryCommand extends BotCommand {
+public class HistoryCommand extends CollectionCommand {
 	public static final String CMDNAME = "history";
 	private String cmdDesrciption = "listing all list";
 	private List<String> abbrevs = List.of("hi");
@@ -68,36 +69,23 @@ public class HistoryCommand extends BotCommand {
 	}
 	
 	@Override
-	public CommandOutput execute(String userId,  List<String> args){	
+	public CommandOutput execute(String userId,  List<String> args){
+		if (args.size() < getRequiredOptionData().size()){
+			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
+		}
 		User user = Users.get(userId);
 		List<Attempt> lists;
 		QuestionList list;
 		
 		if (args.size()>0){
-			list = args.size()>0?user.getById(args.get(0)): null;
-			if (list==null){
-				return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
-			}
+			list = user.getById(args.get(0));
 			lists =  user.getAttempts(list.getId());
 		} else {
 			lists = user.getAttemptsByListId().values().stream()
 				.flatMap(l->l.stream()).sorted(Attempt.comparatorStart().reversed())
 				.toList();
 		}
-		
-		return CollectionCommand.execute(userId, args, lists, listsByLastIndexByUserId, messageIdByUserId,  displayableAttempt(), getName());
-	}
-	
-	public static CommandOutput next(String userId, String commandName){
-		return CollectionCommand.get(userId, 1, listsByLastIndexByUserId, displayableAttempt(), commandName);
-	}
-	
-	public static CommandOutput previous(String userId, String commandName){
-		return CollectionCommand.get(userId, -1, listsByLastIndexByUserId, displayableAttempt(), commandName);
-	}
-	
-	public static CommandOutput current(String userId, String commandName){
-		return CollectionCommand.get(userId, 0, listsByLastIndexByUserId, displayableAttempt(), commandName);
+		return execute(userId, args, lists, listsByLastIndexByUserId, messageIdByUserId,  displayableAttempt(), getName());
 	}
 	
 	public static Displayable<Attempt> displayableAttempt(){

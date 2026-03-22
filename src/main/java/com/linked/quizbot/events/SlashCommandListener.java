@@ -71,10 +71,9 @@ public class SlashCommandListener extends ListenerAdapter {
 			}
 		}
 		event.reply(cmd.getDescription()).queue();
-		MessageSender.sendCommandOutput(
+		MessageSender.send(
 			cmd.execute(userId, args),
-			channel,
-			null 
+			event.getChannel()
 		);
 		if (!BotCore.isBugFree()) System.out.printf(Constants.INFO + "%s, Time elapsed: `%.3f ms`\n",cmd.getName(), (System.nanoTime() - start) / 1000000.00);
 	}

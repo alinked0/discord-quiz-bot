@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
@@ -55,7 +56,7 @@ public class AddListCommand extends BotCommand{
 		}
 		int n = args.size();
 		List<String> res = new ArrayList<>();
-		CommandOutput.Builder output = new CommandOutput.Builder();
+		Output.Builder output = new Output.Builder();
 		for (int i = 0; i<n; i++) {
 			try {
 				QuestionList l = QuestionList.Parser.fromString(args.get(i)).build();
@@ -71,7 +72,10 @@ public class AddListCommand extends BotCommand{
 				e.printStackTrace();
 			}
 		}
-		return output.build();
+		
+		CommandOutput out;
+		out = new CommandOutput(List.of(output.build()));
+		return out;
 	}
 	@Override
 	public List<String> parseArguments(String cmndLineArgs){

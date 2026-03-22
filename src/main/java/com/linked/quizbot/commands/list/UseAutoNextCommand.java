@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.User;
 import com.linked.quizbot.utils.Users;
@@ -65,8 +66,11 @@ public class UseAutoNextCommand extends BotCommand {
 		}
 		user.useAutoNext(b);
 		Users.update(user);
-		return new CommandOutput.Builder()
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(new Output.Builder()
 				.add(String.format("AutoNext has been set to %s", b))
-				.build();
+				.build()));
+		return  res;
 	}
 }

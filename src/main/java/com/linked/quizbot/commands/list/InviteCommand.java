@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.LinkedList;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 
@@ -45,8 +46,11 @@ public class InviteCommand extends BotCommand {
 			)
 		);
 		String res = String.format("`%s`", BotCore.getJDA().getInviteUrl(permissions));
-		return new CommandOutput.Builder()
+		
+		CommandOutput out;
+		out = new CommandOutput(List.of(new Output.Builder()
 				.add(res)
-				.build();
+				.build()));
+		return  out;
 	}
 }

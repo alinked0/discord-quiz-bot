@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 
@@ -72,18 +73,18 @@ public class HelpCommand extends BotCommand {
 	public CommandOutput execute(String userId,  List<String> args){
 		boolean newbie = args.size() < 1;
 		BotCommand cmd;
-		CommandOutput.Builder outBuilder = new CommandOutput.Builder();
+		Output.Builder outBuilder = new Output.Builder();
 		if (newbie) {
 			outBuilder.sendAsPrivateMessage(userId);
 			outBuilder.addEmbed(getEmbed());
-			return outBuilder.build();
+			return new CommandOutput(outBuilder.build());
 		}
 		for (String s : args) {
 			if ((cmd = getCommandByName(s)) != null) {
 				outBuilder.addEmbed(getEmbed(cmd));
 			}
 		}
-		return outBuilder.build();
+		return new CommandOutput(outBuilder.build());
 	}
 	private static EmbedBuilder getEmbed(BotCommand cmd){
 		EmbedBuilder embed = new EmbedBuilder();

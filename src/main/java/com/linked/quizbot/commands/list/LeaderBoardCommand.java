@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.viewers.QuizBot;
@@ -54,7 +55,7 @@ public class LeaderBoardCommand extends BotCommand {
 		if(q == null) {
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		CommandOutput.Builder outputBuilder = new CommandOutput.Builder();
+		Output.Builder outputBuilder = new Output.Builder();
 		List<String> lb = q.leaderBoard();
 		outputBuilder.addAll(lb);
 		Consumer<Message> leaderboardPostSendAction = sentMessage -> {
@@ -73,13 +74,16 @@ public class LeaderBoardCommand extends BotCommand {
 			);
 		};
 		
-		// Build and return the CommandOutput
-		return outputBuilder
+		// Build and return the Output
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(outputBuilder
 			.clearReactions(true)
 			.addReaction(Emoji.fromFormatted(Constants.EMOJIEXPLICATION))
 			.addPostSendAction(leaderboardPostSendAction)
 			.sendInOriginalMessage(true)
 			.useButtons(q.useButtons())
-		.build();
+		.build()));
+		return  res;
 	}
 }

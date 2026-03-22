@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
@@ -72,6 +73,9 @@ public class CreateListCommand extends BotCommand {
 				e.printStackTrace();
 			}
 		}
-		return new CommandOutput.Builder().addAll(res).build();
+		
+		CommandOutput out;
+		out = new CommandOutput(List.of(new Output.Builder().addAll(res).build()));
+		return  out;
 	}
 }

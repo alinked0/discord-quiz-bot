@@ -1,18 +1,14 @@
 package com.linked.quizbot.core.viewers;
 
-import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
-import com.linked.quizbot.Constants;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.utils.Awnser;
 import com.linked.quizbot.utils.QuestionList;
 
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 /**
  * A specialized extension of {@link Viewer} that provides a detailed walkthrough of a quiz.
@@ -44,8 +40,8 @@ public class Explain extends Viewer{
 	 * @param points The user's score.
 	 * @param useButtons If true, uses buttons for navigation; otherwise, uses reactions.
 	 */
-	public Explain(QuestionList l, Map<Integer,Map<String,Awnser>> awnsersByUserIdByQuestionIndex, String userId, double points, boolean useButtons){
-		super(l, useButtons);
+	public Explain(QuestionList l, Map<Integer,Map<String,Awnser>> awnsersByUserIdByQuestionIndex, String userId, double points, boolean useButtons, boolean allAtOnce){
+		super(l, useButtons, allAtOnce);
 		this.awnsersByUserIdByQuestionIndex = awnsersByUserIdByQuestionIndex;
 		this.points = points;
 		this.userId = userId;
@@ -56,8 +52,8 @@ public class Explain extends Viewer{
 	 * @param view The active QuizBot instance.
 	 * @param userId The ID of the user to explain the quiz to.
 	 */
-	public Explain(QuizBot view, String userId){
-		this(view.getQuestionList(), view.getResponses(), userId, view.getUserScore(userId), view.useButtons());
+	public Explain(QuizBot view, String userId, boolean allAtOnce){
+		this(view.getQuestionList(), view.getResponses(), userId, view.getUserScore(userId), view.useButtons(), allAtOnce);
 	}
 	
 	/**
@@ -67,7 +63,7 @@ public class Explain extends Viewer{
 	 * @param currIndex The question index to start the explanation from.
 	 */
 	public Explain(QuizBot view, String userId, int currIndex){
-		this(view.getQuestionList(), view.getResponses(), userId, view.getUserScore(userId), view.useButtons());
+		this(view.getQuestionList(), view.getResponses(), userId, view.getUserScore(userId), view.useButtons(), false);
 		this.fromActiveQuiz = true;
 		this.start();
 		int index = view.useAutoNext()?currIndex-1:currIndex;
@@ -94,21 +90,9 @@ public class Explain extends Viewer{
 		return getQuestionList().getFormated(getCurrentIndex(), true, m);
 	}
 	@Override
-	public List<Emoji> getReactions(){
-		List<Emoji> emojis = new ArrayList<>();
-		if (hasPrevious()) emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
-		if (hasNext()) emojis.add(Emoji.fromFormatted(Constants.EMOJINEXTQUESTION));
-		return emojis;
-	}
-	@Override
 	public Consumer<Message> postSendActionCurrent(){
 		if (!fromActiveQuiz){
-			return msg ->{
-				String oldId = this.getMessageId();
-				this.setMessage(msg);
-				BotCore.viewerByMessageId.remove(oldId);
-				BotCore.viewerByMessageId.put(msg.getId(), this);
-			};
+			return super.postSendActionCurrent();
 		}
 		return  msg ->{};
 	}

@@ -116,7 +116,7 @@ You can import/export these lists using the bot commands.
 
 - [`QuestionList`](src/main/java/com/linked/quizbot/utils/QuestionList.java): Manages a collection of questions, supports JSON import/export, tagging, and metadata.
 - [`BotCommand`](src/main/java/com/linked/quizbot/commands/BotCommand.java): Abstract base for all commands.
-- [`CommandOutput`](src/main/java/com/linked/quizbot/commands/CommandOutput.java): Handles command responses.
+- [`Output`](src/main/java/com/linked/quizbot/commands/Output.java): Handles command responses.
 - [`Users`](src/main/java/com/linked/quizbot/utils/Users.java): User management and data persistence.
 
 ### Running Tests

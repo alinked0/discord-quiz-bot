@@ -44,6 +44,7 @@ public class Constants {
 		EMOJIPREVQUESTION = Emoji.fromUnicode("◀️").getFormatted(),
 		EMOJISTOP = Emoji.fromUnicode("⏹️").getFormatted(),
 		EMOJIRELOAD = Emoji.fromUnicode("🔁").getFormatted(),
+		EMOJIFASTDOWN= Emoji.fromUnicode("⏬").getFormatted(),
 		EMOJIWHITESQUARE = Emoji.fromUnicode("⬜").getFormatted(),
 		EMOJIBLACKSQUARE = Emoji.fromUnicode("⬛").getFormatted(),
 		EMOJIEXPLICATION = Emoji.fromUnicode("❓").getFormatted(),

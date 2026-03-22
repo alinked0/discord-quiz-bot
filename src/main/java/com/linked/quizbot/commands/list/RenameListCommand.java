@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
@@ -69,7 +70,7 @@ public class RenameListCommand extends BotCommand{
 		String newName=args.get(1);
 		User u = Users.get(userId);
 		QuestionList l = u.getById(id);
-		CommandOutput.Builder output = new CommandOutput.Builder();
+		Output.Builder output = new Output.Builder();
 		if (l==null){
 			output.add(String.format("Could not find `%s` in your collection.", id));
 		}else {
@@ -88,7 +89,10 @@ public class RenameListCommand extends BotCommand{
 				));
 			}
 		}
-		return output.build();
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(output.build()));
+		return  res;
 	}
 
 }

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.Users;
@@ -54,7 +55,7 @@ public class DeleteListCommand extends BotCommand{
 		if (args.size()<getOptionData().size()){
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
-		CommandOutput.Builder output = new CommandOutput.Builder();
+		Output.Builder output = new Output.Builder();
 		l = Users.getById(args.get(0));
 		ownerId = l.getOwnerId();
 		if (ownerId.equals(userId)){
@@ -69,7 +70,10 @@ public class DeleteListCommand extends BotCommand{
 		}else {
 			output.add(String.format("You do not own the list:`%s`**%s**",l.getId(), l.getName()));
 		}
-		return output.build();
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(output.build()));
+		return  res;
 	}
 
 }

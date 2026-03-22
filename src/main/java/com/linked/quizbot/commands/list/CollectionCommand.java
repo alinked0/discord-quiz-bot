@@ -13,6 +13,7 @@ import java.util.Iterator;
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
 import com.linked.quizbot.core.BotCore;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.Attempt;
 import com.linked.quizbot.utils.CollectionManager;
@@ -144,14 +145,20 @@ public class CollectionCommand extends BotCommand {
 			.filter(filterTokens.stream().map(token -> CollectionManager.parseFilter(user, token))
 			.reduce(list->true, Predicate::and))
 			.sorted(sortDirection.equals("desc")?comparator.reversed():comparator)
-			.toList();	
-			
+			.toList();
 		return execute(userId, args, lists, listsByLastIndexByUserId, messageIdByUserId, displayableQuestionList(),  getName());
 	}
 	
-	public static <T> CommandOutput execute(String userId,  List<String> args, List<T> lists, Map<String, Map<Integer, List<List<T>>>> listsByLastIndexByUserId, Map<String, String> messageIdByUserId, Displayable<T> displ, String commandName){
+	public static <T> CommandOutput execute(
+		String userId,  List<String> args, List<T> lists, 
+		Map<String, Map<Integer, List<List<T>>>> listsByLastIndexByUserId, 
+		Map<String, String> messageIdByUserId, 
+		Displayable<T> displ, 
+		String commandName)
+	{
 		Map<Integer, List<List<T>>> listsByLastIndex;
 		List<List<T>> listsPerPage;
+		CommandOutput output;
 		int numberPerPage=10;
 		
 		listsPerPage = CollectionCommand.divideLists(lists, numberPerPage);
@@ -159,10 +166,15 @@ public class CollectionCommand extends BotCommand {
 		listsByLastIndex = new HashMap<>();
 		listsByLastIndex.put(-1, listsPerPage);
 		listsByLastIndexByUserId.put(userId, listsByLastIndex);
-		
-		return new CommandOutput.Builder()
-			.add(CollectionCommand.get(userId, 1,listsByLastIndexByUserId, displ, commandName))
-			.addPostSendAction(m -> messageIdByUserId.put(userId, m.getId())).build();
+		output = new CommandOutput();
+		for (Output out : CollectionCommand.get(userId, 1,listsByLastIndexByUserId, displ, commandName)){
+			output.add(
+				new Output.Builder(out).addPostSendAction(
+					m -> messageIdByUserId.put(userId, m.getId())
+				).build()
+			);
+		}
+		return output;
 	}
 	public static <T> List<List<T>> divideLists(List<T> lists, int numberPerPage){
 		Iterator<T> iterList;
@@ -215,7 +227,10 @@ public class CollectionCommand extends BotCommand {
 		if (lastIndex-1>=0) emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
 		// TODO Current command is not completly implemented.
 		if (listsPerPage.size()>lastIndex+1) emojis.add(Emoji.fromFormatted(Constants.EMOJINEXTQUESTION));
-		return new CommandOutput.Builder().addAll(outList).addReactions(emojis).build();
+		
+		return  new CommandOutput(
+			new Output.Builder().addAll(outList).addReactions(emojis).build()
+		);
 	}
 	public static <T> List<String> getListsForPageAsText(int index, List<List<T>> listsPerPage, Displayable<T> displ, String header){
 		String outText = header;

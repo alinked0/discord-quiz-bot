@@ -5,6 +5,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
@@ -50,7 +51,7 @@ public class TagsCommand extends BotCommand {
 	}
 	@Override
 	public CommandOutput execute(String userId,  List<String> args){
-		CommandOutput.Builder output = new CommandOutput.Builder();
+		Output.Builder output = new Output.Builder();
 		String response = "Tags:\n";
 		User user = Users.get(userId);
 		
@@ -71,6 +72,9 @@ public class TagsCommand extends BotCommand {
 				m.getKey()
 			);
 		}
-		return output.add(response).build();
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(output.add(response).build()));
+		return  res;
 	}
 }

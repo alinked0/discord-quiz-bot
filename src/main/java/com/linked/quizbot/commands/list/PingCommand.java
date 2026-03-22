@@ -3,6 +3,7 @@ package com.linked.quizbot.commands.list;
 import java.util.List;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 
@@ -40,11 +41,13 @@ public class PingCommand extends BotCommand {
 		// Calculate the internal processing time.
 		double internalProcessingTimeMs = (System.nanoTime() - start) / 1000000.00;
 		// Combine both internal processing time and gateway ping into the response
-		String res = String.format("Pong! Internal processing: %.3fms | Gateway Ping: %dms",
+		String s = String.format("Pong! Internal processing: %.3fms | Gateway Ping: %dms",
 									internalProcessingTimeMs, gatewayPing);
-		return new CommandOutput.Builder()
-				.add(res)
-				
-				.build();
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(new Output.Builder()
+				.add(s)
+				.build()));
+		return  res;
 	}
 }

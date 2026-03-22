@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.core.BotCore;
 import com.linked.quizbot.core.MessageSender;
@@ -69,9 +70,13 @@ public class ReadyEventListener extends ListenerAdapter {
 						Constants.EMOJINEXTQUESTION,
 						Constants.EMOJIPREVQUESTION,
 						Constants.EMOJISTOP,
-						Constants.EMOJIEXPLICATION,
+						Constants.EMOJIRELOAD,
+						Constants.EMOJIFASTDOWN,
 						Constants.EMOJIWHITESQUARE,
-						Constants.EMOJIRELOAD
+						Constants.EMOJIBLACKSQUARE,
+						Constants.EMOJIEXPLICATION,
+						Constants.EMOJIBOX,
+						Constants.EMOJICHECKEDBOX
 					);
 					List<Emoji> l = new ArrayList<>();
 					for (String e : emojis){l.add(Emoji.fromFormatted(e));}

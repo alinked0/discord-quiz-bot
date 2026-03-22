@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.commands.list.HelpCommand;
 import com.linked.quizbot.utils.Users;
@@ -55,7 +56,6 @@ public class CommandLineInterface {
 	
 	public static void execute (Scanner scanner) {
 		boolean exiting = false;
-		CommandOutput output;
 		List<String> out;
 		while (!exiting) {
 			String input = scanner.nextLine().toLowerCase();
@@ -100,10 +100,11 @@ public class CommandLineInterface {
 				}
 				default -> {
 					try {
-						output = execute(input, Constants.ADMINID, null);
-						if (output!=null){
-							out = output.getAsText();
-							for (String s: out){System.out.println(s);}
+						for (Output output :execute(input, Constants.ADMINID, null)){
+							if (output!=null){
+								out = output.getAsText();
+								for (String s: out){System.out.println(s);}
+							}
 						}
 					}catch(Exception e){
 						System.err.printf(Constants.ERROR + "An error occured while executing :%s\n",Constants.MAGENTA + input+ Constants.RESET);
@@ -116,7 +117,7 @@ public class CommandLineInterface {
 	}
 	public static CommandOutput execute(String message, String userId, @Nullable List<String> attachements) {
 		long start = System.nanoTime();
-		CommandOutput.Builder ouitput = new CommandOutput.Builder();
+		Output.Builder ouitput = new Output.Builder();
 		List<String> arguments=new ArrayList<>();
 		List<String> tmp = parsePrefix(userId, message);
 		if (tmp.isEmpty()){
@@ -135,7 +136,11 @@ public class CommandLineInterface {
 		if(BotCore.isShutingDown()){
 			BotCommand.CommandCategory category = cmd.getCategory();
 			if(category.equals(BotCommand.CommandCategory.EDITING) || category.equals(BotCommand.CommandCategory.GAME)){
-				return ouitput.add(Constants.UPDATEEXPLANATION).build();
+				return new CommandOutput(
+					List.of(
+						ouitput.add(Constants.UPDATEEXPLANATION).build()
+					)
+				);
 			}
 		}
 		arguments = (tmp.size()>=2)?cmd.parseArguments(tmp.getLast()):cmd.parseArguments("");

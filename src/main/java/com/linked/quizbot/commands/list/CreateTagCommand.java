@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.Users;
 
@@ -49,17 +50,20 @@ public class CreateTagCommand extends BotCommand{
 			return BotCommand.getCommandByName(HelpCommand.CMDNAME).execute(userId, List.of(getName()));
 		}
 		String tagNameInput=args.get(0), tagEmojiInput=args.get(1);
-		String res;
+		String s;
 		
 		
 		if (Users.createTag(userId, tagNameInput, tagEmojiInput)){
-			res = "Tag has been created.";
+			s = "Tag has been created.";
 		} else {
-			res = "Tag already exists.";
+			s = "Tag already exists.";
 		}
-		return new CommandOutput.Builder()
-				.add(res)
-				.build();
+		
+		CommandOutput out;
+		out = new CommandOutput(List.of(new Output.Builder()
+				.add(s)
+				.build()));
+		return  out;
 	}
 
 }

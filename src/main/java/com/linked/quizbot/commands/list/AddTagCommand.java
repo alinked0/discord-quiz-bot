@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 import com.linked.quizbot.utils.QuestionList;
 import com.linked.quizbot.utils.User;
@@ -78,9 +79,12 @@ public class AddTagCommand extends BotCommand{
 		if (totalNotOwned>0){res += notOwnedStr + "\n";}
 		if (totalTagged>0){res += totalTagged+"lists : "+taggedStr;}
 		
-		return new CommandOutput.Builder()
+		
+		CommandOutput out;
+		out = new CommandOutput(List.of(new Output.Builder()
 				.add(res)
-				.build();
+				.build()));
+		return  out;
 	}
 
 }

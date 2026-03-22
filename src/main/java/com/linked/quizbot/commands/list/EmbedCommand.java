@@ -12,6 +12,7 @@ import com.linked.quizbot.utils.Users;
 import java.awt.Color;
 
 import com.linked.quizbot.commands.BotCommand;
+import com.linked.quizbot.commands.Output;
 import com.linked.quizbot.commands.CommandOutput;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -100,10 +101,13 @@ public class EmbedCommand extends BotCommand {
 						emojis.add(Emoji.fromUnicode("U+3"+j+"U+fe0fU+20e3"));
 					}
 		
-		return new CommandOutput.Builder()
+		
+		CommandOutput res;
+		res = new CommandOutput(List.of(new Output.Builder()
 				.addEmbed(embed.build())
 				.addReactions(emojis)
 				.sendInThread(true)
-				.build();
+				.build()));
+		return  res;
 	}
 }
