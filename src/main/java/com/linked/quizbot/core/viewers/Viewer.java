@@ -2,10 +2,13 @@ package com.linked.quizbot.core.viewers;
 
 import java.util.List;
 import java.util.Map;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
+
+import org.apache.commons.collections4.map.HashedMap;
 
 import com.linked.quizbot.Constants;
 import com.linked.quizbot.commands.Output;
@@ -35,13 +38,14 @@ import net.dv8tion.jda.api.utils.TimeFormat;
  */
 public class Viewer {
 	private final QuestionList questions;
+	public static Map<String, Map<String, Integer>> questionIndexByMessageId = new HashMap<>();
 	private boolean active= false;
 	private boolean sendInOriginalMessage= true;
 	private boolean allAtOnce= false;
 	private final boolean useButtons;
 	private int currIndex;
 	private Message message = null;
-	private Map<String, Integer> questionIndexByMessageId;
+	private String id;
 	
 	/**
 	 * Constructs a Viewer with a specified question list and button preference.
@@ -54,9 +58,9 @@ public class Viewer {
 		this.useButtons = useButtons;
 		this.allAtOnce = allAtOnce;
 		this.sendInOriginalMessage=!allAtOnce && sendInOriginalMessage;
-		this.questionIndexByMessageId = new HashMap<>();
+		this.id = ""+Instant.now().toEpochMilli();
 	}
-	
+		
 	/**
 	 * Constructs a Viewer with a specified question list, defaulting to using buttons.
 	 *
@@ -77,6 +81,9 @@ public class Viewer {
 	 * @return The message object.
 	 */
 	public Message getMessage() { return message;}
+
+	public String getId() { return id;}
+
 	
 	/**
 	 * Checks if the viewer is configured to use buttons.
@@ -110,7 +117,10 @@ public class Viewer {
 	public String getChannelId() { return getChannel()!=null?getChannel().getId(): null;}
 
 	public Integer getIndexFromMessage(Message message){
-		return questionIndexByMessageId.get(message.getId());
+		if (Viewer.questionIndexByMessageId.get(getId())==null){
+			return null;
+		}
+		return Viewer.questionIndexByMessageId.get(getId()).get(message.getId());
 	}
 
 	public Question get(int index) {
@@ -152,7 +162,9 @@ public class Viewer {
 		return msg ->{
 			String oldId = msg.getId();
 			this.setMessage(msg);
-			this.questionIndexByMessageId.put(msg.getId(), -1);
+			Map<String, Integer> n = new HashMap<>();
+			n.put(msg.getId(), -1);
+			Viewer.questionIndexByMessageId.put(getId(), n);
 			BotCore.viewerByMessageId.put(oldId, this);
 		};
 	}
@@ -164,15 +176,43 @@ public class Viewer {
 	 * @return a Consumer for message post-processing.
 	 */
 	public Consumer<Message> postSendActionCurrent(){
+		final int index = this.getCurrentIndex();
 		return msg ->{
 			this.setMessage(msg);
-			this.questionIndexByMessageId.put(msg.getId(), this.getCurrentIndex());
+			Map<String, Integer> n = Viewer.questionIndexByMessageId.getOrDefault(getId(), new HashMap<>());
+			n.put(msg.getId(), index);
+			Viewer.questionIndexByMessageId.put(getId(), n);
 			BotCore.viewerByMessageId.put(msg.getId(), this);
 		};
 	}
 	
 	/** Placeholder method for additional processing on start. */
 	public void inBetweenProccessorStart(){}
+
+	public Output getOutput(Message message){
+		int index = getIndexFromMessage(message);
+		return getOutput(index);
+	}
+
+	public Output getOutput(int index){
+		if (index >= getQuestionList().size()) {
+			throw new NoSuchElementException();
+		}
+		Output.Builder output = new Output.Builder();
+		if (!isActive()) { return output.build();}
+		String content;
+		if (currIndex == -1){
+			content = getHeader();
+		} else {
+			content = getFormatedQuestion(index);
+		}
+		output.add(content);
+		return output.sendInOriginalMessage(sendInOriginalMessage)
+			.clearReactions(true)
+			.useButtons(useButtons())
+			.addReactions(getReactions(index))
+			.build();
+	}
 	
 	/**
 	 * Starts the viewer session.
@@ -191,6 +231,7 @@ public class Viewer {
 			.useButtons(useButtons())
 			.addReactions(getReactions())
 			.addPostSendAction(postSendActionStart())
+			.sendInThread(allAtOnce())
 			.build();
 	}
 	
@@ -224,18 +265,24 @@ public class Viewer {
 	 * @return A list of {@link Emoji}s.
 	 */
 	public List<Emoji> getReactions(){
+		return getReactions(getCurrentIndex());
+	}
+	public List<Emoji> getReactions(int index){
 		List<Emoji> emojis = new ArrayList<>();
-		if (allAtOnce && !hasNext()){
+		if (allAtOnce && !hasNext(index)){
 			emojis.add(Emoji.fromFormatted(Constants.EMOJISTOP));
 			return emojis;
+		}else {
+			if (hasPrevious(index)){
+				emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
+			}
+			if (hasNext(index)) {
+				emojis.add(Emoji.fromFormatted(Constants.EMOJINEXTQUESTION));
+			} else {
+				emojis.add(Emoji.fromFormatted(Constants.EMOJISTOP));
+			}
 		}
-		if (hasPrevious()){
-			emojis.add(Emoji.fromFormatted(Constants.EMOJIPREVQUESTION));
-		} 
-		emojis.add(
-			Emoji.fromFormatted(hasNext()?Constants.EMOJINEXTQUESTION:Constants.EMOJISTOP)
-		);
-		if (!hasPrevious()) {
+		if (index<0) {
 			emojis.add(Emoji.fromFormatted(Constants.EMOJIFASTDOWN));
 		}
 		return emojis;
@@ -288,7 +335,10 @@ public class Viewer {
 	 * @return The formatted question string.
 	 */
 	public String getFormatedQuestion(){
-		return questions.getFormatedCorrection(currIndex);
+		return getFormatedQuestion(getCurrentIndex());
+	}
+	public String getFormatedQuestion(int index){
+		return questions.getFormatedCorrection(index);
 	}
 	
 	/** Placeholder method for additional processing on moving to the current question. */
@@ -330,6 +380,7 @@ public class Viewer {
 			.useButtons(useButtons())
 			.addReactions(getReactions())
 			.addPostSendAction(postSendActionCurrent())
+			.sendInThread(allAtOnce())
 			.build();
 	}
 	
@@ -338,14 +389,16 @@ public class Viewer {
 	 *
 	 * @return true if a next question exists, false otherwise.
 	 */
-	public boolean hasNext(){ return getCurrentIndex()+1 < questions.size();}
+	public boolean hasNext(){ return hasNext(getCurrentIndex());}
+	public boolean hasNext(int index){ return index+1 < questions.size();}
 	
 	/**
 	 * Checks if there is a previous question to view.
 	 *
 	 * @return true if a previous question exists, false otherwise.
 	 */
-	public boolean hasPrevious(){ return -1 < getCurrentIndex()-1;}
+	public boolean hasPrevious(){ return hasPrevious(getCurrentIndex());}
+	public boolean hasPrevious(int index){ return -1 < index-1;}
 	
 	/** Ends the viewer session by setting the active flag to false. */
 	public void end() {active = false;}

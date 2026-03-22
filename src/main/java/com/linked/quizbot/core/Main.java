@@ -16,7 +16,7 @@ import com.linked.quizbot.utils.Users;
  * This class handles command line arguments to configure the bot's behavior and
  * provides usage instructions if needed.
  * </p>
- * 
+ *
  * @author alinked0
  * @version 1.0
  * @since 2025-02-01
@@ -50,13 +50,5 @@ public class Main {
 		BotCore.jda= null;
 		Users.loadAllUsers();
 		CommandLineInterface.execute(scanner);
-		/*
-		try{
-			User u = new User("468026374557270017");
-			System.out.println(u.getAttempts("abcdefg").getFirst().toJson());
-		} catch(Exception e){
-			e.printStackTrace();
-		}
-		*/
 	}
 }

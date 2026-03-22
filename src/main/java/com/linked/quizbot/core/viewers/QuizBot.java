@@ -234,11 +234,15 @@ public class QuizBot extends Viewer {
 	}
 	
 	@Override
-	public String getFormatedQuestion() {
+	public String getFormatedQuestion(int index) {
 		/*if (useAutoNext() && awnsersByUserIdByQuestionIndex.get(getCurrentIndex()).size()>1){
 			this.timeLimit = TimeFormat.RELATIVE.after(delaySec*1000);
 		}*/
-		return String.format("%s\n%s\n", getQuestionList().getFormated(getCurrentIndex(), false, getResponseByQuestion(getCurrentIndex())), getLastTimestamp());
+		return String.format(
+			"%s\n%s\n", getQuestionList().getFormated(
+				index, false, getResponseByQuestion(getCurrentIndex())
+			), getLastTimestamp()
+		);
 	}
 	
 	@Override

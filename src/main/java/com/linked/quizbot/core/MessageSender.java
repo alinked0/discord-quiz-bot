@@ -25,8 +25,10 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ComponentInteraction;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.utils.AttachedFile;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -68,10 +70,10 @@ public class MessageSender {
 			return;
 		}
 		if (output.getFirst().clearReactions()){
-			output.getFirst().getMessage().clearReactions().queue(none -> treatDelay(output));
+			output.getFirst().getMessage().clearReactions().queue(none -> treatDelay(output, null));
 		} else {
 			// Schedule the message sending if a delay is specified.
-			treatDelay(output);
+			treatDelay(output, null);
 		}
 	}
 
@@ -115,7 +117,7 @@ public class MessageSender {
 		send(new Output.Builder(output).channel(channel).build());
 	}
 	
-	public static void send(@NotNull Output output, @NotNull ButtonInteractionEvent event) {
+	public static void send(@NotNull Output output, @NotNull ComponentInteraction event) {
 		MessageChannel channel = event.getChannel();
 		Message message = event.getMessage();
 		send(
@@ -123,18 +125,18 @@ public class MessageSender {
 		);
 	}
 	
-	private static void treatDelay(CommandOutput output){
+	private static void treatDelay(CommandOutput output, ComponentInteraction event){
 		 if (output.getFirst().getDelayMillis() > 0) {
 			scheduler.schedule(
-				() -> destination(output),
+				() -> destination(output, event),
 				output.getFirst().getDelayMillis(), TimeUnit.MILLISECONDS
 			);
 		} else {
-			destination(output);
+			destination(output, event);
 		}
 	}
 	
-	private static void destination(CommandOutput output) {
+	private static void destination(CommandOutput output, ComponentInteraction event) {
 		MessageChannel channel;
 		User user;
 		Output.Builder build ;
@@ -150,7 +152,8 @@ public class MessageSender {
 					chaine -> {
 						for (Output out : output){
 							prepPackages(
-								new Output.Builder(out).channel(chaine).build()
+								new Output.Builder(out).channel(chaine).build(),
+								event
 							);
 						}
 					}
@@ -159,7 +162,8 @@ public class MessageSender {
 				channel.sendMessage(title).queue(
 					msg -> msg.createThreadChannel(title).queue(
 						chaine -> prepPackages(
-							build.channel(chaine).setMessage(msg).build()
+							build.channel(chaine).setMessage(msg).build(),
+							event
 						)
 					)
 				);
@@ -172,7 +176,7 @@ public class MessageSender {
 				user.openPrivateChannel().queue(
 					chaine -> {
 						for (Output out : output){
-							prepPackages(new Output.Builder(out).channel(chaine).build());
+							prepPackages(new Output.Builder(out).channel(chaine).build(), event);
 						}
 					}
 				);
@@ -183,7 +187,7 @@ public class MessageSender {
 					u -> u.openPrivateChannel().queue(
 						chaine -> {
 							for (Output out : output){
-								prepPackages(new Output.Builder(out).channel(chaine).build());
+								prepPackages(new Output.Builder(out).channel(chaine).build(), event);
 							}
 						}
 					)
@@ -192,14 +196,16 @@ public class MessageSender {
 			}
 		}
 		for (Output out : output){
-			prepPackages(out);
+			prepPackages(out, event);
 		}
 	}
 
-	private static void prepPackages(Output output) {
+	private static void prepPackages(Output output, ComponentInteraction event) {
 		Message originalMessage;
-		List<MessageCreateAction> sendActions ;
+		List<RestAction<?>> sendActions ;
 		MessageChannel channel;
+		RestAction<?> sendAction;
+		List<FileUpload> files;
 
 		originalMessage = output.getMessage();
 		sendActions = new ArrayList<>();
@@ -213,34 +219,48 @@ public class MessageSender {
 				messagesToSend.addAll(trimMessage(text));
 			}
 			// Pass the postSendActions to the recursive helper
-			sendActions.addAll(recursive_send_text(messagesToSend.iterator(), originalMessage, channel, output.shouldReplyToSender(), List.of()));
+			sendActions.addAll(
+				recursive_send_text(
+					messagesToSend.iterator(),
+					originalMessage,
+					channel,
+					output.shouldReplyToSender(),
+					List.of(),
+					event
+				)
+			);
 		}
 		// Then send embeds
 		if (!output.getEmbeds().isEmpty()) {
-			for (MessageEmbed embed : output.getEmbeds()) {
-				MessageCreateAction sendAction = channel.sendMessageEmbeds(embed);
-				sendActions.add(sendAction);
+			if (event!=null){
+				sendAction = event.getHook().editOriginalEmbeds(output.getEmbeds());
+			}else {
+				sendAction = channel.sendMessageEmbeds(output.getEmbeds());
 			}
+			sendActions.add(sendAction);
 		}
 		if (!output.getFiles().isEmpty()){
-			MessageCreateAction sendAction;
-			if (!sendActions.isEmpty()){
-				sendAction = sendActions.getLast().addFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
-				sendActions.set(sendActions.size()-1, sendAction);
-			}else{
-				 sendAction = channel.sendFiles(output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList());
-				sendActions.add(sendAction);
+			files = output.getFiles().stream().map(f -> FileUpload.fromData(f)).toList();
+			if (event!=null){
+					sendAction = event.getHook().sendFiles(files);
+			}else {
+				sendAction = channel.sendFiles(files);
 			}
+			sendActions.add(sendAction);
 		}
 		if (output.useButtons()  || !channel.getType().isGuild()){
-			if (!sendActions.isEmpty()){
-				sendActions.getLast().setComponents(output.getActionRows());
+			if (!sendActions.isEmpty()) {
+				sendAction= sendActions.getLast();
+				if(sendAction instanceof MessageCreateAction send){
+					sendAction = send.setComponents(output.getActionRows());
+					sendActions.set(sendActions.size()-1, sendAction);
+				}
 			}
 		}
 		send(output, sendActions, channel);
 	}
 
-	private static void send(Output output, List<MessageCreateAction> sendActions, MessageChannel channel){
+	private static void send(Output output, List<RestAction<?>> sendActions, MessageChannel channel){
 		Message originalMessage;
 
 		originalMessage = output.getMessage();
@@ -270,13 +290,17 @@ public class MessageSender {
 			);
 			return;
 		}
-		for (MessageCreateAction sendAction : sendActions){
+		for (RestAction<?> sendAction : sendActions){
 			sendAction.queue(
 				sentMessage -> { // Execute post-send actions for embeds too
-					for (Consumer<Message> action : output.getPostSendActions()) {
-						action.accept(sentMessage);
+					if (sentMessage instanceof Message msg){
+						for (Consumer<Message> action : output.getPostSendActions()) {
+							action.accept(msg);
+						}
+						if (!output.useButtons()  && channel.getType().isGuild()){
+							addReactions(msg, output.getReactions().iterator());
+						}
 					}
-					if (!output.useButtons()  && channel.getType().isGuild()) addReactions(sentMessage, output.getReactions().iterator());
 				},
 				failure -> System.err.println(Constants.ERROR + "Failed to send embed: " + failure.getMessage()) // Log failure
 			);
@@ -308,7 +332,7 @@ public class MessageSender {
 			if (l.get(nbOptions).equals(e)){
 				row.add(
 					Button.of(
-						ButtonStyle.PRIMARY, 
+						ButtonStyle.PRIMARY,
 						String.format("%s", (nbOptions+1)), e.getFormatted()
 					)
 				);
@@ -355,14 +379,25 @@ public class MessageSender {
 	public static void addButtons(Message message, List<Emoji> l) {
 		MessageSender.addButtons(message, l, null);
 	}
-	private static List<MessageCreateAction> recursive_send_text(Iterator<String> iter, Message originalMessage, MessageChannel channel, boolean shouldReply, List<Consumer<Message>> postSendActions) {
-		List<MessageCreateAction> sendActions = new ArrayList<>();
+	private static List<RestAction<?>> recursive_send_text(
+		Iterator<String> iter,
+		Message originalMessage,
+		MessageChannel channel,
+		boolean shouldReply,
+		List<Consumer<Message>> postSendActions,
+		ComponentInteraction event)
+	{
+		List<RestAction<?>> sendActions = new ArrayList<>();
+		RestAction<?> sendAction;
 		while (iter.hasNext()){
 			String part = iter.next();
-			MessageCreateAction sendAction = channel.sendMessage(part);
-			
-			if (shouldReply && originalMessage != null) {
-				sendAction.setMessageReference(originalMessage);
+			if (event != null) {
+				sendAction = event.getHook().editOriginal(part);
+			} else {
+				sendAction = channel.sendMessage(part);
+			}
+			if (shouldReply && originalMessage != null && sendAction instanceof MessageCreateAction send) {
+				send.setMessageReference(originalMessage);
 			}
 			sendActions.add(sendAction);
 		}

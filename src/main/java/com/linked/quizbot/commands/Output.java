@@ -78,8 +78,8 @@ public class Output {
 			channel = null;
 		}
 		public Builder(Output t) {
-			this.textMessages = t.textMessages;
-			this.embeds = t.embeds;
+			this.textMessages = new ArrayList<>(t.textMessages);
+			this.embeds = new ArrayList<>(t.embeds);
 			this.replyToSender = t.replyToSender;
 			this.ephemeral = t.ephemeral;
 			this.delayMillis = t.delayMillis;
@@ -110,11 +110,11 @@ public class Output {
 			this.useButtons= b;
 			return this;
 		}
-		public Builder setMessage(Message msg){ 
+		public Builder setMessage(Message msg){
 			message = msg; return this;
 		}
-		public Builder channel(MessageChannel channel){ 
-			this.channel = channel; 
+		public Builder channel(MessageChannel channel){
+			this.channel = channel;
 			return this;
 		}
 		public Builder addAll(List<String> c){
@@ -344,7 +344,7 @@ public class Output {
 		return postSendActions;
 	}
 	public String toString(){
-		return 
+		return
 		this.textMessages.toString() +
 		this.embeds.toString() +
 		this.replyToSender +

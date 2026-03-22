@@ -61,7 +61,7 @@ public class CollectionCommand extends BotCommand {
 	public String getDescription(){ return cmdDesrciption;}
 	@Override
 	public String getDetailedExamples(){
-		return 
+		return
 		"""
 		```py
 		q!c 1234567 size>=6 tag=trivia name=geo o=date asc
@@ -150,10 +150,10 @@ public class CollectionCommand extends BotCommand {
 	}
 	
 	public static <T> CommandOutput execute(
-		String userId,  List<String> args, List<T> lists, 
-		Map<String, Map<Integer, List<List<T>>>> listsByLastIndexByUserId, 
-		Map<String, String> messageIdByUserId, 
-		Displayable<T> displ, 
+		String userId,  List<String> args, List<T> lists,
+		Map<String, Map<Integer, List<List<T>>>> listsByLastIndexByUserId,
+		Map<String, String> messageIdByUserId,
+		Displayable<T> displ,
 		String commandName)
 	{
 		Map<Integer, List<List<T>>> listsByLastIndex;

@@ -46,6 +46,7 @@ public class ButtonListener extends ListenerAdapter {
 		if (!BotCore.isBugFree() && !(BotCore.canIRunThisHere(event.getChannel().getId()))){
 			return;
 		}
+		event.deferEdit().queue();
 		MessageChannel channel = event.getChannel();
 		String componentId = event.getComponentId(); // The ID you assigned to the buttonBotCore.addUser(sender);
 		String userId = sender.getId();
@@ -68,7 +69,7 @@ public class ButtonListener extends ListenerAdapter {
 			if (viewer instanceof QuizBot && viewer.isActive()){
 				QuizBot quizBot = (QuizBot)viewer;
 				MessageSender.send(
-					new Output.Builder(quizBot.current()).sendInOriginalMessage(true).build(),
+					new Output.Builder(quizBot.getOutput(message)).setMessage(message).sendInOriginalMessage(true).build(),
 					event
 				);
 				if (quizBot.getPlayers().size()==1){
